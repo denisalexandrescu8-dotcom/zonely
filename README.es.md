@@ -9,16 +9,18 @@ Zonely divide un monitor grande en **zonas** independientes y coloca tus ventana
 > **Estado:** Windows es la versión madura; la de **macOS (Apple Silicon) es nueva y experimental**. Software joven: puede tener asperezas. Las incidencias y los *pull requests* son bienvenidos.
 
 ## Qué hace
-- **Varios monitores** — elige a cuál se aplican las zonas (Monitor, abajo a la izquierda del panel).
-- **Zonas y perfiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 en el centro y una zona a cada lado) y «normal» (sin zonas: Zonely no toca tus ventanas). Las zonas se editan en el panel.
+- **Varios monitores** — elige a cuál se aplican las zonas (Monitor, abajo a la izquierda del panel). **Cada monitor guarda sus propios perfiles**: puedes usar «normal» en uno y «ultrawide» en otro.
+- **Zonas y perfiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 en el centro y una zona a cada lado) y «normal» (sin zonas: Zonely no toca tus ventanas). **Editor de perfiles:** crea tus propios perfiles y divide la pantalla **en vertical y en horizontal** a tu gusto (hasta 6 zonas), arrastra las líneas para ajustar, copia o elimina perfiles.
+- **Idiomas** — español, inglés, francés, alemán, portugués e italiano (Ajustes → Idioma; por defecto, el del sistema).
 - **Selector de perfiles** (`Win+Alt+P`) con un aviso breve al cambiar.
-- **Encajar arrastrando** — mantén `Shift` mientras arrastras una ventana y suéltala sobre una zona (mitades arriba/abajo opcionales).
-- **Vigilante de maximizado** — una ventana maximizada a todo el monitor vuelve a su zona (con lista de exclusiones).
+- **Encajar arrastrando** — mantén `Shift` (o `Ctrl` / `Alt`: se elige en Ajustes) mientras arrastras una ventana y suéltala sobre una zona (mitades arriba/abajo opcionales).
+- **Vigilante de maximizado** — una ventana maximizada a todo el monitor vuelve a su zona (con lista de exclusiones). En macOS también sale de la pantalla completa (el botón verde) y va a su zona, si quieres.
 - **Recuperar tamaño** — si sacas una ventana de su zona, recupera su tamaño original.
 - **Modo juego** — ventana sin bordes en la zona que elijas, o conserva el tamaño del juego y lo centra.
 - **Capa oscura** — oscurece la otra zona (negro puro: píxeles apagados en un OLED) sin bloquear el ratón.
 - **Lista de juegos** — los procesos de `Games=` (Rainbow Six Siege por defecto) nunca se mueven ni se redimensionan solos.
-- Todos los atajos se pueden cambiar desde el panel.
+- Todos los atajos se pueden cambiar desde el panel. El icono de la bandeja / barra de menús también permite cambiar de perfil.
+- **Ligera con la batería:** sin sondeos constantes: reacciona a eventos del ratón y de las ventanas y duerme cuando no hay nada que hacer.
 
 <p>
 <img src="manual/img/selector.png" alt="Selector de perfiles" width="46%">
@@ -107,6 +109,9 @@ Después, doble clic en `ZoneManager.ahk` para lanzar el motor (o el interruptor
 powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 -Ahk2Exe C:\ruta\Ahk2Exe.exe
 ```
 Compila el motor con [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe/releases) y lo empaqueta todo con electron-builder en `dist\installer\`. Requiere AutoHotkey v2 y `npm install` dentro de `panel/`. El historial de cambios está en [`CHANGELOG.md`](CHANGELOG.md).
+
+## Traducciones
+Los textos del panel están en `panel/locales.js` y los de los motores (menús, avisos, selector de perfiles) en `i18n/engine.js`; el texto en español es la clave y cada fila lleva una columna por idioma. Para añadir un idioma: una columna más, su código en `LOCALE_ORDER` / `ORDER` su nombre en `panel/i18n.js` y su código en `LANGS` (`panel/main.js`); después, `node scripts/gen-strings.js` regenera las tablas de los motores. Los manuales están en español por ahora.
 
 ## Licencia
 Zonely es software libre bajo la **GNU GPL, versión 2** ([`LICENSE`](LICENSE)). Puedes usarlo, estudiarlo, modificarlo y compartirlo; si distribuyes una versión modificada, debes publicarla con su código fuente bajo la misma licencia. El motor lleva dentro el intérprete de AutoHotkey (GPL v2), y por eso todo el proyecto usa esa licencia. Las licencias de terceros están en [`THIRD_PARTY.md`](THIRD_PARTY.md).

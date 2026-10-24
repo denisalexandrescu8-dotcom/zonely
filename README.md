@@ -9,16 +9,18 @@ Zonely splits a big monitor into independent **zones** and puts your windows in 
 > **Status:** Windows is the mature version; the **macOS (Apple Silicon) version is brand new and experimental**. Early software — expect rough edges. Issues and pull requests are welcome.
 
 ## Features
-- **Several monitors** — choose which one the zones apply to (Monitor, bottom-left of the panel).
-- **Zones and profiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 in the middle with a zone on each side) and «normal» (no zones: Zonely leaves your windows alone). Edit the zones in the panel.
+- **Several monitors** — choose which one the zones apply to (Monitor, bottom-left of the panel). **Each monitor keeps its own profiles**, so you can use «normal» on one and «ultrawide» on another.
+- **Zones and profiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 in the middle with a zone on each side) and «normal» (no zones: Zonely leaves your windows alone). **Profile editor:** create your own profiles and split the screen **vertically and horizontally** as you like (up to 6 zones), drag the lines to resize, copy or delete profiles.
+- **Languages** — Spanish, English, French, German, Portuguese and Italian (Settings → Language; by default the system language).
 - **Profile picker** (`Win+Alt+P`) with a small confirmation toast when you switch.
-- **Snap by dragging** — hold `Shift` while dragging a window and drop it on a zone (optional top/bottom halves).
-- **Maximize watcher** — a window maximized across the whole monitor goes back to its zone (with an exclusion list).
+- **Snap by dragging** — hold `Shift` (or `Ctrl` / `Alt`: you choose in Settings) while dragging a window and drop it on a zone (optional top/bottom halves).
+- **Maximize watcher** — a window maximized across the whole monitor goes back to its zone (with an exclusion list). On macOS it also leaves full screen (the green button) and goes to its zone, if you want.
 - **Restore on leave** — take a window out of a zone and it gets its original size back.
 - **Game mode** — borderless window in the zone you choose, or keep the game's own size and center it.
 - **Dim layer** — darkens the other zone (pure black: pixels off on an OLED) without blocking the mouse.
 - **Games list** — processes in `Games=` (Rainbow Six Siege by default) are never moved or resized automatically.
-- Every shortcut can be changed in the panel.
+- Every shortcut can be changed in the panel. The tray / menu-bar icon also lets you switch profile.
+- **Light on battery:** no constant polling — it reacts to mouse and window events and sleeps when there is nothing to do.
 
 <p>
 <img src="manual/img/selector.png" alt="Profile picker" width="46%">
@@ -107,6 +109,9 @@ Then double-click `ZoneManager.ahk` to start the engine (or use the **Engine** s
 powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 -Ahk2Exe C:\path\to\Ahk2Exe.exe
 ```
 It compiles the engine with [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe/releases) and packages everything with electron-builder into `dist\installer\`. Needs AutoHotkey v2 and `npm install` inside `panel/`. See [`CHANGELOG.md`](CHANGELOG.md) for the history.
+
+## Translations
+The panel texts are in `panel/locales.js` and the engine texts (menus, notices, profile picker) in `i18n/engine.js`; the Spanish text is the key and every row has one column per language. To add a language, add a column, its code in `LOCALE_ORDER` / `ORDER`, its name in `panel/i18n.js` and its code in `LANGS` (`panel/main.js`); then run `node scripts/gen-strings.js` to regenerate the engine tables. The manuals are in Spanish for now.
 
 ## License
 Zonely is free software under the **GNU GPL v2** ([`LICENSE`](LICENSE)). You can use, study, modify and share it; if you distribute a modified version, you must publish it with its source code under the same license. The engine bundles the AutoHotkey interpreter (GPL v2), which is why the whole project uses that license. Third-party licenses are listed in [`THIRD_PARTY.md`](THIRD_PARTY.md).

@@ -132,6 +132,27 @@ jobs:
           ls -la release-files
           cat release-files/SHA256SUMS-*.txt > release-files/SHA256SUMS.txt
           rm release-files/SHA256SUMS-*.txt
+          # Las notas llevan los cambios de esta versión (la sección de CHANGELOG.md) y cómo instalarla.
+          v="${GITHUB_REF_NAME#v}"
+          tr -d '\r' < CHANGELOG.md | awk -v v="$v" '$0 == "## " v {f=1; next} /^## / {f=0} f' > changes.md
+          {
+            echo "## Zonely $v"
+            echo
+            echo "**Instalar / Install**"
+            echo
+            echo "- **Windows 10/11:** \`Zonely-Setup-$v.exe\`. Not code-signed: if SmartScreen warns, *More info → Run anyway*. / Sin firmar: si SmartScreen avisa, *Más información → Ejecutar de todas formas*."
+            echo "- **macOS (Apple Silicon):** in Terminal / en la Terminal:"
+            echo '  `curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install-mac.sh | bash`'
+            echo "  (or the \`.dmg\`: not notarized, so allow it in *System Settings → Privacy & Security → Open Anyway* / o el \`.dmg\`: sin notarizar, permítelo en *Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente*)."
+            echo "- If you already have Zonely, it updates itself. / Si ya tienes Zonely, se actualiza sola."
+            echo "- SHA-256: \`SHA256SUMS.txt\`."
+            echo
+            echo "**Novedades / What's new**"
+            echo
+            cat changes.md
+            echo
+            echo "Languages / Idiomas: es · en · fr · de · pt · it. [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)"
+          } > notes.md
           gh release create "${{ github.ref_name }}" release-files/* \
             --title "Zonely ${{ github.ref_name }}" \
-            --notes "Zonely ${{ github.ref_name }}. Windows 10/11: Zonely-Setup-*.exe. macOS (Apple Silicon): Zonely-*-mac-arm64.dmg. Installers are not code-signed: Windows SmartScreen may warn (More info > Run anyway); on macOS right-click the app > Open the first time. SHA-256 in SHA256SUMS.txt. / Instaladores sin firmar: SmartScreen puede avisar; en macOS, clic derecho > Abrir la primera vez. Cambios: CHANGELOG.md."
+            --notes-file notes.md

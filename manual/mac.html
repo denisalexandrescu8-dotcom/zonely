@@ -189,9 +189,9 @@
   </figure>
   <div class="tablewrap"><table>
     <tr><th>Sección</th><th>Qué hay</th><th>Capítulo</th></tr>
-    <tr><td>Zonas</td><td>Dibujo en vivo de tu pantalla, perfiles y editor de zonas.</td><td><a href="#zonas">4</a></td></tr>
+    <tr><td>Zonas</td><td>Dibujo en vivo de tu pantalla, perfiles y editor de perfiles (crear, dividir, eliminar).</td><td><a href="#zonas">4</a></td></tr>
     <tr><td>Atajos</td><td>Ver y cambiar las combinaciones de teclado.</td><td><a href="#resumen">11</a></td></tr>
-    <tr><td>Ajustes</td><td>Comportamiento de las ventanas, barra de menús, actualizaciones, modo juego, capa oscura y exclusiones.</td><td><a href="#vigilante">6</a>, <a href="#juegos">7</a>, <a href="#oscura">8</a></td></tr>
+    <tr><td>Ajustes</td><td>Comportamiento de las ventanas (vigilante, tecla para encajar, mitades, recuperar tamaño, pantalla completa a la zona), idioma, barra de menús, actualizaciones, modo juego, capa oscura y exclusiones.</td><td><a href="#vigilante">6</a>, <a href="#juegos">7</a>, <a href="#oscura">8</a></td></tr>
   </table></div>
 
   <h3>El icono de la barra de menús</h3>
@@ -248,12 +248,21 @@
   <p>Zonely <b>recuerda el último perfil</b> que usaste y lo vuelve a aplicar al reiniciar el Mac o el motor.</p>
   <p class="muted">Cambiar de perfil no mueve las ventanas que ya están colocadas: afecta a las siguientes acciones. Para recolocar una ventana, usa <span class="keys"><kbd>⌃</kbd><i>+</i><kbd>⌥</kbd><i>+</i><kbd>Z</kbd></span>.</p>
 
-  <h3>Ajustar las medidas con el editor de zonas</h3>
-  <p>Arrastra la línea blanca o escribe el ancho de la zona A; la zona B ocupa el resto. Cada zona tiene un mínimo de 400 puntos.</p>
+  <h3>Crear y editar perfiles</h3>
+  <p>El <b>Editor de perfiles</b> (en la vista Zonas) sirve para cambiar cualquier perfil o crear uno nuevo, con divisiones <b>verticales y horizontales</b> a tu gusto (hasta 6 zonas, A a F):</p>
+  <ol>
+    <li>Elige el perfil en el desplegable. Pulsa una zona para seleccionarla (se marca con un borde blanco).</li>
+    <li><b>Dividir ↔</b> la parte en dos, una al lado de la otra; <b>Dividir ↕</b>, una encima de la otra. Se puede dividir una zona ya dividida, tantas veces como quieras.</li>
+    <li>Arrastra las líneas blancas para ajustar los tamaños (saltan de 10 en 10 puntos; cada zona tiene un mínimo de 300×200). <b>Quitar zona</b> elimina la elegida y la contigua ocupa su sitio; las letras se renombran para seguir seguidas.</li>
+    <li><b>Guardar y aplicar</b> escribe el cambio en <code>zones.ini</code> y Zonely lo aplica solo. <b>Deshacer</b> descarta lo que no hayas guardado.</li>
+  </ol>
+  <p>Para un perfil nuevo, escribe el nombre y pulsa <b>Crear perfil</b> (empieza con una sola zona, la pantalla entera) o <b>Copiar el actual</b> (parte de una copia del perfil que estás viendo). <b>Eliminar perfil</b> pide una segunda pulsación para confirmar; siempre tiene que quedar al menos un perfil.</p>
   <figure class="shot">
-    <img src="img-mac/editor.png" alt="Editor de zonas con un divisor arrastrable entre A y B">
-    <figcaption>Editor de zonas. «Guardar y aplicar» escribe el cambio en <code>zones.ini</code> y Zonely lo aplica solo.</figcaption>
+    <img src="img-mac/editor.png" alt="Editor de perfiles con una zona dividida en vertical y otra en horizontal">
+    <figcaption>Editor de perfiles: zona A a la izquierda y la derecha dividida en B y C.</figcaption>
   </figure>
+  <p>Con más de dos zonas, <kbd>⌃</kbd><i>+</i><kbd>⌥</kbd><i>+</i><kbd>←</kbd>/<kbd>→</kbd> mueven la ventana a la zona vecina siguiendo el orden de izquierda a derecha (y de arriba abajo si están apiladas), y las mitades de arriba y de abajo (<kbd>↑</kbd>/<kbd>↓</kbd>) siguen siendo las de la zona B. El encaje arrastrando, el vigilante, la capa oscura y los selectores usan siempre la zona que esté bajo la ventana o el cursor, sea cual sea el reparto.</p>
+  <p><b>Cada monitor guarda sus propios perfiles</b> y cuál usa: si en un monitor quieres «normal» y en otro «ultrawide», elige el monitor y deja ahí el perfil que quieras; el otro no cambia.</p>
 </section>
 
 <!-- ============ 5 ============ -->
@@ -277,6 +286,7 @@
   <p>Con el perfil de tres zonas, <span class="keys"><kbd>⌃</kbd><i>+</i><kbd>⌥</kbd><i>+</i><kbd>←</kbd></span> y <span class="keys"><kbd>⌃</kbd><i>+</i><kbd>⌥</kbd><i>+</i><kbd>→</kbd></span> pasan la ventana a la zona vecina. Si la ventana estaba en <b>pantalla completa nativa</b>, Zonely sale primero de ella y la coloca después (tarda una animación).</p>
 
   <h3>B) Arrastrando con una tecla (como FancyZones)</h3>
+  <p class="muted">Por defecto es <kbd>⇧</kbd>. Se puede cambiar (Shift, Ctrl u Option) en <b>Ajustes → Tecla para encajar</b>.</p>
   <ol class="steps">
     <li>Empieza a arrastrar una ventana por su barra de título.</li>
     <li>Sin soltar el botón, <b>mantén pulsada <kbd>⇧</kbd></b> (Mayúsculas). Aparecen las zonas sobre la pantalla y la elegida se ilumina en blanco. Por defecto solo puedes elegir la zona de la izquierda o la de la derecha, enteras.</li>
@@ -292,6 +302,9 @@
 <section class="chap" id="vigilante">
   <h2><span class="n">06</span>El vigilante</h2>
   <p>Cuando maximizas una ventana (por ejemplo con <kbd>⌥</kbd> + clic en el botón verde, o con el zoom), esta ocupa toda el área útil. El <b>vigilante</b> lo detecta y la devuelve a su zona.</p>
+
+  <h3>El botón verde (pantalla completa)</h3>
+  <p>Si una ventana entra en <b>pantalla completa</b> con el botón verde, el vigilante sale de ella y la coloca en su zona. Se apaga en <b>Ajustes → Pantalla completa a la zona</b> (por ejemplo, para ver vídeo a pantalla completa sin que Zonely lo toque).</p>
 
   <h3>Qué ventanas deja en paz</h3>
   <ul>
