@@ -122,9 +122,9 @@ const monitorLabel = (m) => (m.primary ? t('{name} (principal)', { name: m.name 
 let monitorsKey = '';
 function paintMonitorPicker() {
   const list = state.monitors ?? [];
-  const chosen = list.find((m) => m.id === config.monitor.id) ?? list.find((m) => m.primary) ?? list[0];
+  const chosen = list.find((m) => m.id === config.monitor.id) ?? list.find((m) => m.id === state.monitor) ?? list.find((m) => m.primary) ?? list[0];
   $('mon-name').textContent = chosen ? chosen.name : t('Monitor principal');
-  $('res').textContent = `${config.monitor.w}×${config.monitor.h}`;
+  $('res').textContent = chosen ? `${chosen.w}×${chosen.h}` : `${config.monitor.w}×${config.monitor.h}`;
   $('monitor-card').title = `${$('mon-name').textContent} · ${$('res').textContent}`;      // el nombre completo, por si no cabe
   const pickable = list.length > 1;
   $('monitor-card').classList.toggle('pickable', pickable);

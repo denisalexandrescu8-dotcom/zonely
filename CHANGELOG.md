@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.49.0
+- **Mac:** la app y el motor se firman ahora con un **certificado propio fijo** (autofirmado, sin valor ante Apple) en lugar de «ad hoc»: así la identidad de la firma es la misma en todas las versiones y macOS **deja de pedir el permiso de Accesibilidad tras cada actualización**. Esta primera vez con la firma nueva macOS lo pedirá una última vez; si los atajos no responden después de actualizar, abre *Ajustes del Sistema → Privacidad y seguridad → Accesibilidad*, quita *ZonelyEngine* con «−» y vuelve a añadirlo. Además, si falta el permiso y intentas encajar una ventana, ahora te avisa en pantalla.
+- **Monitores:** si el monitor guardado en `zones.ini` ya no está conectado (por ejemplo el externo que dejó un 5120×1440 en el portátil), el panel pasa solo al monitor que usa el motor y ajusta el tamaño que enseña y las zonas; el selector enseña el tamaño real de la pantalla elegida.
+
 ## 0.48.0
 - (Documentación) Los manuales de Windows y de Mac explican el editor de perfiles, los perfiles por monitor, la tecla para encajar y, en Mac, la pantalla completa a la zona; las capturas están rehechas. Las notas de cada release salen ahora del CHANGELOG, con instrucciones de instalación en español e inglés.
 - **Nuevo: idiomas.** El panel, los avisos, los menús de la bandeja y de la barra de menús, el selector de perfiles y los diálogos de actualización están ahora en **español, inglés, francés, alemán, portugués e italiano**. Se elige en Ajustes → Idioma (por defecto, el del sistema) y se guarda en `[General] Language` de `zones.ini`. Los textos del panel están en `panel/locales.js` y los de los motores en `i18n/engine.js` (de ahí se generan `lib/Strings.ahk` y `mac/Sources/ZonelyCore/Strings.swift` con `node scripts/gen-strings.js`); añadir otro idioma es añadir una columna. El Registro y la ventana de depuración (solo desarrollo) siguen en español.

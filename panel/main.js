@@ -404,7 +404,26 @@ function startEngine() {
 }
 
 ipcMain.handle('config:get', () => readConfig());
-ipcMain.handle('state:get', () => readState());
+// Si el monitor guardado en zones.ini ya no está conectado (o ha cambiado de tamaño), el panel lo pone al día con el que de verdad
+// está usando el motor: así no se enseña (ni se edita) un 5120×1440 de un monitor externo que ya no está.
+let lastReconcile = 0;
+function reconcileMonitor(st) {
+  if (!st.engineUp || !Array.isArray(st.monitors) || !st.monitors.length || Date.now() - lastReconcile < 5000) return;
+  let cfg;
+  try { cfg = readConfig(); } catch { return; }
+  const known = st.monitors.find((m) => m.id === cfg.monitor.id);
+  let target = null;
+  if (!known) target = st.monitors.find((m) => m.id === st.monitor) || st.monitors.find((m) => m.primary) || st.monitors[0];
+  else if (known.w !== cfg.monitor.w || known.h !== cfg.monitor.h) target = known;
+  if (!target) return;
+  lastReconcile = Date.now();
+  try { setMonitor(target.id); } catch (e) { appendLog('WARN', `Monitor: ${e.message}`); }
+}
+ipcMain.handle('state:get', () => {
+  const st = readState();
+  reconcileMonitor(st);
+  return st;
+});
 ipcMain.handle('cmd:send', (_e, cmd) => sendCommand(cmd));
 ipcMain.handle('config:saveProfile', (_e, a) => saveProfile(a));
 ipcMain.handle('config:createProfile', (_e, a) => createProfile(a));

@@ -40,6 +40,9 @@ final class SnapController {
     private func tick() {
         guard engine.state.snap, !engine.state.paused, engine.config != nil, Accessibility.isTrusted(prompt: false) else {
             if wasDown || window != nil { reset() }
+            // Sin permiso de Accesibilidad el encaje no puede funcionar: se avisa si se intenta con la tecla pulsada.
+            if engine.state.snap, !Accessibility.isTrusted(prompt: false), NSEvent.pressedMouseButtons & 1 != 0,
+               NSEvent.modifierFlags.contains(snapFlag) { engine.warnNoAccessibility() }
             return
         }
         let down = NSEvent.pressedMouseButtons & 1 != 0

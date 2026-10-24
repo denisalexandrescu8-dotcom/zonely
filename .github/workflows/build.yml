@@ -47,6 +47,11 @@ jobs:
         run: npm ci
 
       - name: Construir el instalador
+        env:
+          # Certificado autofirmado (secretos del repositorio): mantiene la misma identidad de firma entre versiones
+          # para que macOS no vuelva a pedir el permiso de Accesibilidad en cada actualización. Sin él, firma ad hoc.
+          MAC_SIGN_P12_BASE64: ${{ secrets.MAC_SIGN_P12_BASE64 }}
+          MAC_SIGN_P12_PASSWORD: ${{ secrets.MAC_SIGN_P12_PASSWORD }}
         run: bash scripts/build-mac.sh
 
       - name: Suma de comprobación

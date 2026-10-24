@@ -20,6 +20,7 @@ final class Engine {
     private var tickInterval: TimeInterval = 1.0
     private var watchUntil = Date.distantPast        // hasta cuándo se atiende al panel deprisa
     private var lastBeat = Date.distantPast
+    private var lastAccessibilityWarning = Date.distantPast
     private var mouseUpMonitor: Any?
     private var appChangeObserver: NSObjectProtocol?
     private let updates = BackgroundUpdates()
@@ -127,6 +128,14 @@ final class Engine {
         writeState()
         dim.update()
         if origin == "selector", let config = config { Hud.showProfile(profile, monitorWidth: config.monitorWidth) }
+    }
+
+    /// Sin el permiso de Accesibilidad nada de lo que mueve ventanas funciona. Se avisa como mucho una vez cada 30 s.
+    func warnNoAccessibility() {
+        guard Date().timeIntervalSince(lastAccessibilityWarning) > 30 else { return }
+        lastAccessibilityWarning = Date()
+        Hud.showText(tr("Falta el permiso de Accesibilidad (menú de Zonely)"))
+        Log.write("Falta el permiso de Accesibilidad: no se puede encajar ni colocar ventanas", level: "WARN")
     }
 
     func togglePicker() {
