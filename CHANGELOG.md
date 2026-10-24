@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.40.0
+- **Nuevo:** Zonely recuerda el último perfil que usaste (selector, atajo o panel) y lo vuelve a aplicar al reiniciar el ordenador o el motor. Se guarda en `last-profile.txt` dentro de la carpeta de datos; si ese perfil ya no existe, se usa el de `[General] Profile`.
+
 ## 0.39.0
 - **Cambio:** la píldora «Motor activo» y el botón Manual salen de la cabecera. El estado del motor pasa a **Ajustes → Motor**, con un interruptor para encenderlo o apagarlo (apagado, Zonely deja de colocar ventanas hasta que lo enciendas o inicies sesión; el icono de Ajustes lleva un punto rojo si el motor está parado). **Manual** pasa a la barra lateral, debajo de Atajos. Nueva orden `quit` para apagar el motor (Windows y macOS); en macOS, si lo apagas a mano, el panel no lo vuelve a arrancar al abrirse.
 - La tarjeta del monitor de la barra lateral ya no dice «Odyssey OLED G9»: pone «Monitor principal» y su resolución.

@@ -77,7 +77,11 @@ final class Engine {
             let loaded = try Config.load()
             config = loaded
             configError = nil
-            if loaded.profile(named: state.profile) == nil || ticks == 0 { state.profile = loaded.startProfile }
+            if loaded.profile(named: state.profile) == nil || ticks == 0 {
+                let last = (try? String(contentsOf: Paths.lastProfileURL, encoding: .utf8))?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                state.profile = loaded.profile(named: last) != nil ? last : loaded.startProfile
+            }
             if ticks == 0 {
                 state.watcher = loaded.watcherEnabled
                 state.snap = loaded.snapEnabled
@@ -103,6 +107,7 @@ final class Engine {
     func setProfile(_ name: String, origin: String) {
         guard let profile = config?.profile(named: name) else { return }
         state.profile = name
+        try? name.write(to: Paths.lastProfileURL, atomically: true, encoding: .utf8)   // se recupera al reiniciar
         if !profile.isZoned { state.dim = "" }                  // sin zonas no hay nada que atenuar
         Log.write("Perfil: \(name) (\(origin))")
         writeState()

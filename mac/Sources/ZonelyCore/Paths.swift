@@ -13,6 +13,7 @@ public enum Paths {
     }
 
     public static var iniURL: URL { dataDir.appendingPathComponent("zones.ini") }
+    public static var lastProfileURL: URL { dataDir.appendingPathComponent("last-profile.txt") }
     public static var ipcDir: URL { dataDir.appendingPathComponent("ipc", isDirectory: true) }
     public static var logDir: URL { dataDir.appendingPathComponent("logs", isDirectory: true) }
     public static var logFile: URL { logDir.appendingPathComponent("gestor.log") }

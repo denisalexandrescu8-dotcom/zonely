@@ -51,6 +51,9 @@ class Config {
             throw Error("zones.ini no define ningún perfil [Profile.xxx]")
 
         this.ProfileName := IniRead(this.IniPath, "General", "Profile", "ultrawide")
+        last := this.LastProfile()                         ; el último perfil usado gana sobre el del .ini
+        if last != "" && this.Profiles.Has(last)
+            this.ProfileName := last
         if !this.Profiles.Has(this.ProfileName)
             throw Error("El perfil '" this.ProfileName "' no existe en zones.ini")
         this._LoadOptions()
@@ -147,11 +150,20 @@ class Config {
         return list
     }
 
+    ; Último perfil usado (guardado en last-profile.txt para recuperarlo al reiniciar). "" si no hay.
+    static LastProfile() {
+        try return Trim(FileRead(DataDir "\last-profile.txt", "UTF-8"), " `t`r`n")
+        return ""
+    }
+
     ; Activa un perfil por nombre. Devuelve false si no existe.
     static SetProfile(name) {
         if !this.Profiles.Has(name)
             return false
         this.ProfileName := name
+        try {
+            FileOpen(DataDir "\last-profile.txt", "w", "UTF-8-RAW").Write(name)
+        }
         return true
     }
 
