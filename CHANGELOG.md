@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.50.0
+- **Perfiles por monitor:** el conjunto de perfiles de cada monitor se guarda ahora **en cada cambio** (antes solo al cambiar de monitor), así que no se pierde si el monitor desaparece, se desenchufa o se cierra la app; el perfil activo también se guarda por monitor.
+- **Editor de perfiles:** la zona elegida tiene ahora campos **Ancho (px)** y **Alto (px)** para escribir su tamaño exacto; la zona contigua se ajusta (mínimo 300×200).
+
 ## 0.49.0
 - **Mac:** la app y el motor se firman ahora con un **certificado propio fijo** (autofirmado, sin valor ante Apple) en lugar de «ad hoc»: así la identidad de la firma es la misma en todas las versiones y macOS **deja de pedir el permiso de Accesibilidad tras cada actualización**. Esta primera vez con la firma nueva macOS lo pedirá una última vez; si los atajos no responden después de actualizar, abre *Ajustes del Sistema → Privacidad y seguridad → Accesibilidad*, quita *ZonelyEngine* con «−» y vuelve a añadirlo. Además, si falta el permiso y intentas encajar una ventana, ahora te avisa en pantalla.
 - **Monitores:** si el monitor guardado en `zones.ini` ya no está conectado (por ejemplo el externo que dejó un 5120×1440 en el portátil), el panel pasa solo al monitor que usa el motor y ajusta el tamaño que enseña y las zonas; el selector enseña el tamaño real de la pantalla elegida.

@@ -14,7 +14,7 @@ const ed = { reload: false, profile: null, tree: null, selected: 'A', savedKey: 
 const edEl = {
   monitor: $('ed-monitor'), select: $('ed-profile'), info: $('ed-info'), msg: $('ed-msg'),
   splitV: $('ed-split-v'), splitH: $('ed-split-h'), remove: $('ed-remove'),
-  save: $('ed-save'), reset: $('ed-reset'),
+  save: $('ed-save'), reset: $('ed-reset'), width: $('ed-w'), height: $('ed-h'),
   name: $('ed-name'), create: $('ed-create'), copy: $('ed-copy'), del: $('ed-delete'),
 };
 
@@ -142,6 +142,10 @@ function edPaint() {
   edEl.splitV.disabled = !sel || count >= ZONE_IDS.length || sel.w < MIN_W * 2;
   edEl.splitH.disabled = !sel || count >= ZONE_IDS.length || sel.h < MIN_H * 2;
   edEl.remove.disabled = !sel || count < 2;
+  for (const [input, dir, value] of [[edEl.width, 'v', sel && sel.w], [edEl.height, 'h', sel && sel.h]]) {
+    input.disabled = !editable || !edCutOf(dir);
+    if (document.activeElement !== input) input.value = value ?? '';
+  }
   const dirty = edKey() !== ed.savedKey;
   edEl.save.disabled = !dirty;
   edEl.reset.disabled = !dirty;
@@ -158,6 +162,29 @@ function edNote(text) {
 }
 
 // ---------- operaciones ----------
+// El corte más cercano, en esa dirección, que toca la zona elegida (null si la zona ya ocupa todo ese eje).
+function edCutOf(dir) {
+  const path = (node, trail = []) => {
+    if (isLeaf(node)) return node.id === ed.selected ? trail : null;
+    return path(node.a, [...trail, { node, side: 'a' }]) || path(node.b, [...trail, { node, side: 'b' }]);
+  };
+  const trail = ed.tree && path(ed.tree);
+  if (!trail) return null;
+  const hit = [...trail].reverse().find((s) => s.node.dir === dir);
+  return hit ? { ...hit, b: edRects().cuts.find((c) => c.node === hit.node).b } : null;
+}
+
+// Pone el ancho o el alto exacto de la zona elegida moviendo ese corte (la contigua se ajusta).
+function edSetSize(dir, value) {
+  const cut = edCutOf(dir);
+  const px = parseInt(value, 10);
+  if (!cut || !Number.isFinite(px)) return edPaint();
+  const total = dir === 'v' ? cut.b.w : cut.b.h, min = dir === 'v' ? MIN_W : MIN_H;
+  const own = Math.min(total - min, Math.max(min, px));
+  if (own !== px) edNote(t('Entre {min} y {max} px', { min, max: total - min }));
+  cut.node.f = (cut.side === 'a' ? own : total - own) / total;
+  edPaint();
+}
 function edReplace(node, target, replacement) {      // devuelve el árbol con `target` sustituido por `replacement`
   if (node === target) return replacement;
   if (isLeaf(node)) return node;
@@ -238,6 +265,8 @@ edEl.select.addEventListener('change', () => {
   ed.selected = 'A';
   edSync();
 });
+edEl.width.addEventListener('change', () => edSetSize('v', edEl.width.value));
+edEl.height.addEventListener('change', () => edSetSize('h', edEl.height.value));
 edEl.splitV.addEventListener('click', () => edSplit('v'));
 edEl.splitH.addEventListener('click', () => edSplit('h'));
 edEl.remove.addEventListener('click', edRemove);

@@ -186,6 +186,9 @@ input[type="number"] { width: 96px; }
 .ed .handle.h::after { content: "⇕"; }
 .ed-new { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
 .ed-new input[type="text"] { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 6px 10px; outline: none; min-width: 160px; }
+.ed-size { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.ed-size input { width: 76px; font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 5px 9px; outline: none; }
+.ed-size input:disabled { opacity: .45; }
 .ed-msg { color: var(--warn); font-size: 12px; min-height: 16px; }
 .ed-row { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
 .stage-head select { max-width: 220px; }

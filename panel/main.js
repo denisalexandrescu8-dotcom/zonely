@@ -192,6 +192,21 @@ function writeIni(edit) {
   const tmp = INI + '.tmp';
   fs.writeFileSync(tmp, out, 'utf8');
   fs.renameSync(tmp, INI);
+  snapshotMonitor();
+}
+
+// Cada cambio de zones.ini deja al día el conjunto de perfiles del monitor actual (monitors/<id>.json), no solo al cambiar de
+// monitor: así no se pierde si el monitor desaparece, la app se cierra o el motor reescribe el ini.
+function snapshotMonitor() {
+  try {
+    const cfg = readConfig();
+    if (!cfg.monitor.id || !cfg.profiles.length) return;
+    fs.mkdirSync(MONITORS_DIR, { recursive: true });
+    let last = '';
+    try { last = fs.readFileSync(path.join(DATA_DIR, 'last-profile.txt'), 'utf8').trim(); } catch { /* aún no hay */ }
+    const active = [last, cfg.startProfile].find((n) => n && cfg.profiles.some((p) => p.id === n)) || cfg.profiles[0].id;
+    fs.writeFileSync(monitorFile(cfg.monitor.id), JSON.stringify({ w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles }));
+  } catch { /* la copia por monitor es un extra: si falla, el ini sigue valiendo */ }
 }
 
 // ---- perfiles: editar, crear, borrar y un conjunto por monitor ------------------------------------------------------
@@ -303,7 +318,7 @@ function setMonitor(id) {
   const mon = (st.monitors || []).find((m) => m.id === id);
   if (!st.engineUp || !mon) throw new Error('Monitor no disponible: enciende el motor y vuelve a probar');
   const cfg = readConfig();
-  const current = cfg.monitor.id || (st.monitors.find((m) => m.primary) || {}).id || '';
+  const current = cfg.monitor.id || st.monitor || (st.monitors.find((m) => m.primary) || {}).id || '';
   const active = st.profile && cfg.profiles.some((p) => p.id === st.profile) ? st.profile : cfg.startProfile;
   if (current === mon.id && cfg.monitor.w === mon.w && cfg.monitor.h === mon.h) return;
 
@@ -521,6 +536,7 @@ function autoUpdateEnabled() {
 
 app.whenReady().then(() => {
   if (!gotLock) return;                           // ya hay otro panel abierto: este se cierra solo
+  snapshotMonitor();                              // deja guardado el conjunto de perfiles del monitor con el que arranca
   if (BACKGROUND) {                               // lo lanza el motor cada pocas horas: sin ventana, busca e instala la actualización
     if (process.platform === 'darwin' && app.dock) app.dock.hide();
     appendLog('INFO', `Comprobación de actualizaciones en segundo plano (v${readVersion()})`);
