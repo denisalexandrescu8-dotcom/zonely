@@ -1,54 +1,81 @@
 # Zonely
 
-Divide un monitor 5120×1440 en zonas independientes (por ejemplo, el juego a la izquierda y tus apps a la derecha). Las medidas viven en `zones.ini`.
+**Your screen. Your way.** · [Leer en español](README.es.md)
 
-**Dónde se guardan tus datos:** `%APPDATA%\Zonely` (`zones.ini`, `logs`, `ipc`). El `zones.ini` de la carpeta del proyecto es solo la plantilla que se copia la primera vez. Para cambiar un ajuste a mano, edita el de `%APPDATA%\Zonely`.
+Zonely splits a big monitor into independent **zones** and puts your windows in them: the game on the left, Discord, a browser or OBS on the right — as if you had two monitors. Built for ultrawide screens (the default zones fit a 5120×1440 monitor, and you can edit them).
 
-Tiene dos piezas: el **motor** (AutoHotkey v2, siempre en segundo plano, hace todo el trabajo) y el **panel** (Electron, la interfaz para ver y cambiar ajustes; se puede cerrar).
+![Zonely control panel](manual/img/panel.png)
 
-## Instalar y arrancar
-1. Instala AutoHotkey v2: `winget install AutoHotkey.AutoHotkey` (o desde https://www.autohotkey.com).
-2. Doble clic en `ZoneManager.ahk` para lanzar el motor.
-3. Para que el motor arranque con Windows y tener el panel en el menú Inicio: `powershell -ExecutionPolicy Bypass -File scripts\install-startup.ps1` (se quita con `scripts\uninstall-startup.ps1`).
-4. El panel se abre desde el menú Inicio («Zonely»). Requiere haber ejecutado `npm install` una vez dentro de `panel/`.
+> **Status:** Windows only for now. Early software, used daily by its author — expect rough edges. Issues and pull requests are welcome.
 
-**Manual de uso con gráficos:** `manual/index.html` (también desde el botón *Manual* del panel).
+## Features
+- **Zones and profiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 in the middle with a zone on each side) and «normal» (no zones: Zonely leaves your windows alone). Edit the zones in the panel.
+- **Profile picker** (`Win+Alt+P`) with a small confirmation toast when you switch.
+- **Snap by dragging** — hold `Shift` while dragging a window and drop it on a zone (optional top/bottom halves).
+- **Maximize watcher** — a window maximized across the whole monitor goes back to its zone (with an exclusion list).
+- **Restore on leave** — take a window out of a zone and it gets its original size back.
+- **Game mode** — borderless window in the zone you choose, or keep the game's own size and center it.
+- **Dim layer** — darkens the other zone (pure black: pixels off on an OLED) without blocking the mouse.
+- **Games list** — processes in `Games=` (Rainbow Six Siege by default) are never moved or resized automatically.
+- Every shortcut can be changed in the panel.
 
-## Atajos
-Se pueden cambiar desde el panel (tarjeta «Atajos de teclado») o en la sección `[Hotkeys]` de `zones.ini`. Los de fábrica:
-| Atajo | Acción |
+<p>
+<img src="manual/img/selector.png" alt="Profile picker" width="46%">
+<img src="manual/img/atajos.png" alt="Shortcuts" width="46%">
+</p>
+
+## Install (Windows 10/11)
+1. Download `Zonely-Setup-<version>.exe` from the [Releases](../../releases) page and run it.
+2. Windows may show «Windows protected your PC»: click **More info → Run anyway**. The installer is **not code-signed** yet (certificates cost money), so SmartScreen warns about unknown publishers. You can check the SHA-256 listed in the release notes.
+3. Follow the wizard. When it finishes, the engine starts (it also starts with Windows) and the panel opens.
+
+Your settings live in `%APPDATA%\Zonely` (`zones.ini`, logs), so updating or reinstalling never overwrites them. Uninstalling does not delete them either.
+
+A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and behind the **Manual** button of the panel.
+
+## Default shortcuts
+| Shortcut | Action |
 |---|---|
-| Win+Alt+Z | Llenar la zona actual |
-| Win+Alt+Izq / Der | Mover a la zona de la izquierda / derecha |
-| Win+Alt+Arriba / Abajo | Mitad superior / inferior (solo zona B) |
-| Shift + arrastrar | Encajar en la zona izquierda o derecha (mitades opcionales) |
-| Win+Alt+G | Modo juego (sin bordes en la zona A) / restaurar |
-| Win+Alt+Mayús+G | Modo juego conservando el tamaño interior |
-| Win+Alt+Mayús+Izq / Der | Centrar en la zona A / B sin cambiar el tamaño |
-| Win+Alt+Retroceso | Deshacer la última colocación |
-| Win+Alt+Q | Devolver la ventana activa a su tamaño original (el de antes de entrar en una zona) |
-| Win+Alt+P | Elegir perfil (abre un selector) |
-| Win+Alt+W | Activar/desactivar el vigilante de maximizado |
-| Win+Alt+O | Capa oscura sobre la zona que no es la de la ventana activa |
-| Win+Alt+D | Ventana de depuración de la ventana activa |
+| `Win+Alt+Z` | Fill the current zone |
+| `Win+Alt+←` / `→` | Move to the left / right zone |
+| `Win+Alt+↑` / `↓` | Top / bottom half (zone B) |
+| `Shift` + drag | Snap to a zone |
+| `Win+Alt+G` | Game mode (borderless in the zone) / restore |
+| `Win+Alt+Shift+G` | Game mode keeping the window's inner size |
+| `Win+Alt+Shift+←` / `→` | Center in zone A / B without resizing |
+| `Win+Alt+Backspace` | Undo the last placement |
+| `Win+Alt+Q` | Back to the window's original size |
+| `Win+Alt+P` | Profile picker |
+| `Win+Alt+W` | Toggle the maximize watcher |
+| `Win+Alt+O` | Dim the zone that is not active |
+| `Win+Alt+D` | Debug window for the active window |
 
-## Qué hace
-- **Zonas y perfiles**: «ultrawide» (3440 + 1680) y «dual» (2560 + 2560), «centrado» (16:9 en el centro y una zona a cada lado) y «normal» (pantalla completa, sin zonas: el gestor no toca nada); las zonas se ajustan en el editor del panel.
-- **Vigilante**: si una ventana se maximiza a los 5120 px, vuelve a su zona (con lista de exclusiones).
-- **Encajar arrastrando**: mantén Shift mientras arrastras. Por defecto solo izquierda o derecha, enteras; con «Permitir elegir mitades» también arriba/abajo en la zona B.
-- **Al salir de una zona**: si una ventana colocada en una zona se saca de ella, recupera el tamaño que tenía antes de entrar (se desactiva en el panel o con `RestoreOnLeave=0`).
-- **Modo juego**: quita los bordes y deja la ventana en la zona A, o conserva su tamaño interior y la centra.
-- **Capa oscura**: atenúa una zona.
-- **Depuración y registro**: qué mide de verdad una ventana, y `logs/gestor.log` con lo que ha hecho el programa.
+## How it works
+Two pieces talk through two small files (no network):
+- the **engine** — an [AutoHotkey v2](https://www.autohotkey.com/) script (compiled to `ZonelyEngine.exe` in the installer) that moves windows, listens to shortcuts and runs in the background;
+- the **panel** — an [Electron](https://www.electronjs.org/) app to see the state and change settings. You can close it; the engine keeps working.
 
-## Limitaciones
-- Pantalla completa exclusiva y juegos con anti-cheat pueden ignorar o bloquear los cambios.
-- Ventanas de programas ejecutados como administrador no se pueden mover desde un script sin elevar.
+## Limitations
+- **Exclusive fullscreen** games decide their own size; Zonely cannot put them in a zone. Use *borderless* / *windowed* mode in the game.
+- **Strict anti-cheat** (Vanguard, FACEIT, BattlEye in some games…) may block any change to a game window. Zonely does not try to bypass it.
+- Windows of programs run **as administrator** cannot be moved unless the engine is elevated too.
 
-## Instalador de Windows
-`powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1` compila el motor (Ahk2Exe) y empaqueta el panel (electron-builder) en `dist\installer\Zonely-Setup-<versión>.exe`.
-Requisitos: AutoHotkey v2, [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe/releases) (`-Ahk2Exe <ruta>` o variable `AHK2EXE`) y `npm install` dentro de `panel/`.
-El instalador es por usuario (no pide administrador) y no está firmado: Windows SmartScreen avisará al ejecutarlo hasta que se firme con un certificado de código.
+## Run from source
+You need [AutoHotkey v2](https://www.autohotkey.com/) and [Node.js](https://nodejs.org/).
 
-## Licencia
-Zonely es software libre bajo la **GNU GPL, versión 2** (ver `LICENSE`). Puedes usarlo, estudiarlo, modificarlo y compartirlo; si distribuyes una versión modificada, debes publicarla con el código fuente bajo la misma licencia. Las licencias de los componentes de terceros están en `THIRD_PARTY.md`.
+```bash
+cd panel
+npm install
+npm start
+```
+
+Then double-click `ZoneManager.ahk` to start the engine (or use the **Start engine** button of the panel).
+
+## Build the installer
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 -Ahk2Exe C:\path\to\Ahk2Exe.exe
+```
+It compiles the engine with [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe/releases) and packages everything with electron-builder into `dist\installer\`. Needs AutoHotkey v2 and `npm install` inside `panel/`. See [`CHANGELOG.md`](CHANGELOG.md) for the history.
+
+## License
+Zonely is free software under the **GNU GPL v2** ([`LICENSE`](LICENSE)). You can use, study, modify and share it; if you distribute a modified version, you must publish it with its source code under the same license. The engine bundles the AutoHotkey interpreter (GPL v2), which is why the whole project uses that license. Third-party licenses are listed in [`THIRD_PARTY.md`](THIRD_PARTY.md).
