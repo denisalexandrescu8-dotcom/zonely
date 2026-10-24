@@ -41,6 +41,24 @@ A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/in
 3. Zonely needs the **Accessibility** permission to move other apps' windows: System Settings → Privacy & Security → Accessibility → enable *ZonelyEngine*. The menu-bar icon has a shortcut to that pane.
 4. Shortcuts on macOS are **⌃⌥ + key** (e.g. ⌃⌥Z), editable in the panel. Game mode fills the zone (macOS cannot remove another app's window borders). Settings live in `~/Library/Application Support/Zonely`.
 
+There is a macOS user guide in [`manual/mac.html`](manual/mac.html) (Spanish for now), also behind the **Manual** button of the panel.
+
+## Default shortcuts (macOS)
+| Shortcut | Action |
+|---|---|
+| `⌃⌥Z` | Fill the current zone |
+| `⌃⌥←` / `→` | Move to the left / right zone |
+| `⌃⌥↑` / `↓` | Top / bottom half (zone B) |
+| `⇧` + drag | Snap to a zone |
+| `⌃⌥G` | Game mode (fill the game zone) / restore |
+| `⌃⌥⇧G` | Game mode keeping the window's size |
+| `⌃⌥⇧←` / `→` | Center in the left / right zone without resizing |
+| `⌃⌥⌫` | Undo the last placement |
+| `⌃⌥Q` | Back to the window's original size |
+| `⌃⌥P` | Profile picker |
+| `⌃⌥W` | Toggle the maximize watcher |
+| `⌃⌥O` | Dim the zones that are not active |
+
 ## Default shortcuts (Windows)
 | Shortcut | Action |
 |---|---|

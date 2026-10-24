@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## 0.37.0
+- **Nuevo:** manual de uso para macOS (`manual/mac.html`, con capturas del panel tal como se ve en Mac): instalación y permiso de Accesibilidad, barra de menús, atajos ⌃⌥, diferencias con Windows (modo juego sin quitar bordes, exclusiones por nombre de app), actualizaciones, solución de problemas y desinstalación. El botón Manual del panel abre el manual que corresponde a cada sistema.
+- **Arreglo:** en el panel de macOS, los textos fijos con atajos largos («Win+Alt+Mayús+G») ahora salen como «⌃⌥⇧G». Se quita de la ayuda de Atajos la mención a «recargar el motor».
+- README: tabla de atajos de macOS.
+
 ## 0.36.0
 - **Nuevo (macOS):** en Ajustes → Barra de menús hay un interruptor para mostrar u ocultar el icono de Zonely en la parte superior de la pantalla (`[General] MenuBarIcon` en `zones.ini`). Con el icono oculto, Zonely sigue funcionando y los atajos también; para abrir el panel se usa la app desde Aplicaciones. El ajuste solo aparece en el panel de macOS.
 

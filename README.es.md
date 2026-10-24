@@ -41,6 +41,24 @@ La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y 
 3. Zonely necesita el permiso de **Accesibilidad** para mover ventanas de otras apps: Ajustes del Sistema → Privacidad y seguridad → Accesibilidad → activa *ZonelyEngine*. El icono de la barra de menús tiene un acceso directo a ese panel.
 4. En macOS los atajos son **⌃⌥ + tecla** (por ejemplo ⌃⌥Z), editables en el panel. El modo juego llena la zona (macOS no permite quitar los bordes de la ventana de otra app). Los ajustes están en `~/Library/Application Support/Zonely`.
 
+Hay un manual de uso para macOS en [`manual/mac.html`](manual/mac.html), también tras el botón **Manual** del panel.
+
+## Atajos de fábrica (macOS)
+| Atajo | Acción |
+|---|---|
+| `⌃⌥Z` | Llenar la zona actual |
+| `⌃⌥←` / `→` | Mover a la zona de la izquierda / derecha |
+| `⌃⌥↑` / `↓` | Mitad superior / inferior (zona B) |
+| `⇧` + arrastrar | Encajar en una zona |
+| `⌃⌥G` | Modo juego (llenar la zona del juego) / restaurar |
+| `⌃⌥⇧G` | Modo juego conservando el tamaño |
+| `⌃⌥⇧←` / `→` | Centrar en la zona izquierda / derecha sin cambiar el tamaño |
+| `⌃⌥⌫` | Deshacer la última colocación |
+| `⌃⌥Q` | Devolver la ventana a su tamaño original |
+| `⌃⌥P` | Elegir perfil |
+| `⌃⌥W` | Activar/desactivar el vigilante |
+| `⌃⌥O` | Capa oscura sobre las zonas que no están activas |
+
 ## Atajos de fábrica (Windows)
 | Atajo | Acción |
 |---|---|

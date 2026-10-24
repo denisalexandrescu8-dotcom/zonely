@@ -41,5 +41,7 @@ if (/Mac/i.test(navigator.platform || '')) {
   for (const el of document.querySelectorAll('.mac-only')) el.hidden = false;      // ajustes que solo existen en macOS
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode())
-    n.nodeValue = n.nodeValue.replace(/Win\+Alt\+(\w)/g, (_, k) => `⌃⌥${k.toUpperCase()}`);
+    n.nodeValue = n.nodeValue
+      .replace(/Win\+Alt\+Mayús\+(\w)/g, (_, k) => `⌃⌥⇧${k.toUpperCase()}`)
+      .replace(/Win\+Alt\+(\w)/g, (_, k) => `⌃⌥${k.toUpperCase()}`);
 }
