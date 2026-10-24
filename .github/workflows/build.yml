@@ -13,6 +13,18 @@ permissions:
   contents: write
 
 jobs:
+  macos:
+    # Motor de macOS (Swift): compila y pasa las pruebas en cada cambio.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar
+        working-directory: mac
+        run: swift build
+      - name: Pruebas
+        working-directory: mac
+        run: swift test
+
   windows:
     runs-on: windows-latest
     steps:
