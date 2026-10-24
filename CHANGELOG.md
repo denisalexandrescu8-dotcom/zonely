@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.47.0
+- **Nuevo: editor de perfiles.** Crea perfiles nuevos (en blanco o copiando uno) y divide la pantalla **en vertical y en horizontal** a tu gusto, hasta 6 zonas (A–F): elige una zona, pulsa *Dividir ↔* o *Dividir ↕*, arrastra las líneas para ajustar, *Quitar zona* para unirla con la contigua y *Guardar y aplicar*. También se pueden eliminar perfiles. El motor (Windows y Mac) entiende ya zonas apiladas: el vigilante, el encaje con la tecla, la capa oscura, el selector y los avisos buscan la zona por posición (horizontal y vertical), y las miniaturas se dibujan en 2D.
+- **Nuevo: perfiles por monitor.** Cada monitor guarda su propio conjunto de perfiles y cuál usa (carpeta `monitors/` dentro de los datos de Zonely). Al elegir otro monitor se guardan los del que dejas y se cargan los del nuevo; si el monitor es nuevo, empieza con una copia de los actuales ajustada a su tamaño. Así puedes tener «normal» en uno y «ultrawide» en otro, y cambiar uno sin tocar el otro.
+
 ## 0.46.0
 - **Mac:** si una ventana entra en pantalla completa con el botón verde, el vigilante sale de ella y la coloca en su zona (se puede apagar en Ajustes → *Pantalla completa a la zona*, p. ej. para ver vídeo). Nuevo ajuste **Tecla para encajar** (Shift, Ctrl o Alt/Option) en Windows y Mac; antes solo se podía cambiar editando `zones.ini`.
 - **Windows:** al maximizar, la ventana pasa a su zona de un solo paso (sin el fotograma intermedio con el tamaño anterior), y se le quita el fundido de maximizar. «Recuperar tamaño» ya no se despista si centras la ventana sin cambiar su tamaño antes de moverla.

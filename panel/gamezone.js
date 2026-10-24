@@ -14,7 +14,7 @@ function gzPaint() {
     name.textContent = p.id;
     const seg = document.createElement('div');
     seg.className = 'seg';
-    const options = [...['A', 'B', 'C'].filter((z) => p.zones[z]).map((z) => [z, `Zona ${z}`]), ['auto', 'Donde esté']];
+    const options = [...ZONE_IDS.filter((z) => p.zones[z]).map((z) => [z, `Zona ${z}`]), ['auto', 'Donde esté']];
     for (const [value, label] of options) {
       const b = document.createElement('button');
       b.textContent = label;

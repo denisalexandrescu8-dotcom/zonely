@@ -94,18 +94,28 @@
 
           <section class="editor">
             <div class="stage-head">
-              <h3>Editor de zonas</h3>
+              <h3>Editor de perfiles</h3>
               <select id="ed-profile" aria-label="Perfil a editar"></select>
             </div>
             <div class="monitor ed" id="ed-monitor"></div>
             <div class="ed-row">
-              <label>Ancho de A <input type="number" id="ed-aw" step="10" min="400"> px</label>
-              <span class="muted" id="ed-bw"></span>
+              <button id="ed-split-v" title="Divide la zona elegida en dos, una al lado de la otra">Dividir ↔</button>
+              <button id="ed-split-h" title="Divide la zona elegida en dos, una encima de la otra">Dividir ↕</button>
+              <button id="ed-remove" title="Quita la zona elegida: la contigua ocupa su sitio">Quitar zona</button>
+              <span class="muted" id="ed-info"></span>
               <span class="spacer"></span>
               <button id="ed-reset">Deshacer</button>
               <button id="ed-save" class="primary">Guardar y aplicar</button>
             </div>
-            <p class="hint">Arrastra la línea central o escribe el ancho. La zona B ocupa el resto del monitor.</p>
+            <div class="ed-new">
+              <input type="text" id="ed-name" maxlength="24" placeholder="Nombre del perfil nuevo" aria-label="Nombre del perfil nuevo">
+              <button id="ed-create" title="Un perfil nuevo con una sola zona (toda la pantalla)">Crear perfil</button>
+              <button id="ed-copy" title="Un perfil nuevo que parte de una copia del que estás viendo">Copiar el actual</button>
+              <span class="spacer"></span>
+              <button id="ed-delete">Eliminar perfil</button>
+            </div>
+            <p class="ed-msg" id="ed-msg"></p>
+            <p class="hint">Pulsa una zona para elegirla y divídela en vertical o en horizontal (hasta 6 zonas). Arrastra las líneas blancas para ajustar los tamaños. Cada monitor guarda sus propios perfiles.</p>
           </section>
         </div>
 

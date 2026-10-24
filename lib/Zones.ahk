@@ -179,15 +179,22 @@ WindowOnMonitor(hwnd) {
 ; Zona que contiene el centro de la ventana (A por defecto).
 ZoneOf(hwnd) {
     v := GetVisibleRect(hwnd)
-    return ZoneAtX((v["L"] + v["R"]) // 2)
+    return ZoneAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
 }
 
-; Zona que contiene esa coordenada x del escritorio (A por defecto).
-ZoneAtX(cx) {
-    for _, z in Config.Zones
-        if cx >= z.X && cx < z.Right
+; Zona que contiene el punto (cx, cy) del escritorio; si cae en un hueco o fuera, la más cercana (A si no hay ninguna).
+ZoneAt(cx, cy) {
+    best := Config.Zones["A"], bestD := 0x7FFFFFFF
+    for _, z in Config.Zones {
+        dx := cx < z.X ? z.X - cx : (cx >= z.Right ? cx - z.Right + 1 : 0)
+        dy := cy < z.Y ? z.Y - cy : (cy >= z.Bottom ? cy - z.Bottom + 1 : 0)
+        if dx = 0 && dy = 0
             return z
-    return Config.Zones["A"]
+        d := dx * dx + dy * dy
+        if d < bestD
+            best := z, bestD := d
+    }
+    return best
 }
 
 ; Centra la ventana en una zona SIN cambiarle el tamaño (Win+Alt+Mayús+←/→).

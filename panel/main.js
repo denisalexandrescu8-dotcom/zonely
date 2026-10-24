@@ -88,6 +88,19 @@ function parseZone(s) {
   return { x, y, w, h };
 }
 
+const ZONE_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+// Zonas de una sección [Profile.xxx]: las letras tienen que ir seguidas (como en los motores); las que faltan son null.
+function readZones(section) {
+  const zones = {};
+  let more = true;
+  for (const key of ZONE_KEYS) {
+    more = more && !!section[key];
+    zones[key] = more ? parseZone(section[key]) : null;
+  }
+  return zones;
+}
+
 // ---- registro compartido con el motor (logs/gestor.log) ----------
 const LOG_DIR = path.join(DATA_DIR, 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'gestor.log');
@@ -124,7 +137,7 @@ function readConfig() {
     .map((s) => ({
       id: s.slice(8),
       gameZone: (() => { const g = String(ini[s].GameZone ?? 'auto').toUpperCase(); return g === 'AUTO' ? 'auto' : g; })(),
-      zones: { A: parseZone(ini[s].A), B: ini[s].B ? parseZone(ini[s].B) : null, C: ini[s].B && ini[s].C ? parseZone(ini[s].C) : null },   // sin B = pantalla normal, sin zonas
+      zones: readZones(ini[s]),                       // A, B, C… seguidas (hasta 6); sin B = pantalla normal, sin zonas
     }));
   return {
     monitor: { w: parseInt(ini.Monitor?.Width ?? 5120, 10), h: parseInt(ini.Monitor?.Height ?? 1440, 10), id: ini.Monitor?.Id ?? '' },
@@ -180,44 +193,148 @@ function writeIni(edit) {
   fs.renameSync(tmp, INI);
 }
 
-// Cambia el ancho de la zona A de un perfil; B ocupa el resto.
-function setZones({ profile, aw }) {
+// ---- perfiles: editar, crear, borrar y un conjunto por monitor ------------------------------------------------------
+const NAME_RE = /^[\p{L}\p{N} _-]{1,24}$/u;
+const zoneText = (z) => `${z.x},${z.y},${z.w},${z.h}`;
+
+function removeIniKey(text, section, key) {
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const lines = text.split(/\r?\n/);
+  let inSec = false;
+  return lines.filter((raw) => {
+    const t = raw.trim();
+    const m = t.match(/^\[(.+)\]$/);
+    if (m) { inSec = m[1] === section; return true; }
+    return !(inSec && !t.startsWith(';') && t.includes('=') && t.split('=')[0].trim() === key);
+  }).join(eol);
+}
+
+function removeIniSection(text, section) {
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const out = [];
+  let skip = false;
+  for (const raw of text.split(/\r?\n/)) {
+    const m = raw.trim().match(/^\[(.+)\]$/);
+    if (m) skip = m[1] === section;
+    if (!skip) out.push(raw);
+  }
+  return out.join(eol);
+}
+
+function appendSection(text, section, lines) {
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  return text.replace(/\s*$/, '') + eol + eol + `[${section}]` + eol + lines.join(eol) + eol;
+}
+
+// Las zonas de un perfil: letras A, B, C… seguidas, dentro del monitor, sin solaparse y no demasiado pequeñas.
+function validateZones(zones, mon) {
+  const ids = ZONE_KEYS.filter((k) => zones && zones[k]);
+  if (!ids.length || ids.some((k, i) => k !== ZONE_KEYS[i])) throw new Error('Las zonas tienen que ser A, B, C… seguidas');
+  const rects = ids.map((k) => zones[k]);
+  for (const z of rects) {
+    if (![z.x, z.y, z.w, z.h].every(Number.isInteger) || z.x < 0 || z.y < 0 || z.w < 100 || z.h < 100 || z.x + z.w > mon.w || z.y + z.h > mon.h)
+      throw new Error('Una zona se sale del monitor o es demasiado pequeña');
+  }
+  for (let i = 0; i < rects.length; i++)
+    for (let j = i + 1; j < rects.length; j++) {
+      const a = rects[i], b = rects[j];
+      if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) throw new Error('Dos zonas se solapan');
+    }
+  return ids;
+}
+
+function saveProfile({ id, zones }) {
   const cfg = readConfig();
-  const p = cfg.profiles.find((x) => x.id === profile);
-  aw = Number(aw);
-  if (!p || !p.zones.B || p.zones.C || !Number.isInteger(aw) || aw < 400 || aw > cfg.monitor.w - 400) throw new Error('Zonas no válidas');
-  const h = cfg.monitor.h;
+  const p = cfg.profiles.find((x) => x.id === id);
+  if (!p) throw new Error('Perfil no válido');
+  const ids = validateZones(zones, cfg.monitor);
   writeIni((t) => {
-    t = setIniValue(t, `Profile.${profile}`, 'A', `0,0,${aw},${h}`);
-    return setIniValue(t, `Profile.${profile}`, 'B', `${aw},0,${cfg.monitor.w - aw},${h}`);
+    for (const k of ZONE_KEYS) {
+      t = ids.includes(k) ? setIniValue(t, `Profile.${id}`, k, zoneText(zones[k])) : removeIniKey(t, `Profile.${id}`, k);
+    }
+    if (p.gameZone !== 'auto' && !ids.includes(p.gameZone)) t = setIniValue(t, `Profile.${id}`, 'GameZone', 'auto');
+    return t;
   });
 }
 
-// Elige el monitor al que se aplican las zonas. Solo vale uno de los que el motor ha publicado (ipc/state.json).
-// Las zonas de todos los perfiles se reescalan al tamaño del monitor nuevo, para que sigan ocupando lo mismo en proporción.
+function createProfile({ id, from }) {
+  id = String(id || '').trim();
+  const cfg = readConfig();
+  if (!NAME_RE.test(id)) throw new Error('El nombre puede llevar letras, números, espacios, guion y guion bajo (hasta 24)');
+  if (cfg.profiles.some((p) => p.id.toLowerCase() === id.toLowerCase())) throw new Error('Ya existe un perfil con ese nombre');
+  const src = cfg.profiles.find((p) => p.id === from);
+  const zones = src ? src.zones : { A: { x: 0, y: 0, w: cfg.monitor.w, h: cfg.monitor.h } };
+  const lines = ZONE_KEYS.filter((k) => zones[k]).map((k) => `${k}=${zoneText(zones[k])}`);
+  writeIni((t) => appendSection(t, `Profile.${id}`, lines));
+}
+
+function deleteProfile({ id }) {
+  const cfg = readConfig();
+  if (!cfg.profiles.some((p) => p.id === id)) throw new Error('Perfil no válido');
+  if (cfg.profiles.length < 2) throw new Error('Tiene que quedar al menos un perfil');
+  const rest = cfg.profiles.filter((p) => p.id !== id);
+  const fallback = rest[0].id;
+  if (readState().profile === id) { try { sendCommand({ type: 'profile', value: fallback }); } catch { /* motor parado */ } }
+  writeIni((t) => {
+    t = removeIniSection(t, `Profile.${id}`);
+    return cfg.startProfile === id ? setIniValue(t, 'General', 'Profile', fallback) : t;
+  });
+}
+
+// Cada monitor guarda su propio conjunto de perfiles (y cuál usa): al cambiar de monitor se guarda el del que se deja y
+// se carga el del nuevo; si el nuevo no tiene, empieza con una copia de los actuales ajustados a su tamaño.
+const MONITORS_DIR = path.join(DATA_DIR, 'monitors');
+const monitorFile = (id) => path.join(MONITORS_DIR, String(id).replace(/[^\w-]+/g, '_') + '.json');
+
+function scaleZones(zones, sx, sy) {
+  const out = {};
+  for (const k of ZONE_KEYS) {
+    const z = zones[k];
+    if (!z) continue;
+    const x0 = Math.round(z.x * sx), x1 = Math.round((z.x + z.w) * sx), y0 = Math.round(z.y * sy), y1 = Math.round((z.y + z.h) * sy);
+    out[k] = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  return out;
+}
+
 function setMonitor(id) {
   const st = readState();
   const mon = (st.monitors || []).find((m) => m.id === id);
   if (!st.engineUp || !mon) throw new Error('Monitor no disponible: enciende el motor y vuelve a probar');
   const cfg = readConfig();
-  const sx = mon.w / cfg.monitor.w, sy = mon.h / cfg.monitor.h;
-  const scale = (zone) => {
-    if (!zone) return null;
-    const x0 = Math.round(zone.x * sx), x1 = Math.round((zone.x + zone.w) * sx);
-    const y0 = Math.round(zone.y * sy), y1 = Math.round((zone.y + zone.h) * sy);
-    return `${x0},${y0},${x1 - x0},${y1 - y0}`;
-  };
+  const current = cfg.monitor.id || (st.monitors.find((m) => m.primary) || {}).id || '';
+  const active = st.profile && cfg.profiles.some((p) => p.id === st.profile) ? st.profile : cfg.startProfile;
+  if (current === mon.id && cfg.monitor.w === mon.w && cfg.monitor.h === mon.h) return;
+
+  // 1) se guarda el conjunto del monitor que se deja
+  try {
+    fs.mkdirSync(MONITORS_DIR, { recursive: true });
+    fs.writeFileSync(monitorFile(current), JSON.stringify({ w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles }));
+  } catch (e) { appendLog('WARN', `No pude guardar los perfiles del monitor: ${e.message}`); }
+
+  // 2) se carga el del monitor nuevo (o se parte de una copia de los actuales)
+  let saved = null;
+  try { saved = JSON.parse(fs.readFileSync(monitorFile(mon.id), 'utf8')); } catch { /* es la primera vez que se elige */ }
+  const base = saved && Array.isArray(saved.profiles) && saved.profiles.length ? saved : { w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles };
+  const sx = mon.w / base.w, sy = mon.h / base.h;
+  const profiles = base.profiles.map((p) => ({ id: p.id, gameZone: p.gameZone, zones: scaleZones(p.zones, sx, sy) }));
+  const nextActive = profiles.some((p) => p.id === base.active) ? base.active : profiles[0].id;
+
   writeIni((t) => {
-    if (sx !== 1 || sy !== 1) {
-      for (const p of cfg.profiles)
-        for (const key of ['A', 'B', 'C'])
-          if (p.zones[key]) t = setIniValue(t, `Profile.${p.id}`, key, scale(p.zones[key]));
+    for (const p of cfg.profiles) t = removeIniSection(t, `Profile.${p.id}`);
+    for (const p of profiles) {
+      const lines = ZONE_KEYS.filter((k) => p.zones[k]).map((k) => `${k}=${zoneText(p.zones[k])}`);
+      if (p.gameZone && p.gameZone !== 'auto') lines.push(`GameZone=${p.gameZone}`);
+      t = appendSection(t, `Profile.${p.id}`, lines);
     }
     t = setIniValue(t, 'Monitor', 'Width', String(mon.w));
     t = setIniValue(t, 'Monitor', 'Height', String(mon.h));
-    return setIniValue(t, 'Monitor', 'Id', mon.id);
+    t = setIniValue(t, 'Monitor', 'Id', mon.id);
+    return setIniValue(t, 'General', 'Profile', nextActive);
   });
-  appendLog('INFO', `Monitor elegido: ${mon.name} (${mon.w}x${mon.h})`);
+  appendLog('INFO', `Monitor elegido: ${mon.name} (${mon.w}x${mon.h}) · perfil ${nextActive}`);
+  // El motor recarga zones.ini en un par de segundos; después se le pide el perfil de este monitor.
+  setTimeout(() => { try { sendCommand({ type: 'profile', value: nextActive }); } catch { /* motor parado */ } }, 3500);
 }
 
 function setExclusions({ processes, classes }) {
@@ -246,7 +363,7 @@ function sendCommand(cmd) {
   const ok =
     (cmd.type === 'profile' && profiles.includes(cmd.value)) ||
     (['watcher', 'snap', 'halves', 'restore'].includes(cmd.type) && (cmd.value === 'on' || cmd.value === 'off')) ||
-    (cmd.type === 'dim' && ['A', 'B', 'C', 'off'].includes(cmd.value)) ||
+    (cmd.type === 'dim' && [...ZONE_KEYS, 'off'].includes(cmd.value)) ||
     (cmd.type === 'dimlevel' && /^(100|[1-9]?\d)$/.test(String(cmd.value))) ||
     cmd.type === 'watch' ||
     cmd.type === 'reload' ||
@@ -288,7 +405,9 @@ function startEngine() {
 ipcMain.handle('config:get', () => readConfig());
 ipcMain.handle('state:get', () => readState());
 ipcMain.handle('cmd:send', (_e, cmd) => sendCommand(cmd));
-ipcMain.handle('config:setZones', (_e, a) => setZones(a));
+ipcMain.handle('config:saveProfile', (_e, a) => saveProfile(a));
+ipcMain.handle('config:createProfile', (_e, a) => createProfile(a));
+ipcMain.handle('config:deleteProfile', (_e, a) => deleteProfile(a));
 ipcMain.handle('config:setExclusions', (_e, a) => setExclusions(a));
 ipcMain.handle('config:setMonitor', (_e, id) => setMonitor(String(id)));
 ipcMain.handle('ipc:read', (_e, name) => {
@@ -331,7 +450,7 @@ ipcMain.handle('config:setHotkeys', (_e, changes) => {
 ipcMain.handle('config:setGameZone', (_e, { profile, zone }) => {
   const p = readConfig().profiles.find((x) => x.id === profile);
   if (!p || !p.zones.B) throw new Error('Perfil no válido');
-  if (zone !== 'auto' && !(['A', 'B', 'C'].includes(zone) && p.zones[zone])) throw new Error('Zona no válida');
+  if (zone !== 'auto' && !(ZONE_KEYS.includes(zone) && p.zones[zone])) throw new Error('Zona no válida');
   writeIni((t) => setIniValue(t, `Profile.${profile}`, 'GameZone', zone));
 });
 ipcMain.handle('engine:start', () => startEngine());

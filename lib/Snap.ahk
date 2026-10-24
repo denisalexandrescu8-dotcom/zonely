@@ -24,7 +24,7 @@ StartSnap() {
     global SnapOn := true, SnapGuis
     if !IsObject(SnapGuis) {
         SnapGuis := Map("A", SnapMakeGui(0x3B82F6, 40), "B", SnapMakeGui(0x8B5CF6, 40), "C", SnapMakeGui(0xF472B6, 40)
-                      , "HL", SnapMakeGui(0xFFFFFF, 95))
+                      , "D", SnapMakeGui(0x22D3EE, 40), "E", SnapMakeGui(0xF59E0B, 40), "F", SnapMakeGui(0x34D399, 40), "HL", SnapMakeGui(0xFFFFFF, 95))
     }
 }
 
@@ -124,11 +124,7 @@ SnapUpdateOverlay() {
         return
     }
     ; zona bajo el cursor (la más cercana si está en un hueco o fuera)
-    list := Config.ZonesByX()
-    zone := list[1]
-    for z in list
-        if mx >= z.X
-            zone := z
+    zone := ZoneAt(mx, my)
 
     t := Map("x", zone.X, "y", zone.Y, "w", zone.W, "h", zone.H)
     if zone.Name = "B" && Config.SnapHalves {         ; mitades opcionales, solo en la zona B
@@ -143,7 +139,7 @@ SnapUpdateOverlay() {
     }
     SnapTarget := t
 
-    for name in ["A", "B", "C"] {                      ; tintes de las zonas del perfil; se ocultan las que no existen
+    for name in ["A", "B", "C", "D", "E", "F"] {                      ; tintes de las zonas del perfil; se ocultan las que no existen
         if Config.Zones.Has(name) {
             z := Config.Zones[name]
             SnapGuis[name].Show("NA x" z.X " y" z.Y " w" z.W " h" z.H)

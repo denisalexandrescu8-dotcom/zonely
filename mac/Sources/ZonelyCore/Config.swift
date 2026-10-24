@@ -77,9 +77,9 @@ public struct Config {
                 throw ConfigError("[\(section)] no tiene la zona A")
             }
             zones["A"] = a
-            if let b = try Config.readZone(ini, section, "B", monitorWidth, monitorHeight) {
-                zones["B"] = b
-                if let c = try Config.readZone(ini, section, "C", monitorWidth, monitorHeight) { zones["C"] = c }
+            for key in ["B", "C", "D", "E", "F"] {            // A, B, C… seguidas (hasta 6); sin B = pantalla normal, sin zonas
+                guard let zone = try Config.readZone(ini, section, key, monitorWidth, monitorHeight) else { break }
+                zones[key] = zone
             }
             let gz = ini.string(section, "GameZone", default: "auto").uppercased()
             found.append(Profile(name: name, zones: zones, gameZone: (gz == "AUTO" || zones[gz] == nil) ? "auto" : gz))

@@ -34,17 +34,23 @@ public enum Geometry {
 
     /// Zonas de un perfil de izquierda a derecha.
     public static func zonesByX(_ profile: Profile) -> [Zone] {
-        profile.zones.values.sorted { $0.x < $1.x }
+        profile.zones.values.sorted { $0.x != $1.x ? $0.x < $1.x : $0.y < $1.y }
     }
 
-    /// Nombre de la zona que contiene el centro de la ventana (A por defecto), como `ZoneOf` en Windows.
+    /// Nombre de la zona que contiene el centro de la ventana; si cae en un hueco o fuera, la más cercana (A si no hay ninguna),
+    /// como `ZoneOf` en Windows.
     public static func zoneName(containing window: CGRect, profile: Profile, monitorWidth: Int, monitorHeight: Int, usable: CGRect) -> String {
-        let cx = window.midX
+        let cx = window.midX, cy = window.midY
+        var best = "A"
+        var bestDistance = CGFloat.greatestFiniteMagnitude
         for zone in zonesByX(profile) {
             let r = rect(of: zone, monitorWidth: monitorWidth, monitorHeight: monitorHeight, in: usable)
-            if cx >= r.minX && cx < r.maxX { return zone.name }
+            let dx = max(r.minX - cx, 0, cx - r.maxX), dy = max(r.minY - cy, 0, cy - r.maxY)
+            if dx == 0 && dy == 0 { return zone.name }
+            let d = dx * dx + dy * dy
+            if d < bestDistance { bestDistance = d; best = zone.name }
         }
-        return "A"
+        return best
     }
 
     /// Zona vecina en una dirección (-1 izquierda, +1 derecha), sin salirse de los extremos.

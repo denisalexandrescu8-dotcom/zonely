@@ -36,14 +36,18 @@ public extension Geometry {
     }
 
     /// Zona (y su rectángulo) a la que encajaría una ventana soltada con el cursor en `point`, como el encaje de Windows:
-    /// la zona cuyo borde izquierdo queda a la izquierda del cursor y, en la zona B con `halves`, el tercio superior = mitad
+    /// la zona bajo el cursor (o la más cercana) y, en la zona B con `halves`, el tercio superior = mitad
     /// de arriba, el inferior = mitad de abajo y el centro = zona entera.
     static func snapTarget(at point: CGPoint, profile: Profile, monitorWidth: Int, monitorHeight: Int, usable: CGRect, halves: Bool)
         -> (zone: String, rect: CGRect)? {
         let ordered = zonesByX(profile)
         guard var chosen = ordered.first else { return nil }
-        for zone in ordered where point.x >= rect(of: zone, monitorWidth: monitorWidth, monitorHeight: monitorHeight, in: usable).minX {
-            chosen = zone
+        var best = CGFloat.greatestFiniteMagnitude
+        for zone in ordered {                                  // la zona que contiene el cursor; si no, la más cercana
+            let r = rect(of: zone, monitorWidth: monitorWidth, monitorHeight: monitorHeight, in: usable)
+            let dx = max(r.minX - point.x, 0, point.x - r.maxX), dy = max(r.minY - point.y, 0, point.y - r.maxY)
+            let d = dx * dx + dy * dy
+            if d < best { best = d; chosen = zone }
         }
         var target = rect(of: chosen, monitorWidth: monitorWidth, monitorHeight: monitorHeight, in: usable)
         if chosen.name == "B" && halves && target.height > 0 {

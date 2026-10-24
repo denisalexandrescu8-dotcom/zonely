@@ -85,7 +85,7 @@ IpcRun(line) {
         case "profile":
             ApplyProfile(arg, "desde el panel")
         case "dim":                        ; dim A | dim B | dim off
-            SetDim(RegExMatch(arg, "^[ABC](\+[ABC])*$") ? arg : "")
+            SetDim(RegExMatch(arg, "^[A-F](\+[A-F])*$") ? arg : "")
         case "dimlevel":
             if IsInteger(arg)
                 SetDimLevel(Integer(arg))

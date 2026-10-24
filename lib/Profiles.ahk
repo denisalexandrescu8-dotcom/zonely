@@ -29,7 +29,7 @@ ZonesSorted(zs) {
         list.Push(z)
     Loop list.Length - 1 {
         i := A_Index + 1, z := list[i], j := i - 1
-        while j >= 1 && list[j].X > z.X {
+        while j >= 1 && (list[j].X > z.X || (list[j].X = z.X && list[j].Y > z.Y)) {
             list[j + 1] := list[j]
             j--
         }
@@ -51,7 +51,7 @@ ProfileSummary(name) {
 
 ; Colores del selector (RRGGBB). Zonas A, B y C como en el panel.
 PkBg := "0B0F17", PkRow := "151A24", PkRowOn := "10203F", PkLine := "1F2739", PkAccent := "3B82F6"
-PkZone := Map("A", "3B82F6", "B", "8B5CF6", "C", "F472B6")
+PkZone := Map("A", "3B82F6", "B", "8B5CF6", "C", "F472B6", "D", "22D3EE", "E", "F59E0B", "F", "34D399")
 
 ; «50 %» o «16.5 %» (sin el .0 sobrante).
 Pct(w) => RegExReplace(Round(w / Config.MonW * 100, 1), "\.0$") " %"
@@ -181,10 +181,11 @@ MiniMonitor(g, x, y, w, h, zs, onClick) {
     Rounded(Card(g, x, y, w, h, "05070D", onClick), 10)
     for z in ZonesSorted(zs) {
         zx := x + Round((z.X - Config.MonLeft) / Config.MonW * w), zw := Round(z.W / Config.MonW * w)
+        zy := y + Round((z.Y - Config.MonTop) / Config.MonH * h), zh := Round(z.H / Config.MonH * h)
         col := PkZone[z.Name]
-        Rounded(Card(g, zx + 2, y + 2, zw - 4, h - 4, Mix(col, "05070D", 0.4), onClick), 7)                  ; borde de la zona
-        g.SetFont("s" (h > 40 ? 13 : 10) " w700 c" col, "Segoe UI")
-        t := g.Add("Text", "x" (zx + 3) " y" (y + 3) " w" (zw - 6) " h" (h - 6)
+        Rounded(Card(g, zx + 2, zy + 2, zw - 4, zh - 4, Mix(col, "05070D", 0.4), onClick), 7)                  ; borde de la zona
+        g.SetFont("s" (zh > 40 ? 13 : 10) " w700 c" col, "Segoe UI")
+        t := g.Add("Text", "x" (zx + 3) " y" (zy + 3) " w" (zw - 6) " h" (zh - 6)
             . " Background" Mix(col, "05070D", 0.13) " Center +0x200 +0x100", z.Name)        ; relleno translúcido + letra
         t.OnEvent("Click", onClick)
         Rounded(t, 6)

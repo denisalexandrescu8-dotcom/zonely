@@ -111,10 +111,11 @@ class Config {
                 continue
             name := SubStr(section, 9)
             zones := Map("A", this._ReadZone(section, "A"))
-            if IniRead(this.IniPath, section, "B", "") != ""      ; sin B = perfil de pantalla normal, sin zonas
-                zones["B"] := this._ReadZone(section, "B")
-            if zones.Has("B") && IniRead(this.IniPath, section, "C", "") != ""     ; C = tercera zona (opcional)
-                zones["C"] := this._ReadZone(section, "C")
+            for key in ["B", "C", "D", "E", "F"] {          ; A, B, C… seguidas (hasta 6); sin B = perfil de pantalla normal, sin zonas
+                if IniRead(this.IniPath, section, key, "") = ""
+                    break
+                zones[key] := this._ReadZone(section, key)
+            }
             this.Profiles[name] := zones
             gz := StrUpper(IniRead(this.IniPath, section, "GameZone", "auto"))      ; zona del modo juego de este perfil (por defecto, la de la ventana)
             this.GameZoneOf[name] := (gz = "AUTO") ? "auto" : (zones.Has(gz) ? gz : "auto")
@@ -201,7 +202,7 @@ class Config {
             list.Push(z)
         Loop list.Length - 1 {                       ; ordenación por inserción (son 3 como mucho)
             i := A_Index + 1, z := list[i], j := i - 1
-            while j >= 1 && list[j].X > z.X {
+            while j >= 1 && (list[j].X > z.X || (list[j].X = z.X && list[j].Y > z.Y)) {
                 list[j + 1] := list[j]
                 j--
             }

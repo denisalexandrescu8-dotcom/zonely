@@ -50,7 +50,7 @@ public enum Ipc {
             case "halves": result.append(.halves(arg == "on"))
             case "restore": result.append(.restore(arg == "on"))
             case "dim":
-                let valid = arg.range(of: "^[ABC](\\+[ABC])*$", options: .regularExpression) != nil
+                let valid = arg.range(of: "^[A-F](\\+[A-F])*$", options: .regularExpression) != nil
                 result.append(.dim(valid ? arg : ""))
             case "dimlevel":
                 if let n = Int(arg) { result.append(.dimLevel(min(100, max(0, n)))) }

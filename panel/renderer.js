@@ -7,10 +7,12 @@ let monitorBuilt = false;
 
 const pct = (v, total) => (v / total) * 100 + '%';
 
-// Crea (una sola vez) las dos zonas del monitor grande.
+const ZONE_IDS = ['A', 'B', 'C', 'D', 'E', 'F'];       // un perfil puede tener hasta 6 zonas
+
+// Crea (una sola vez) las zonas del monitor grande.
 function buildMonitor() {
   const mon = $('monitor');
-  for (const id of ['A', 'B', 'C']) {
+  for (const id of ZONE_IDS) {
     const z = document.createElement('div');
     z.className = `zone ${id}`;
     z.id = `zone-${id}`;
@@ -24,13 +26,15 @@ function buildMonitor() {
 function paintMonitor(profile) {
   const { w, h } = config.monitor;
   $('monitor').style.aspectRatio = `${w} / ${h}`;
-  for (const id of ['A', 'B', 'C']) {
+  for (const id of ZONE_IDS) {
     const z = profile.zones[id];
     const el = $(`zone-${id}`);
     el.style.display = z ? '' : 'none';              // el perfil «normal» no tiene zona B
     if (!z) continue;
     el.style.left = pct(z.x, w);
     el.style.width = pct(z.w, w);
+    el.style.top = pct(z.y, h);
+    el.style.height = pct(z.h, h);
     el.querySelector('.dim').textContent = `${z.w} × ${z.h}`;
   }
 }
@@ -47,13 +51,16 @@ function paintCards() {
     // Se construye con DOM (no con style="" en HTML) por la política CSP de la página.
     const mini = document.createElement('div');
     mini.className = 'mini';
-    for (const id of ['A', 'B', 'C']) {
+    mini.style.aspectRatio = `${w} / ${h}`;
+    for (const id of ZONE_IDS) {
       const z = p.zones[id];
       if (!z) continue;
       const el = document.createElement('div');
       el.className = `zone ${id}`;
       el.style.left = pct(z.x, w);
       el.style.width = pct(z.w, w);
+      el.style.top = pct(z.y, h);
+      el.style.height = pct(z.h, h);
       el.innerHTML = `<span class="letter">${id}</span>`;
       mini.appendChild(el);
     }
@@ -63,7 +70,7 @@ function paintCards() {
     name.textContent = p.id;                       // textContent: nada del .ini se interpreta como HTML
     const sizes = document.createElement('div');
     sizes.className = 'sizes';
-    sizes.textContent = p.zones.B ? ['A', 'B', 'C'].filter((id) => p.zones[id]).map((id) => `${id} ${p.zones[id].w}×${p.zones[id].h}`).join(' · ') : 'Pantalla completa · sin zonas';
+    sizes.textContent = p.zones.B ? ZONE_IDS.filter((id) => p.zones[id]).map((id) => `${id} ${p.zones[id].w}×${p.zones[id].h}`).join(' · ') : 'Pantalla completa · sin zonas';
     info.append(name, sizes);
     card.append(mini, info);
     card.onclick = () => window.zones.send({ type: 'profile', value: p.id }).then(refresh);

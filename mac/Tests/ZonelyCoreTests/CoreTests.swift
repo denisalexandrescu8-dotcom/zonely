@@ -155,6 +155,27 @@ final class GeometryTests: XCTestCase {
         XCTAssertEqual(Geometry.axRect(fromAppKit: CGRect(x: 0, y: 0, width: 1920, height: 1080), primaryHeight: 1080), CGRect(x: 0, y: 0, width: 1920, height: 1080))
     }
 
+    func testZonesCanBeSplitInBothDirections() throws {
+        let text = "[Monitor]\nWidth=1000\nHeight=1000\n[Profile.g]\nA=0,0,500,1000\nB=500,0,500,500\nC=500,500,500,250\nD=500,750,500,250\n"
+        let profile = try XCTUnwrap(try Config(ini: IniFile(text: text)).profile(named: "g"))
+        XCTAssertEqual(profile.zones.count, 4)
+        XCTAssertTrue(profile.isZoned)
+        let usable = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+        func zone(_ x: CGFloat, _ y: CGFloat) -> String {
+            Geometry.zoneName(containing: CGRect(x: x, y: y, width: 20, height: 20), profile: profile, monitorWidth: 1000, monitorHeight: 1000, usable: usable)
+        }
+        XCTAssertEqual(zone(700, 100), "B")
+        XCTAssertEqual(zone(700, 600), "C")
+        XCTAssertEqual(zone(700, 900), "D")
+        XCTAssertEqual(zone(100, 900), "A")
+        let target = Geometry.snapTarget(at: CGPoint(x: 800, y: 900), profile: profile, monitorWidth: 1000, monitorHeight: 1000, usable: usable, halves: false)
+        XCTAssertEqual(target?.zone, "D")
+        XCTAssertEqual(target?.rect, CGRect(x: 500, y: 750, width: 500, height: 250))
+        // Con letras salteadas, la lectura se detiene (como en Windows): la D sin C no cuenta.
+        let gap = "[Monitor]\nWidth=1000\nHeight=1000\n[Profile.g]\nA=0,0,500,1000\nB=500,0,500,1000\nD=0,0,10,10\n"
+        XCTAssertEqual(try Config(ini: IniFile(text: gap)).profile(named: "g")?.zones.count, 2)
+    }
+
     func testMonitorIdIsReadFromTheIni() throws {
         XCTAssertEqual(try Config(ini: IniFile(text: "[Monitor]\nWidth=2560\nHeight=1440\nId=69733632\n[Profile.a]\nA=0,0,2560,1440\n")).monitorId, "69733632")
         XCTAssertEqual(try Config(ini: IniFile(text: "[Profile.a]\nA=0,0,1920,1080\n")).monitorId, "")

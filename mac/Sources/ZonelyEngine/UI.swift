@@ -32,6 +32,9 @@ enum Palette {
         switch name {
         case "B": return NSColor(hex: 0x8B5CF6)
         case "C": return NSColor(hex: 0xF472B6)
+        case "D": return NSColor(hex: 0x22D3EE)
+        case "E": return NSColor(hex: 0xF59E0B)
+        case "F": return NSColor(hex: 0x34D399)
         default: return NSColor(hex: 0x3B82F6)
         }
     }
@@ -42,10 +45,13 @@ enum Palette {
 final class MiniMonitorView: NSView {
     private let zones: [Zone]
     private let monitorWidth: Int
+    private let monitorHeight: Int
 
-    init(zones: [Zone], monitorWidth: Int) {
+    init(zones: [Zone], monitorWidth: Int, monitorHeight: Int = 0) {
         self.zones = zones
         self.monitorWidth = max(1, monitorWidth)
+        // Sin alto conocido se toma el de la zona más baja, como hasta ahora (las zonas ocupaban todo el alto).
+        self.monitorHeight = monitorHeight > 0 ? monitorHeight : max(1, zones.map { $0.y + $0.h }.max() ?? 1)
         super.init(frame: .zero)
     }
 
@@ -64,7 +70,9 @@ final class MiniMonitorView: NSView {
         for zone in zones {
             let x = bounds.width * CGFloat(zone.x) / CGFloat(monitorWidth)
             let w = bounds.width * CGFloat(zone.w) / CGFloat(monitorWidth)
-            let r = NSRect(x: x + 2.5, y: 2.5, width: max(4, w - 5), height: max(4, bounds.height - 5))
+            let y = bounds.height * CGFloat(zone.y) / CGFloat(monitorHeight)
+            let h = bounds.height * CGFloat(zone.h) / CGFloat(monitorHeight)
+            let r = NSRect(x: x + 2.5, y: y + 2.5, width: max(4, w - 5), height: max(4, h - 5))
             let color = Palette.zone(zone.name)
             let path = NSBezierPath(roundedRect: r, xRadius: 6, yRadius: 6)
             Palette.screen.mixed(with: color, 0.13).setFill()

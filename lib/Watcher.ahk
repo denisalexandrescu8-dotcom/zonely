@@ -112,6 +112,6 @@ WatcherFix(hwnd) {
     r := NormalRect(hwnd)
     v := GetVisibleRect(hwnd)
     off := WorkspaceOffset((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
-    z := ZoneAtX(r[1] + off[1] + r[3] // 2)
+    z := ZoneAt(r[1] + off[1] + r[3] // 2, r[2] + off[2] + r[4] // 2)
     PlaceInRect(hwnd, z.X, z.Y, z.W, z.H)       ; de maximizada a la zona de un solo paso
 }
