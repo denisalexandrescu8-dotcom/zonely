@@ -7,6 +7,16 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const updater = require('./updater');
 
+// Una sola ventana del panel: si se vuelve a abrir (menú Inicio, doble clic en el icono de la bandeja…), se trae al frente la que ya hay.
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) app.quit();
+app.on('second-instance', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+});
+
 const ROOT = path.join(__dirname, '..');
 
 // Datos del usuario (ajustes, registro, comunicación con el motor): %APPDATA%\Zonely, igual que el motor
@@ -304,6 +314,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (!gotLock) return;                           // ya hay otro panel abierto: este se cierra solo
   ensureIni();
   appendLog('INFO', `Panel iniciado v${readVersion()}`);
   // macOS instalado: el panel arranca el motor si no está en marcha (el motor evita ser lanzado dos veces).

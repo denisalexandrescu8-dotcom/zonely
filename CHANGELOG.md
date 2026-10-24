@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.35.0
+- **Nuevo:** doble clic en el icono de Zonely de la bandeja (Windows) abre el panel; también hay una entrada «Abrir Zonely» en el menú de la bandeja y en el de la barra de menús de macOS. El panel es de instancia única: si ya está abierto, se trae al frente en vez de abrir otro.
+
 ## 0.34.0
 - **Nuevo:** comprobación de actualizaciones. Al abrirse, Zonely mira si hay una versión nueva en las releases de GitHub y, si la hay, te pregunta si quieres actualizar (Windows: descarga el instalador y se reinicia sola, con la opción de dejarlo para cuando cierres la app; macOS: avisa y abre la página de descarga, porque una app sin firma de Apple no puede actualizarse sola). También hay un botón «Buscar ahora» en Ajustes → Actualizaciones.
 - **Cambio:** ya no existe «Recargar motor». Los cambios de `zones.ini` (a mano o desde el panel) se detectan solos y se aplican conservando el perfil y los interruptores; si el archivo tiene un error se mantiene la configuración anterior y se anota en el registro. Se quita la entrada «Recargar» de la bandeja y del menú de la barra de macOS; en la versión de desarrollo el botón sigue disponible.

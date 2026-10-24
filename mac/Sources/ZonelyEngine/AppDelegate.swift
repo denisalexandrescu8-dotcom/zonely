@@ -28,6 +28,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let title = NSMenuItem(title: "Zonely \(Paths.appVersion())", action: nil, keyEquivalent: "")
         title.isEnabled = false
         menu.addItem(title)
+        let open = NSMenuItem(title: "Abrir Zonely", action: #selector(openPanel(_:)), keyEquivalent: "")
+        open.target = self
+        menu.addItem(open)
         menu.addItem(.separator())
 
         let pause = NSMenuItem(title: "Pausar atajos", action: #selector(togglePause(_:)), keyEquivalent: "")
@@ -55,6 +58,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         item.menu = menu
         statusItem = item
+    }
+
+    /// Abre (o trae al frente) el panel: la aplicación Zonely.app que contiene este motor.
+    @objc private func openPanel(_ sender: NSMenuItem) {
+        guard let executable = Bundle.main.executablePath, let range = executable.range(of: ".app/") else {
+            Hud.showText("Abre Zonely desde la carpeta Aplicaciones")
+            return
+        }
+        NSWorkspace.shared.open(URL(fileURLWithPath: String(executable[..<range.upperBound])))
     }
 
     @objc private func togglePause(_ sender: NSMenuItem) {
