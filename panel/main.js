@@ -5,6 +5,7 @@ const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const updater = require('./updater');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -276,7 +277,9 @@ ipcMain.handle('config:setGameZone', (_e, { profile, zone }) => {
   writeIni((t) => setIniValue(t, `Profile.${profile}`, 'GameZone', zone));
 });
 ipcMain.handle('engine:start', () => startEngine());
+ipcMain.handle('update:check', () => updater.check(true));        // «Buscar ahora» (Ajustes → Actualizaciones)
 
+let mainWindow = null;
 function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
@@ -295,6 +298,8 @@ function createWindow() {
       sandbox: true,
     },
   });
+  mainWindow = win;
+  win.on('closed', () => { mainWindow = null; });
   win.loadFile(path.join(__dirname, 'index.html'));
 }
 
@@ -304,5 +309,6 @@ app.whenReady().then(() => {
   // macOS instalado: el panel arranca el motor si no está en marcha (el motor evita ser lanzado dos veces).
   if (app.isPackaged && process.platform === 'darwin') { try { startEngine(); } catch (e) { appendLog('WARN', `No pude iniciar el motor: ${e.message}`); } }
   createWindow();
+  updater.init({ getWindow: () => mainWindow, version: readVersion(), logger: appendLog });
 });
 app.on('window-all-closed', () => app.quit());

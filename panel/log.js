@@ -50,7 +50,7 @@ function paintVersion() {
   const el = $('ver');
   el.className = '';
   if (mv === null) el.textContent = `panel v${pv} · motor detenido`;
-  else if (mv !== pv) { el.textContent = `panel v${pv} · motor v${mv} (pulsa Recargar)`; el.className = 'ver-warn'; }
+  else if (mv !== pv) { el.textContent = `panel v${pv} · motor v${mv} (cierra y abre Zonely)`; el.className = 'ver-warn'; }
   else el.textContent = `v${pv}`;
 }
 

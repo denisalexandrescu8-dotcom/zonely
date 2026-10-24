@@ -32,6 +32,7 @@ Promise.resolve(window.zones?.isDev?.()).then((dev) => {
   devMode = !!dev;
   if (!devMode) return;
   document.querySelector('.nav-item[data-nav="registro"]').hidden = false;
+  document.getElementById('engine-reload').hidden = false;      // recargar el motor a mano solo en desarrollo
   if (lastView === 'registro') showView('registro');
 }).catch(() => {});
 

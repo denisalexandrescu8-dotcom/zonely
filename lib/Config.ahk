@@ -56,6 +56,27 @@ class Config {
         this._LoadOptions()
     }
 
+    ; ¿Se puede cargar zones.ini sin errores? Si falla, deja todo como estaba y devuelve el motivo;
+    ; si va bien devuelve "" y conserva el perfil activo (la recarga automática solo continúa si es válido).
+    static TryLoad() {
+        names := ["ProfileOrder", "GameZoneOf", "Profiles", "ProfileName", "MonW", "MonH", "DimOpacity", "SnapHalves"
+            , "RestoreOnLeave", "SnapEnabled", "SnapKey", "WatcherEnabled", "WatcherInterval", "ExcludeProcesses"
+            , "ExcludeClasses", "GameProcesses"]
+        old := Map()
+        for name in names
+            old[name] := this.%name%
+        try {
+            this.Load()
+        } catch Error as e {
+            for name, value in old
+                this.%name% := value
+            return e.Message
+        }
+        if this.Profiles.Has(old["ProfileName"])
+            this.ProfileName := old["ProfileName"]
+        return ""
+    }
+
     ; Vuelve a leer las zonas de todos los perfiles sin tocar el resto del estado
     ; (así un cambio hecho en zones.ini se ve sin recargar el motor). Si el archivo
     ; está mal, se queda lo que había.

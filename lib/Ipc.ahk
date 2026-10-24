@@ -13,11 +13,35 @@ IpcTicks := 0
 IpcWatchUntil := 0                     ; el panel renueva esto cada 5 s mientras está abierto
 IpcLastWin := 0                        ; última ventana activa que NO es el panel (para depuración y exclusiones)
 
+IniStamp := ""                         ; fecha de zones.ini la última vez que se miró (recarga automática)
+
 StartIpc() {
+    global IniStamp
     DirCreate(IpcDir)
     try FileDelete(IpcDir "\cmd.txt")     ; descarta órdenes viejas
+    try IniStamp := FileGetTime(Config.IniPath, "M")
     SetTimer(IpcTick, 250)
     WriteState()
+}
+
+; ¿Ha cambiado zones.ini (a mano o desde el panel)? Si el nuevo es válido, el motor se recarga solo conservando el estado;
+; si no lo es, se deja la configuración anterior, se avisa y se anota en el registro.
+CheckIniChanged() {
+    global IniStamp
+    try stamp := FileGetTime(Config.IniPath, "M")
+    catch
+        return
+    if stamp = IniStamp
+        return
+    IniStamp := stamp
+    msg := Config.TryLoad()
+    if msg != "" {
+        Log("zones.ini ha cambiado pero no es válido; se mantiene la configuración anterior: " msg, "WARN")
+        Notify("zones.ini no es válido: " msg, 4000)
+        return
+    }
+    Log("zones.ini ha cambiado: recargando")
+    ReloadKeepingState()
 }
 
 IpcTick() {
@@ -38,6 +62,7 @@ IpcTick() {
         WriteState()
     } else if Mod(IpcTicks, 8) = 0 {
         WriteState()                       ; latido cada 2 s: el panel sabe que seguimos vivos
+        CheckIniChanged()
     }
 }
 

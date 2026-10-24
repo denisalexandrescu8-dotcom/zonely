@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('zones', {
   setDim: (pct) => ipcRenderer.invoke('config:setDim', pct),
   openManual: () => ipcRenderer.invoke('manual:open'),
   isDev: () => ipcRenderer.invoke('app:isDev'),
+  checkUpdates: () => ipcRenderer.invoke('update:check'),
   readLog: () => ipcRenderer.invoke('log:read'),
   openLog: () => ipcRenderer.invoke('log:open'),
   clearLog: () => ipcRenderer.invoke('log:clear'),

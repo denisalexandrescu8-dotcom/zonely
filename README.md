@@ -31,6 +31,8 @@ Zonely splits a big monitor into independent **zones** and puts your windows in 
 
 Your settings live in `%APPDATA%\Zonely` (`zones.ini`, logs), so updating or reinstalling never overwrites them. Uninstalling does not delete them either.
 
+**Updates:** Zonely checks GitHub for a new version when it starts. If there is one, it asks whether you want to update; if you say yes it downloads the installer and restarts by itself (Windows). On macOS it tells you and opens the download page. You can also check from *Settings → Updates*. There is no «reload» button to press: changes to `zones.ini` are picked up automatically.
+
 A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and behind the **Manual** button of the panel.
 
 ## Install (macOS, Apple Silicon)

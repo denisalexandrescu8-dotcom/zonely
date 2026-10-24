@@ -67,6 +67,7 @@ final class Engine {
 
     /// Relee zones.ini y vuelve a registrar los atajos. Si el archivo está mal, se queda lo que había y se anota el motivo.
     func reloadConfig() {
+        iniStamp = iniModified()
         do {
             let loaded = try Config.load()
             config = loaded
@@ -128,6 +129,21 @@ final class Engine {
         dim.update()
     }
 
+    // MARK: - zones.ini cambiado (a mano o desde el panel): se recarga solo
+
+    private var iniStamp: Date?
+
+    private func iniModified() -> Date? {
+        (try? FileManager.default.attributesOfItem(atPath: Paths.iniURL.path))?[.modificationDate] as? Date
+    }
+
+    /// Si el archivo es válido, se aplica; si no, `reloadConfig` conserva la configuración anterior y lo anota en el registro.
+    private func checkIniChanged() {
+        guard iniModified() != iniStamp else { return }
+        Log.write("zones.ini ha cambiado: recargando")
+        reloadConfig()
+    }
+
     // MARK: - Panel
 
     private func tick() {
@@ -135,6 +151,7 @@ final class Engine {
         let commands = Ipc.takeCommands()
         for command in commands { apply(command) }
         if !commands.isEmpty || ticks % 8 == 0 { writeState() }   // latido cada 2 s: el panel sabe que seguimos vivos
+        if ticks % 8 == 0 { checkIniChanged() }
     }
 
     private func apply(_ command: Command) {

@@ -35,10 +35,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(pause)
         pauseItem = pause
 
-        let reload = NSMenuItem(title: "Recargar zones.ini", action: #selector(reload(_:)), keyEquivalent: "")
-        reload.target = self
-        menu.addItem(reload)
-
         let login = NSMenuItem(title: "Abrir al iniciar sesión", action: #selector(toggleLoginItem(_:)), keyEquivalent: "")
         login.target = self
         login.state = LoginItem.isEnabled() ? .on : .off
@@ -65,10 +61,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         engine.paused.toggle()
         sender.state = engine.paused ? .on : .off
         statusItem?.button?.toolTip = engine.paused ? "Zonely (atajos en pausa)" : "Zonely"
-    }
-
-    @objc private func reload(_ sender: NSMenuItem) {
-        engine.reloadConfig()
     }
 
     @objc private func toggleLoginItem(_ sender: NSMenuItem) {

@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## 0.34.0
+- **Nuevo:** comprobación de actualizaciones. Al abrirse, Zonely mira si hay una versión nueva en las releases de GitHub y, si la hay, te pregunta si quieres actualizar (Windows: descarga el instalador y se reinicia sola, con la opción de dejarlo para cuando cierres la app; macOS: avisa y abre la página de descarga, porque una app sin firma de Apple no puede actualizarse sola). También hay un botón «Buscar ahora» en Ajustes → Actualizaciones.
+- **Cambio:** ya no existe «Recargar motor». Los cambios de `zones.ini` (a mano o desde el panel) se detectan solos y se aplican conservando el perfil y los interruptores; si el archivo tiene un error se mantiene la configuración anterior y se anota en el registro. Se quita la entrada «Recargar» de la bandeja y del menú de la barra de macOS; en la versión de desarrollo el botón sigue disponible.
+- La release incluye ahora `latest.yml` (lo lee el actualizador).
+
 ## 0.33.0 — primera versión de macOS (experimental)
 - **Nuevo (fase 4 de macOS):** instalador `.dmg` para Apple Silicon (`scripts/build-mac.sh`, firmado «ad hoc», sin notarizar), motor de instancia única, inicio con el sistema (LaunchAgent `com.zonely.engine`, activable desde el menú de la barra) y el panel arranca el motor al abrirse. El flujo de GitHub Actions construye Windows y macOS y, con una etiqueta `vX.Y.Z`, publica los dos instaladores en la release.
 - **Nuevo (fase 3 de macOS):** encaje arrastrando con la tecla (Mayús por defecto, `[Snap] Key`), vigilante de maximizado (una ventana que ocupa toda el área útil vuelve a su zona; con anti-bucle), recuperar el tamaño al sacar una ventana de su zona, capa oscura (⌃⌥O y el panel) y lista de juegos `Games=` / exclusiones `Processes=` (se comparan los nombres sin `.exe`). Con esto el motor de macOS tiene las mismas funciones que el de Windows salvo quitar los bordes del modo juego. **Pendiente (fase 4):** empaquetado (`.dmg`), inicio con el sistema y publicación.

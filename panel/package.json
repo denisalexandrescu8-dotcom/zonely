@@ -33,7 +33,9 @@
       "hotkeys.js",
       "gamezone.js",
       "nav.js",
-      "fonts/**"
+      "fonts/**",
+      "updater.js",
+      "updates.js"
     ],
     "extraResources": [
       {
@@ -108,6 +110,16 @@
     },
     "dmg": {
       "title": "Zonely ${version}"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "denisalexandrescu8-dotcom",
+        "repo": "zonely"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
   }
 }

@@ -188,7 +188,6 @@
     <tr><th>Entrada del menú</th><th>Qué hace</th></tr>
     <tr><td>Vigilante de maximizado</td><td>Activa o desactiva el vigilante (marcado = activo).</td></tr>
     <tr><td>Pausar atajos</td><td>Suspende todos los atajos hasta que lo vuelvas a pulsar. Útil si un juego usa las mismas teclas.</td></tr>
-    <tr><td>Recargar (zones.ini)</td><td>Relee la configuración. Conserva el perfil, los interruptores y el modo juego.</td></tr>
     <tr><td>Salir</td><td>Cierra el motor y devuelve a su estado las ventanas que estuvieran en modo juego.</td></tr>
   </table></div>
 
@@ -207,7 +206,7 @@
   <p>El panel tiene una <b>barra lateral</b> con tres secciones y, arriba a la derecha, el estado del motor:</p>
   <figure class="shot">
     <img src="img/panel.png" alt="El panel de Zonely: barra lateral con Zonas, Atajos y Ajustes, y la vista Zonas con el dibujo del monitor y los perfiles">
-    <figcaption>Arriba a la derecha, el estado del motor (punto verde = funcionando) y los botones <b>Recargar</b> y <b>Manual</b>. Abajo a la izquierda, tu monitor y la versión.</figcaption>
+    <figcaption>Arriba a la derecha, el estado del motor (punto verde = funcionando) y el botón <b>Manual</b>. Abajo a la izquierda, tu monitor y la versión.</figcaption>
   </figure>
   <div class="tablewrap"><table>
     <tr><th>Sección</th><th>Qué hay</th><th>Capítulo</th></tr>
@@ -477,7 +476,7 @@
 <!-- ============ 9 ============ -->
 <section class="chap" id="config">
   <h2><span class="n">09</span>Archivos de configuración</h2>
-  <p>Casi todo se ajusta desde el panel, pero todo vive en un archivo de texto, <code>zones.ini</code>, en la carpeta <code>%APPDATA%\Zonely</code> (pega esa ruta en el Explorador de archivos). Al instalar una versión nueva, tus ajustes se conservan. Puedes editar el archivo a mano y pulsar <b>Recargar</b>. En esa carpeta también están <code>logs</code> (el registro de actividad) e <code>ipc</code> (la comunicación entre el panel y el motor).</p>
+  <p>Casi todo se ajusta desde el panel, pero todo vive en un archivo de texto, <code>zones.ini</code>, en la carpeta <code>%APPDATA%\Zonely</code> (pega esa ruta en el Explorador de archivos). Al instalar una versión nueva, tus ajustes se conservan. Puedes editar el archivo a mano: Zonely lo detecta solo (en un par de segundos) y aplica los cambios, conservando el perfil y los interruptores. Si el archivo tiene un error, se queda la configuración anterior y el motivo aparece en el registro. En esa carpeta también están <code>logs</code> (el registro de actividad) e <code>ipc</code> (la comunicación entre el panel y el motor).</p>
 
   <h3><code>zones.ini</code></h3>
   <pre>[General]
@@ -545,8 +544,8 @@ Games=RainbowSix.exe   ; juegos que el vigilante, el encaje y la restauración n
     <p>Comprueba que el vigilante está activado (interruptor del panel o icono de la bandeja) y que la app no está en la lista de <b>Exclusiones</b>. Las ventanas sin barra de título se consideran pantalla completa y no se tocan.</p>
   </details>
   <details>
-    <summary>Al recargar se pierde algo</summary>
-    <p>Recargar conserva el perfil, los interruptores, la capa oscura, el modo juego y los tamaños originales apuntados. Si algo no vuelve, cierra y abre el motor desde la bandeja (Salir) y vuelve a arrancarlo.</p>
+    <summary>Tras cambiar zones.ini se pierde algo</summary>
+    <p>Al aplicar los cambios, Zonely conserva el perfil, los interruptores, la capa oscura, el modo juego y los tamaños originales apuntados. Si algo no vuelve, cierra y abre Zonely desde la bandeja (Salir) y vuelve a arrancarlo.</p>
   </details>
   <details>
     <summary>Una ventana quedó mal colocada o sin bordes: cómo la recupero</summary>
@@ -554,7 +553,7 @@ Games=RainbowSix.exe   ; juegos que el vigilante, el encaje y la restauración n
       <li><b>Modo juego:</b> pulsa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd> otra vez. Vuelve a su estilo, posición y tamaño anteriores.</li>
       <li><b>Movida o redimensionada</b> (atajo, Shift+arrastrar, vigilante): pulsa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Retroceso</kbd> () y vuelve a su sitio anterior; repítelo para ir más atrás. Si la sacaste de su zona, ya recupera sola su tamaño original.</li>
       <li><b>Zona oscurecida:</b> <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> o «Apagada» en el panel.</li>
-      <li><b>Recargar el motor</b> no afecta al modo juego: el estado anterior se conserva y se sigue restaurando con Win+Alt+G. Al salir del motor (bandeja → Salir), las ventanas en modo juego también se restauran.</li>
+      <li><b>Aplicar cambios de zones.ini</b> no afecta al modo juego: el estado anterior se conserva y se sigue restaurando con Win+Alt+G. Al salir del motor (bandeja → Salir), las ventanas en modo juego también se restauran.</li>
     </ul>
   </details>
   <details>
@@ -574,7 +573,7 @@ Games=RainbowSix.exe   ; juegos que el vigilante, el encaje y la restauración n
 <section class="chap" id="resumen">
   <h2><span class="n">11</span>Chuleta de atajos</h2>
   <h3>Cambiar los atajos</h3>
-  <p>Todos los atajos se pueden cambiar desde el panel, en la sección <b>Atajos</b>. Pulsa <b>Cambiar</b> en la acción que quieras, marca los modificadores (Win, Alt, Ctrl, Mayús) y pulsa la tecla; después <b>Guardar</b>. El motor se recarga solo y el atajo nuevo funciona al momento.</p>
+  <p>Todos los atajos se pueden cambiar desde el panel, en la sección <b>Atajos</b>. Pulsa <b>Cambiar</b> en la acción que quieras, marca los modificadores (Win, Alt, Ctrl, Mayús) y pulsa la tecla; después <b>Guardar</b>. El atajo nuevo funciona al momento, sin reiniciar nada.</p>
   <figure class="shot">
     <img src="img/atajos.png" alt="Tarjeta de atajos de teclado del panel, con una acción en modo edición">
     <figcaption>Cada fila muestra el atajo actual; «Restablecer» devuelve el de fábrica y «Restablecer todos» los devuelve todos.</figcaption>

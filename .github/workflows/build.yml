@@ -98,6 +98,8 @@ jobs:
           name: Zonely-Windows
           path: |
             dist/installer/Zonely-Setup-*.exe
+            dist/installer/Zonely-Setup-*.exe.blockmap
+            dist/installer/latest.yml
             dist/installer/SHA256SUMS-windows.txt
 
   release:

@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 ; ============================================================
-;  Tray.ahk - Icono de bandeja: pausar, recargar, salir
+;  Tray.ahk - Icono de bandeja: vigilante, pausar, salir
 ; ============================================================
 
 TrayName := "Zonely"
@@ -14,7 +14,6 @@ InitTray() {
     tray.Delete()                       ; quita las entradas por defecto de AHK
     tray.Add("Vigilante de maximizado", ToggleWatcher)
     tray.Add("Pausar atajos", TogglePause)
-    tray.Add("Recargar (zones.ini)", (*) => ReloadKeepingState())
     tray.Add()
     tray.Add("Salir", (*) => ExitApp())
 }
