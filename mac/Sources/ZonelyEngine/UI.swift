@@ -130,7 +130,7 @@ enum Hud {
         mini.frame = NSRect(x: 18, y: (size.height - 32) / 2, width: 112, height: 32)
         card.addSubview(mini)
 
-        let caption = NSTextField(labelWithString: "Perfil aplicado")
+        let caption = NSTextField(labelWithString: tr("Perfil aplicado"))
         caption.font = NSFont.systemFont(ofSize: 11)
         caption.textColor = Palette.muted
         caption.frame = NSRect(x: 148, y: 40, width: 180, height: 16)

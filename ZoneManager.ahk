@@ -17,6 +17,7 @@ Persistent
 DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
 
 #Include lib\Log.ahk
+#Include lib\Strings.ahk
 #Include lib\Config.ahk
 #Include lib\Tray.ahk
 #Include lib\Zones.ahk
@@ -35,7 +36,7 @@ try {
     Config.Load()
 } catch Error as e {
     Log("Configuración no válida: " e.Message, "ERROR")
-    MsgBox("Error en zones.ini:`n`n" e.Message, "Zonely", "Iconx")
+    MsgBox(T("Error en zones.ini:") "`n`n" e.Message, "Zonely", "Iconx")
     ExitApp
 }
 

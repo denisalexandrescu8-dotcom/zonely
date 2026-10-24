@@ -150,6 +150,7 @@ function readConfig() {
       menubar: String(ini.General?.MenuBarIcon ?? '1') === '1',          // solo macOS: icono en la barra de menús
       fullscreen: String(ini.General?.FullScreenToZone ?? '1') === '1',  // solo macOS: sacar de pantalla completa nativa y colocar en la zona
       snapkey: ['Shift', 'Ctrl', 'Alt'].includes(ini.Snap?.Key) ? ini.Snap.Key : 'Shift',
+      language: LANGS.includes(ini.General?.Language) ? ini.General.Language : 'auto',
       autoupdate: String(ini.General?.AutoUpdate ?? '1') === '1',        // actualizar automáticamente
     },
     exclusions: { processes: splitList(ini.Exclusions?.Processes), classes: splitList(ini.Exclusions?.Classes) },
@@ -431,6 +432,20 @@ ipcMain.handle('config:setOption', (_e, { key, on }) => {
   if (!map[key]) throw new Error('Opción no válida');
   writeIni((t) => setIniValue(t, map[key][0], map[key][1], on ? '1' : '0'));
 });
+// Idioma: [General] Language = auto | es | en | fr | de | pt | it. Los motores lo leen para sus avisos y menús.
+const LANGS = ['auto', 'es', 'en', 'fr', 'de', 'pt', 'it'];
+function resolveLanguage() {
+  let chosen = 'auto';
+  try { chosen = parseIni(fs.readFileSync(INI, 'utf8')).General?.Language || 'auto'; } catch { /* sin zones.ini todavía */ }
+  if (LANGS.includes(chosen) && chosen !== 'auto') return chosen;
+  const system = String((app.isReady() ? app.getLocale() : 'es') || 'es').slice(0, 2).toLowerCase();
+  return LANGS.includes(system) ? system : 'en';
+}
+ipcMain.on('lang:get', (e) => { e.returnValue = resolveLanguage(); });
+ipcMain.handle('config:setLanguage', (_e, lang) => {
+  if (!LANGS.includes(lang)) throw new Error('Idioma no válido');
+  writeIni((t) => setIniValue(t, 'General', 'Language', lang));
+});
 ipcMain.handle('config:setSnapKey', (_e, key) => {
   if (!['Shift', 'Ctrl', 'Alt'].includes(key)) throw new Error('Tecla no válida');
   writeIni((t) => setIniValue(t, 'Snap', 'Key', key));       // el motor la lee en cada arrastre: no hace falta recargar
@@ -490,7 +505,7 @@ app.whenReady().then(() => {
   if (BACKGROUND) {                               // lo lanza el motor cada pocas horas: sin ventana, busca e instala la actualización
     if (process.platform === 'darwin' && app.dock) app.dock.hide();
     appendLog('INFO', `Comprobación de actualizaciones en segundo plano (v${readVersion()})`);
-    updater.init({ getWindow: () => null, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled, background: true });
+    updater.init({ getWindow: () => null, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled, language: resolveLanguage, background: true });
     updater.runBackground();
     return;
   }
@@ -499,6 +514,6 @@ app.whenReady().then(() => {
   // macOS instalado: el panel arranca el motor si no está en marcha (el motor evita ser lanzado dos veces).
   if (app.isPackaged && process.platform === 'darwin' && !fs.existsSync(ENGINE_STOPPED)) { try { startEngine(); } catch (e) { appendLog('WARN', `No pude iniciar el motor: ${e.message}`); } }
   createWindow();
-  updater.init({ getWindow: () => mainWindow, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled });
+  updater.init({ getWindow: () => mainWindow, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled, language: resolveLanguage });
 });
 app.on('window-all-closed', () => app.quit());

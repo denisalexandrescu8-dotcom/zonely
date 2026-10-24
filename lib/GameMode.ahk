@@ -75,12 +75,12 @@ EnterGameMode(hwnd, keep := false) {
     if keep {
         ; Sin bordes, con el tamaño interior de antes, centrado en la zona A.
         PlaceInRect(hwnd, z.X + Max(0, (z.W - cw) // 2), z.Y + Max(0, (z.H - ch) // 2), cw, ch, false)
-        Notify("Modo juego (tamaño conservado): " cw "x" ch)
+        Notify(T("Modo juego (tamaño conservado): {w}x{h}", "w", cw, "h", ch))
         Log("Modo juego ON (conservar tamaño): " WinGetProcessName(hwnd) " " cw "x" ch " centrado en " z.Name)
         return
     }
     PlaceInRect(hwnd, z.X, z.Y, z.W, z.H, false)     ; el modo juego se deshace con su propio atajo
-    Notify("Modo juego: " z.W "x" z.H)
+    Notify(T("Modo juego: {w}x{h}", "w", z.W, "h", z.H))
     Log("Modo juego ON: " WinGetProcessName(hwnd) " -> " z.W "x" z.H)
 }
 
@@ -98,6 +98,6 @@ LeaveGameMode(hwnd) {
         WinMaximize(hwnd)
     else
         WinMove(s["x"], s["y"], s["w"], s["h"], hwnd)
-    Notify("Ventana restaurada")
+    Notify(T("Ventana restaurada"))
     Log("Modo juego OFF: " WinGetProcessName(hwnd))
 }

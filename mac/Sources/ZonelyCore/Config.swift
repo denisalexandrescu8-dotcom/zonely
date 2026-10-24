@@ -45,6 +45,7 @@ public struct ConfigError: Error, CustomStringConvertible {
 public struct Config {
     public var monitorWidth: Int
     public var monitorHeight: Int
+    public var language: String             // [General] Language: auto, es, en, fr, de, pt o it
     public var monitorId: String            // pantalla elegida ([Monitor] Id, número de pantalla de macOS); vacío = la principal
     public var profiles: [Profile]
     public var startProfile: String
@@ -68,6 +69,7 @@ public struct Config {
         monitorWidth = ini.int("Monitor", "Width", default: 1920)
         monitorHeight = ini.int("Monitor", "Height", default: 1080)
         monitorId = ini.string("Monitor", "Id", default: "")
+        language = ini.string("General", "Language", default: "auto")
 
         var found: [Profile] = []
         for section in ini.sectionOrder where section.hasPrefix("Profile.") {

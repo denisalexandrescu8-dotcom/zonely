@@ -17,12 +17,12 @@ Notify(text, ms := 1200) {
 ; Con un perfil sin zonas las acciones de colocación no tienen sentido.
 ActiveManageable(target := 0) {
     if !Config.Zoned {
-        Notify("El perfil «" Config.ProfileName "» no tiene zonas")
+        Notify(T("El perfil «{name}» no tiene zonas", "name", Config.ProfileName))
         return 0
     }
     hwnd := target ? (WinExist(target) ? target : 0) : WinExist("A")
     if !hwnd || HasValue(SystemClasses, WinGetClass(hwnd)) {
-        Notify("No hay ventana gestionable")
+        Notify(T("No hay ventana gestionable"))
         return 0
     }
     return hwnd
@@ -217,7 +217,7 @@ CenterInZone(name, target := 0) {
     WinMove(x - dx, y - dy, , , hwnd)                    ; solo posición: no se toca el tamaño
     RestoreTrack(hwnd)                                   ; ahora está en esta zona (sin esto, la zona apuntada quedaba obsoleta)
     if w > z.W || h > z.H
-        Notify("La ventana (" w "x" h ") es mayor que la zona " name " (" z.W "x" z.H ")", 2500)
+        Notify(T("La ventana ({w}x{h}) es mayor que la zona {zone} ({zw}x{zh})", "w", w, "h", h, "zone", name, "zw", z.W, "zh", z.H), 2500)
     Log("Centrada sin redimensionar: " WinGetProcessName(hwnd) " " w "x" h " en la zona " name)
 }
 
@@ -261,11 +261,11 @@ UndoPlacement() {
             RestoreForget(hwnd)                        ; vuelve a como estaba: ya no hay nada que restaurar
             WindowBorder(hwnd, true)
             Log("Deshacer: " WinGetProcessName(hwnd) " vuelve a " e["x"] "," e["y"] " " e["w"] "x" e["h"])
-            Notify("Colocación deshecha")
+            Notify(T("Colocación deshecha"))
             return
         }
     }
-    Notify("Nada que deshacer")
+    Notify(T("Nada que deshacer"))
 }
 
 ; ---- Acciones de los atajos ----------------------------------
@@ -304,7 +304,7 @@ SnapHalf(top, target := 0) {
         return
     z := target ? Config.Zones["B"] : ZoneOf(hwnd)
     if z.Name != "B" {
-        Notify("Las mitades solo funcionan en la zona B")
+        Notify(T("Las mitades solo funcionan en la zona B"))
         return
     }
     half := z.H // 2

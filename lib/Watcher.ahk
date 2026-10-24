@@ -58,7 +58,7 @@ ToggleWatcher(*) {
     else
         StartWatcher()
     TrayWatcherChecked(WatcherOn)
-    Notify("Vigilante " (WatcherOn ? "activado" : "desactivado"))
+    Notify(WatcherOn ? T("Vigilante activado") : T("Vigilante desactivado"))
 }
 
 ; ¿Hay que dejar esta ventana en paz?
@@ -101,7 +101,7 @@ WatcherFix(hwnd) {
     WatcherLoops[hwnd] := info
     if info[1] > 4 {
         WatcherIgnored[hwnd] := true
-        Notify("El vigilante ignora esta ventana (se maximiza sola)", 2500)
+        Notify(T("El vigilante ignora esta ventana (se maximiza sola)"), 2500)
         return
     }
 

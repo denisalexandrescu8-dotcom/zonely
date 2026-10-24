@@ -12,16 +12,16 @@ InitTray() {
         TraySetIcon(TrayIcon)          ; el icono de Zonely en lugar de la «H» verde de AutoHotkey
     tray := A_TrayMenu
     tray.Delete()                       ; quita las entradas por defecto de AHK
-    tray.Add("Abrir Zonely", OpenPanel)
-    tray.Default := "Abrir Zonely"      ; el doble clic sobre el icono abre el panel
+    tray.Add(T("Abrir Zonely"), OpenPanel)
+    tray.Default := T("Abrir Zonely")      ; el doble clic sobre el icono abre el panel
     tray.Add()
-    tray.Add("Perfiles", TrayProfiles)  ; submenú con los perfiles de zones.ini (TrayRefreshProfiles lo rellena)
+    tray.Add(T("Perfiles"), TrayProfiles)  ; submenú con los perfiles de zones.ini (TrayRefreshProfiles lo rellena)
     TrayRefreshProfiles()
     tray.Add()
-    tray.Add("Vigilante de maximizado", ToggleWatcher)
-    tray.Add("Pausar atajos", TogglePause)
+    tray.Add(T("Vigilante de maximizado"), ToggleWatcher)
+    tray.Add(T("Pausar atajos"), TogglePause)
     tray.Add()
-    tray.Add("Salir", (*) => ExitApp())
+    tray.Add(T("Salir"), (*) => ExitApp())
 }
 
 TrayProfiles := Menu()
@@ -55,7 +55,7 @@ PanelCommand() {
 OpenPanel(*) {
     cmd := PanelCommand()
     if cmd = "" {
-        Notify("No encuentro el panel de Zonely", 2500)
+        Notify(T("No encuentro el panel de Zonely"), 2500)
         return
     }
     try Run(cmd, A_ScriptDir)
@@ -68,7 +68,7 @@ TogglePause(itemName, *) {
     Suspend(-1)
     if A_IsSuspended {
         A_TrayMenu.Check(itemName)
-        A_IconTip := TrayName " (PAUSADO)"
+        A_IconTip := T("{name} (PAUSADO)", "name", TrayName)
     } else {
         A_TrayMenu.Uncheck(itemName)
         A_IconTip := TrayName
@@ -78,7 +78,7 @@ TogglePause(itemName, *) {
 ; Marca/desmarca la entrada del vigilante según su estado.
 TrayWatcherChecked(on) {
     if on
-        A_TrayMenu.Check("Vigilante de maximizado")
+        A_TrayMenu.Check(T("Vigilante de maximizado"))
     else
-        A_TrayMenu.Uncheck("Vigilante de maximizado")
+        A_TrayMenu.Uncheck(T("Vigilante de maximizado"))
 }

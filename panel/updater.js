@@ -111,6 +111,7 @@ let current = '0.0.0';
 let log = () => {};
 let busy = false;
 let progressHooked = false;
+let language = () => 'es';
 let isAuto = () => true;                            // ¿actualizar automáticamente? (Ajustes → Actualizaciones, [General] AutoUpdate)
 
 function init(options) {
@@ -118,6 +119,7 @@ function init(options) {
   current = options.version || current;
   log = options.logger || log;
   isAuto = options.isAuto || isAuto;
+  language = options.language || language;
   if (!enabled()) return;
   // Con la actualización automática activada, el motor lanza cada pocas horas el panel sin ventana (--background-update)
   // y es ese el que descarga e instala. Si está apagada, se pregunta al abrir el panel.
@@ -155,6 +157,14 @@ function progress(fraction) {
   if (w) w.setProgressBar(fraction);
 }
 
+// Traduce un texto español del diccionario del panel (panel/locales.js) al idioma elegido.
+function tr(text, vars) {
+  const { LOCALES } = require('./locales');
+  let out = (LOCALES[language()] && LOCALES[language()][text]) || text;
+  if (vars) out = out.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+  return out;
+}
+
 async function check(manual, background = false) {
   if (!enabled()) return { status: 'dev' };
   if (busy) return { status: 'busy' };
@@ -164,7 +174,7 @@ async function check(manual, background = false) {
   } catch (e) {
     log('WARN', `Actualizaciones: ${e && e.message}`);
     progress(-1);
-    if (manual) await box({ type: 'warning', message: 'No he podido comprobar las actualizaciones', detail: 'Revisa tu conexión a internet e inténtalo de nuevo.' });
+    if (manual) await box({ type: 'warning', message: tr('No he podido comprobar las actualizaciones'), detail: tr('Revisa tu conexión a internet e inténtalo de nuevo.') });
     return { status: 'error' };
   } finally {
     busy = false;
@@ -172,7 +182,7 @@ async function check(manual, background = false) {
 }
 
 async function upToDate(manual) {
-  if (manual) await box({ type: 'info', message: 'Zonely está al día', detail: `Tienes la última versión (${current}).` });
+  if (manual) await box({ type: 'info', message: tr('Zonely está al día'), detail: tr('Tienes la última versión ({version}).', { version: current }) });
   return { status: 'none' };
 }
 
@@ -186,7 +196,7 @@ function markAsked(version) {
 }
 
 async function ask(version) {
-  const extra = process.platform === 'darwin' ? ' Después, macOS puede pedirte de nuevo el permiso de Accesibilidad.' : '';
+  const extra = process.platform === 'darwin' ? tr(' Después, macOS puede pedirte de nuevo el permiso de Accesibilidad.') : '';
   const { response } = await ask_(version, extra);
   markAsked(version);
   return response === 0;
@@ -195,11 +205,11 @@ async function ask(version) {
 function ask_(version, extra) {
   return box({
     type: 'question',
-    buttons: ['Actualizar ahora', 'Más tarde'],
+    buttons: [tr('Actualizar ahora'), tr('Más tarde')],
     defaultId: 0,
     cancelId: 1,
-    message: `Hay una versión nueva de Zonely (${version})`,
-    detail: `Tienes la ${current}. ¿Quieres actualizar? Se descarga ahora y Zonely se reinicia para terminar.${extra}`,
+    message: tr('Hay una versión nueva de Zonely ({version})', { version }),
+    detail: tr('Tienes la {current}. ¿Quieres actualizar? Se descarga ahora y Zonely se reinicia para terminar.{extra}', { current, extra }),
   });
 }
 
@@ -232,11 +242,11 @@ async function checkWindows(manual, background) {
   }
   const { response } = await box({
     type: 'info',
-    buttons: ['Reiniciar y actualizar', 'Al cerrar Zonely'],
+    buttons: [tr('Reiniciar y actualizar'), tr('Al cerrar Zonely')],
     defaultId: 0,
     cancelId: 1,
-    message: `Zonely ${info.version} está lista`,
-    detail: 'Para terminar, Zonely se cierra y se vuelve a abrir. Si prefieres esperar, se instalará cuando cierres la aplicación.',
+    message: tr('Zonely {version} está lista', { version: info.version }),
+    detail: tr('Para terminar, Zonely se cierra y se vuelve a abrir. Si prefieres esperar, se instalará cuando cierres la aplicación.'),
   });
   if (response === 0) {
     log('INFO', 'Actualizaciones: instalando y reiniciando');
@@ -269,11 +279,11 @@ async function checkMac(manual, background) {
     if (silent) { log('INFO', 'Actualizaciones: esta vez no se puede instalar sola; se avisará al abrir el panel'); return { status: 'available', version: latest }; }
     const { response } = await box({
       type: 'question',
-      buttons: ['Abrir la descarga', 'Más tarde'],
+      buttons: [tr('Abrir la descarga'), tr('Más tarde')],
       defaultId: 0,
       cancelId: 1,
-      message: `Hay una versión nueva de Zonely (${latest})`,
-      detail: `Tienes la ${current}. Esta vez la actualización no se puede hacer sola: descarga el nuevo instalador de la página de la versión.`,
+      message: tr('Hay una versión nueva de Zonely ({version})', { version: latest }),
+      detail: tr('Tienes la {current}. Esta vez la actualización no se puede hacer sola: descarga el nuevo instalador de la página de la versión.', { current }),
     });
     markAsked(latest);
     if (response === 0 && /^https:\/\/github\.com\//.test(release.html_url || '')) shell.openExternal(release.html_url);

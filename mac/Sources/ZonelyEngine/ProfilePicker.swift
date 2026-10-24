@@ -62,7 +62,7 @@ final class PickerRowView: NSView {
             draw(zones.map { "\($0.w) px" }.joined(separator: " + "), at: NSPoint(x: textX, y: 38), size: 13, weight: .regular, color: Palette.muted)
             draw(zones.map { percent($0.w) }.joined(separator: "  +  "), at: NSPoint(x: textX, y: 58), size: 11, weight: .regular, color: Palette.faint)
         } else {
-            draw("Pantalla completa, sin zonas", at: NSPoint(x: textX, y: 38), size: 13, weight: .regular, color: Palette.muted)
+            draw(tr("Pantalla completa, sin zonas"), at: NSPoint(x: textX, y: 38), size: 13, weight: .regular, color: Palette.muted)
         }
         if isCurrent {
             draw("●  Activo ahora", at: NSPoint(x: textX, y: 76), size: 11, weight: .semibold, color: NSColor(hex: 0x5B9BFF))
@@ -72,7 +72,7 @@ final class PickerRowView: NSView {
         let buttonPath = NSBezierPath(roundedRect: button, xRadius: 14, yRadius: 14)
         (isCurrent ? Palette.accent : Palette.button).setFill()
         buttonPath.fill()
-        let label = NSAttributedString(string: isCurrent ? "Aplicado" : "Aplicar", attributes: [
+        let label = NSAttributedString(string: isCurrent ? tr("Aplicado") : tr("Aplicar"), attributes: [
             .font: NSFont.systemFont(ofSize: 13, weight: .semibold), .foregroundColor: isCurrent ? NSColor.white : Palette.muted,
         ])
         let size = label.size()
@@ -100,13 +100,13 @@ final class PickerContentView: NSView {
             NSColor(hex: color).setFill()
             NSBezierPath(roundedRect: rect, xRadius: 6, yRadius: 6).fill()
         }
-        NSAttributedString(string: "Elegir perfil", attributes: [.font: NSFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: Palette.text])
+        NSAttributedString(string: tr("Elegir perfil"), attributes: [.font: NSFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: Palette.text])
             .draw(at: NSPoint(x: 86, y: 20))
-        NSAttributedString(string: "Aplica una distribución de zonas a tu pantalla.", attributes: [.font: NSFont.systemFont(ofSize: 13), .foregroundColor: Palette.muted])
+        NSAttributedString(string: tr("Aplica una distribución de zonas a tu pantalla."), attributes: [.font: NSFont.systemFont(ofSize: 13), .foregroundColor: Palette.muted])
             .draw(at: NSPoint(x: 86, y: 52))
         NSAttributedString(string: "✕", attributes: [.font: NSFont.systemFont(ofSize: 16), .foregroundColor: Palette.muted])
             .draw(at: NSPoint(x: closeRect.minX + 6, y: closeRect.minY + 3))
-        NSAttributedString(string: "Esc para cerrar", attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: Palette.faint])
+        NSAttributedString(string: tr("Esc para cerrar"), attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: Palette.faint])
             .draw(at: NSPoint(x: 24, y: bounds.height - 30))
     }
 

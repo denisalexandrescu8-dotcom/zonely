@@ -148,12 +148,22 @@
             </div>
           </section>
 
+          <section class="language">
+            <h3>Idioma</h3>
+            <p class="hint">El idioma del panel, de los avisos y de los menús de Zonely.</p>
+            <label class="set-row">
+              <i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></i>
+              <span><strong>Idioma de la interfaz</strong></span>
+              <select id="opt-language" aria-label="Idioma de la interfaz"></select>
+            </label>
+          </section>
+
           <section class="behaviour">
             <h3>Comportamiento de ventanas</h3>
             <p class="hint">Cómo interactúan las ventanas con las zonas.</p>
             <label class="set-row">
               <i class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 9l-3 3 3 3M15 9l3 3-3 3"/></svg></i>
-              <span><strong>Vigilante</strong><small>Si maximizas una ventana, vuelve a su zona (no ocupa los 5120 px).</small></span>
+              <span><strong>Vigilante</strong><small>Si maximizas una ventana, vuelve a su zona (no ocupa todo el monitor).</small></span>
               <input type="checkbox" id="watcher" class="switch">
             </label>
             <label class="set-row">
@@ -285,6 +295,8 @@
   </div>
 </div>
 
+  <script src="locales.js"></script>
+  <script src="i18n.js"></script>
   <script src="renderer.js"></script>
   <script src="editor.js"></script>
   <script src="dim.js"></script>

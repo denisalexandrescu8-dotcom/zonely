@@ -51,7 +51,7 @@ ToggleDim() {
         return
     }
     if !Config.Zoned {
-        Notify("El perfil «" Config.ProfileName "» no tiene zonas")
+        Notify(T("El perfil «{name}» no tiene zonas", "name", Config.ProfileName))
         return
     }
     hwnd := WinExist("A")
@@ -61,5 +61,5 @@ ToggleDim() {
         if name != active
             others .= (others = "" ? "" : "+") name
     SetDim(others)
-    Notify("Capa oscura sobre la zona " StrReplace(DimZoneName, "+", " y "))
+    Notify(T("Capa oscura sobre la zona {zones}", "zones", StrReplace(DimZoneName, "+", ", ")))
 }

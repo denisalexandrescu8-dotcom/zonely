@@ -42,7 +42,7 @@ ZonesSorted(zs) {
 ProfileSummary(name) {
     zs := Config.Profiles[name]
     if !zs.Has("B")
-        return "pantalla completa, sin zonas"
+        return T("pantalla completa, sin zonas")
     txt := ""
     for z in ZonesSorted(zs)
         txt .= (txt = "" ? "" : " + ") z.Name " " z.W
@@ -67,7 +67,7 @@ ShowProfilePicker() {
     pad := 24, rowW := 612, rowH := 98, gap := 10, miniW := 230, miniH := 65, btnW := 112, btnH := 40
     winW := rowW + pad * 2
 
-    g := Gui("+AlwaysOnTop -Caption +ToolWindow", "Elegir perfil")
+    g := Gui("+AlwaysOnTop -Caption +ToolWindow", T("Elegir perfil"))
     g.BackColor := PkBg
     g.MarginX := 0, g.MarginY := 0
 
@@ -76,9 +76,9 @@ ShowProfilePicker() {
     Rounded(Card(g, pad + 2, 46, 23, 17, "6B76F6", (*) => 0), 8)
     Rounded(Card(g, pad + 29, 25, 17, 38, "8B5CF6", (*) => 0), 8)
     g.SetFont("s16 w600 cEEF0F7", "Segoe UI")
-    g.Add("Text", "x" (pad + 62) " y20 w" (rowW - 110) " BackgroundTrans", "Elegir perfil")
+    g.Add("Text", "x" (pad + 62) " y20 w" (rowW - 110) " BackgroundTrans", T("Elegir perfil"))
     g.SetFont("s10 w400 c8A92A8", "Segoe UI")
-    g.Add("Text", "x" (pad + 62) " y52 w" (rowW - 110) " BackgroundTrans", "Aplica una distribución de zonas a tu pantalla.")
+    g.Add("Text", "x" (pad + 62) " y52 w" (rowW - 110) " BackgroundTrans", T("Aplica una distribución de zonas a tu pantalla."))
     g.SetFont("s14 w400 c8A92A8", "Segoe UI")
     closeBtn := g.Add("Text", "x" (winW - pad - 28) " y22 w28 h28 Center +0x200 +0x100 BackgroundTrans", "✕")
     closeBtn.OnEvent("Click", (*) => ClosePicker())
@@ -106,7 +106,7 @@ ShowProfilePicker() {
                 pc .= (pc = "" ? "" : "  +  ") Pct(z.W)
             }
         } else
-            px := "Pantalla completa, sin zonas"
+            px := T("Pantalla completa, sin zonas")
         g.SetFont("s13 w600 cEEF0F7", "Segoe UI")
         PickText(g, tx, ry + 10, tw, StrUpper(SubStr(name, 1, 1)) SubStr(name, 2), pick)
         g.SetFont("s10 w400 cA3A9BD", "Segoe UI")
@@ -115,20 +115,20 @@ ShowProfilePicker() {
         PickText(g, tx, ry + 58, tw, pc, pick)
         if cur {
             g.SetFont("s9 w600 c5B9BFF", "Segoe UI")
-            PickText(g, tx, ry + 76, tw, "●  Activo ahora", pick)
+            PickText(g, tx, ry + 76, tw, T("●  Activo ahora"), pick)
         }
 
         ; botón Aplicar / Aplicado
         g.SetFont("s10 w600 " (cur ? "cFFFFFF" : "cA3A9BD"), "Segoe UI")
         b := g.Add("Text", "x" (pad + rowW - btnW - 16) " y" (ry + (rowH - btnH) // 2) " w" btnW " h" btnH
-            . " Background" (cur ? PkAccent : "1A2133") " Center +0x200 +0x100", cur ? "Aplicado" : "Aplicar")
+            . " Background" (cur ? PkAccent : "1A2133") " Center +0x200 +0x100", cur ? T("Aplicado") : T("Aplicar"))
         b.OnEvent("Click", pick)
         Rounded(b, 14)
         ry += rowH + gap
     }
     ry += 10
     g.SetFont("s9 w400 c6E768C", "Segoe UI")
-    g.Add("Text", "x" pad " y" ry " w" rowW " BackgroundTrans", "Esc para cerrar")
+    g.Add("Text", "x" pad " y" ry " w" rowW " BackgroundTrans", T("Esc para cerrar"))
     winH := ry + 36
 
     g.OnEvent("Escape", (*) => ClosePicker())
@@ -221,7 +221,7 @@ ProfileToast(name) {
     mx := 18, my := (h - miniH) // 2
     MiniMonitor(g, mx, my, miniW, miniH, zs, (*) => 0)
     g.SetFont("s9 w400 c94A3B8", "Segoe UI")
-    g.Add("Text", "x" (mx + miniW + 18) " y14 w180 BackgroundTrans", "Perfil aplicado")
+    g.Add("Text", "x" (mx + miniW + 18) " y14 w180 BackgroundTrans", T("Perfil aplicado"))
     g.SetFont("s14 w600 cEEF0F7", "Segoe UI")
     g.Add("Text", "x" (mx + miniW + 18) " y32 w180 BackgroundTrans", StrUpper(SubStr(name, 1, 1)) SubStr(name, 2))
 

@@ -2,11 +2,11 @@
 // El motor publica ipc\hotkeys.json con cada atajo; aquí se editan y se guardan en zones.ini ([Hotkeys]).
 // En macOS los modificadores se muestran con sus símbolos (⌃⌥⇧⌘) y en el orden habitual del Mac; # = Comando, ! = Opción, ^ = Control.
 const IS_MAC = /Mac/i.test(navigator.platform || navigator.userAgent || '');
-const MOD_LABEL = IS_MAC ? { '#': '⌘', '!': '⌥', '^': '⌃', '+': '⇧' } : { '#': 'Win', '!': 'Alt', '^': 'Ctrl', '+': 'Mayús' };
+const MOD_LABEL = IS_MAC ? { '#': '⌘', '!': '⌥', '^': '⌃', '+': '⇧' } : { '#': 'Win', '!': 'Alt', '^': 'Ctrl', '+': t('Mayús') };
 const MOD_ORDER = IS_MAC ? ['^', '!', '+', '#'] : ['#', '!', '^', '+'];
 const KEY_LABEL = {
-  Left: '←', Right: '→', Up: '↑', Down: '↓', BackSpace: IS_MAC ? '⌫' : 'Retroceso', PgUp: 'RePág', PgDn: 'AvPág',
-  Space: 'Espacio', Enter: 'Intro', Esc: 'Esc', Delete: 'Supr', Insert: 'Ins',
+  Left: '←', Right: '→', Up: '↑', Down: '↓', BackSpace: IS_MAC ? '⌫' : t('Retroceso'), PgUp: t('RePág'), PgDn: t('AvPág'),
+  Space: t('Espacio'), Enter: t('Intro'), Esc: 'Esc', Delete: t('Supr'), Insert: t('Ins'),
 };
 
 let hkList = [];            // [{ id, label, default, key, error }]
@@ -53,7 +53,7 @@ function onCapture(e) {
   if (['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'MetaLeft', 'MetaRight'].includes(e.code)) return;   // solo modificador: se sigue esperando
   const k = eventToAhkKey(e);
   hkEditing.capturing = false;
-  if (!k) { hkEditing.msg = 'Esa tecla no se admite (usa letras, números, flechas, F1–F24, Retroceso, Espacio, Tab, Intro, Supr, Ins, Inicio, Fin, RePág, AvPág o el teclado numérico).'; }
+  if (!k) { hkEditing.msg = t('Esa tecla no se admite (usa letras, números, flechas, F1–F24, Retroceso, Espacio, Tab, Intro, Supr, Ins, Inicio, Fin, RePág, AvPág o el teclado numérico).'); }
   else { hkEditing.key = k; hkEditing.msg = ''; }
   paintHotkeys(true);
 }
@@ -76,16 +76,16 @@ function rowFor(h) {
 
   const label = document.createElement('div');
   label.className = 'hk-label';
-  label.textContent = h.label;
-  if (h.error) { const s = document.createElement('small'); s.textContent = `Aviso: ${h.error}`; label.appendChild(s); }
+  label.textContent = t(h.label);
+  if (h.error) { const s = document.createElement('small'); s.textContent = t('Aviso: {error}', { error: h.error }); label.appendChild(s); }
 
   if (!editing) {
     const btns = document.createElement('div'); btns.className = 'hk-btns';
-    const change = document.createElement('button'); change.textContent = 'Cambiar';
+    const change = document.createElement('button'); change.textContent = t('Cambiar');
     change.onclick = () => { const p = hkParse(h.key); hkEditing = { id: h.id, mods: p.mods, key: p.key, capturing: false, msg: '' }; paintHotkeys(true); };
     btns.appendChild(change);
     if (h.key !== h.default) {
-      const reset = document.createElement('button'); reset.textContent = 'Restablecer'; reset.title = `Vuelve a ${h.default}`;
+      const reset = document.createElement('button'); reset.textContent = t('Restablecer'); reset.title = t('Vuelve a {key}', { key: h.default });
       reset.onclick = () => saveHotkeys({ [h.id]: h.default });
       btns.appendChild(reset);
     }
@@ -103,24 +103,24 @@ function rowFor(h) {
     ed.appendChild(lb);
   }
   const cap = document.createElement('button'); cap.className = 'capture' + (hkEditing.capturing ? ' waiting' : '');
-  cap.textContent = hkEditing.capturing ? 'Pulsa la tecla… (Esc cancela)' : `Tecla: ${KEY_LABEL[hkEditing.key] || hkEditing.key.toUpperCase()} · cambiar`;
+  cap.textContent = hkEditing.capturing ? t('Pulsa la tecla… (Esc cancela)') : t('Tecla: {key} · cambiar', { key: KEY_LABEL[hkEditing.key] || hkEditing.key.toUpperCase() });
   cap.onclick = () => { hkEditing.capturing = true; paintHotkeys(true); };
   ed.appendChild(cap);
 
   const preview = keycaps(hkBuild(hkEditing.mods, hkEditing.key));
   const msg = document.createElement('div'); msg.className = 'hk-msg'; msg.textContent = hkEditing.msg || '';
   const btns = document.createElement('div'); btns.className = 'hk-btns';
-  const save = document.createElement('button'); save.className = 'primary'; save.textContent = 'Guardar';
+  const save = document.createElement('button'); save.className = 'primary'; save.textContent = t('Guardar');
   save.onclick = () => {
     const next = hkBuild(hkEditing.mods, hkEditing.key);
-    if (!hkEditing.mods.size) { hkEditing.msg = 'Marca al menos un modificador (Win, Alt, Ctrl o Mayús).'; return paintHotkeys(true); }
+    if (!hkEditing.mods.size) { hkEditing.msg = t('Marca al menos un modificador (Win, Alt, Ctrl o Mayús).'); return paintHotkeys(true); }
     const clash = hkList.find((x) => x.id !== h.id && x.key.toLowerCase() === next.toLowerCase());
-    if (clash) { hkEditing.msg = `Ya lo usa «${clash.label}».`; return paintHotkeys(true); }
+    if (clash) { hkEditing.msg = t('Ya lo usa «{label}».', { label: t(clash.label) }); return paintHotkeys(true); }
     const id = h.id; hkEditing = null;
     saveHotkeys({ [id]: next }).catch((e) => { hkEditing = { id, mods: hkParse(next).mods, key: hkParse(next).key, capturing: false, msg: String(e.message || e) }; paintHotkeys(true); });
     paintHotkeys(true);
   };
-  const cancel = document.createElement('button'); cancel.textContent = 'Cancelar';
+  const cancel = document.createElement('button'); cancel.textContent = t('Cancelar');
   cancel.onclick = () => { hkEditing = null; paintHotkeys(true); };
   btns.append(save, cancel);
   row.append(label, ed, preview, msg, btns);
@@ -136,7 +136,7 @@ function paintHotkeys(force) {
   box.innerHTML = '';
   if (!hkList.length) {
     const e = document.createElement('span'); e.className = 'empty';
-    e.textContent = state.engineUp ? 'Esperando datos del motor…' : 'Motor detenido';
+    e.textContent = state.engineUp ? t('Esperando datos del motor…') : t('Motor detenido');
     box.appendChild(e);
     return;
   }

@@ -138,7 +138,7 @@ function edPaint() {
   const sel = zones[ed.selected];
   const count = Object.keys(zones).length;
   const editable = !!ed.tree;
-  edEl.info.textContent = sel ? `Zona ${ed.selected} · ${sel.w} × ${sel.h}` : '';
+  edEl.info.textContent = sel ? t('Zona {zone} · {w} × {h}', { zone: ed.selected, w: sel.w, h: sel.h }) : '';
   edEl.splitV.disabled = !sel || count >= ZONE_IDS.length || sel.w < MIN_W * 2;
   edEl.splitH.disabled = !sel || count >= ZONE_IDS.length || sel.h < MIN_H * 2;
   edEl.remove.disabled = !sel || count < 2;
@@ -228,7 +228,7 @@ function edSync() {
   if (ed.tree) edPaint();
   const editable = !!ed.tree;
   edEl.monitor.classList.toggle('readonly', !editable);
-  if (!editable) edEl.info.textContent = 'Este reparto no se puede editar aquí (se hizo a mano en zones.ini).';
+  if (!editable) edEl.info.textContent = t('Este reparto no se puede editar aquí (se hizo a mano en zones.ini).');
   for (const b of [edEl.splitV, edEl.splitH, edEl.remove, edEl.save, edEl.reset]) if (!editable) b.disabled = true;
 }
 
@@ -248,7 +248,7 @@ edEl.save.addEventListener('click', async () => {
     await window.zones.saveProfile({ id: ed.profile, zones: edRects().zones });
     ed.savedKey = edKey();
     await window.zones.send({ type: 'reload' });      // el motor relee zones.ini (conserva perfil y interruptores)
-    edNote('Guardado.');
+    edNote(t('Guardado.'));
   } catch (err) {
     edNote(String(err && err.message || err).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
   }
@@ -263,7 +263,7 @@ async function edCreate(from) {
     edEl.name.value = '';
     ed.profile = name;
     ed.reload = true;
-    edNote(`Perfil «${name}» creado. Divide la pantalla y guarda.`);
+    edNote(t('Perfil «{name}» creado. Divide la pantalla y guarda.', { name }));
   } catch (err) {
     edNote(String(err && err.message || err).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
   }
@@ -277,18 +277,18 @@ edEl.name.addEventListener('keydown', (e) => { if (e.key === 'Enter') edCreate('
 let edDeleteArmed = 0;
 edEl.del.addEventListener('click', async () => {
   if (!edDeleteArmed) {
-    edEl.del.textContent = `¿Eliminar «${ed.profile}»?`;
-    edDeleteArmed = setTimeout(() => { edDeleteArmed = 0; edEl.del.textContent = 'Eliminar perfil'; }, 4000);
+    edEl.del.textContent = t('¿Eliminar «{name}»?', { name: ed.profile });
+    edDeleteArmed = setTimeout(() => { edDeleteArmed = 0; edEl.del.textContent = t('Eliminar perfil'); }, 4000);
     return;
   }
   clearTimeout(edDeleteArmed);
   edDeleteArmed = 0;
-  edEl.del.textContent = 'Eliminar perfil';
+  edEl.del.textContent = t('Eliminar perfil');
   try {
     await window.zones.deleteProfile({ id: ed.profile });
     ed.profile = null;
     ed.reload = true;
-    edNote('Perfil eliminado.');
+    edNote(t('Perfil eliminado.'));
   } catch (err) {
     edNote(String(err && err.message || err).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
   }
@@ -313,7 +313,7 @@ function exPaint() {
     if (!config.exclusions[kind].length) {
       const e = document.createElement('span');
       e.className = 'empty';
-      e.textContent = 'Ninguna';
+      e.textContent = t('Ninguna');
       box.appendChild(e);
     }
     for (const item of config.exclusions[kind]) {
@@ -323,7 +323,7 @@ function exPaint() {
       label.textContent = item;                       // textContent: nada se interpreta como HTML
       const del = document.createElement('button');
       del.textContent = '✕';
-      del.title = 'Quitar';
+      del.title = t('Quitar');
       del.onclick = () => exSave(kind, config.exclusions[kind].filter((x) => x !== item));
       chip.append(label, del);
       box.appendChild(chip);
@@ -338,7 +338,7 @@ for (const form of document.querySelectorAll('.ex-form')) {
     const input = form.querySelector('input');
     const v = input.value.trim();
     const kind = form.dataset.kind;
-    if (!/^[\w.\- ]{1,80}$/.test(v)) { input.setCustomValidity('Solo letras, números, punto, guion y espacio'); input.reportValidity(); input.setCustomValidity(''); return; }
+    if (!/^[\w.\- ]{1,80}$/.test(v)) { input.setCustomValidity(t('Solo letras, números, punto, guion y espacio')); input.reportValidity(); input.setCustomValidity(''); return; }
     if (!config.exclusions[kind].includes(v)) exSave(kind, [...config.exclusions[kind], v]);
     input.value = '';
   });

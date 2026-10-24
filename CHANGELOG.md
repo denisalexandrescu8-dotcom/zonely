@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.48.0
+- **Nuevo: idiomas.** El panel, los avisos, los menús de la bandeja y de la barra de menús, el selector de perfiles y los diálogos de actualización están ahora en **español, inglés, francés, alemán, portugués e italiano**. Se elige en Ajustes → Idioma (por defecto, el del sistema) y se guarda en `[General] Language` de `zones.ini`. Los textos del panel están en `panel/locales.js` y los de los motores en `i18n/engine.js` (de ahí se generan `lib/Strings.ahk` y `mac/Sources/ZonelyCore/Strings.swift` con `node scripts/gen-strings.js`); añadir otro idioma es añadir una columna. El Registro y la ventana de depuración (solo desarrollo) siguen en español.
+
 ## 0.47.0
 - **Nuevo: editor de perfiles.** Crea perfiles nuevos (en blanco o copiando uno) y divide la pantalla **en vertical y en horizontal** a tu gusto, hasta 6 zonas (A–F): elige una zona, pulsa *Dividir ↔* o *Dividir ↕*, arrastra las líneas para ajustar, *Quitar zona* para unirla con la contigua y *Guardar y aplicar*. También se pueden eliminar perfiles. El motor (Windows y Mac) entiende ya zonas apiladas: el vigilante, el encaje con la tecla, la capa oscura, el selector y los avisos buscan la zona por posición (horizontal y vertical), y las miniaturas se dibujan en 2D.
 - **Nuevo: perfiles por monitor.** Cada monitor guarda su propio conjunto de perfiles y cuál usa (carpeta `monitors/` dentro de los datos de Zonely). Al elegir otro monitor se guardan los del que dejas y se cargan los del nuevo; si el monitor es nuevo, empieza con una copia de los actuales ajustada a su tamaño. Así puedes tener «normal» en uno y «ultrawide» en otro, y cambiar uno sin tocar el otro.

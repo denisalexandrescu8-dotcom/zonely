@@ -35,7 +35,9 @@
       "nav.js",
       "fonts/**",
       "updater.js",
-      "updates.js"
+      "updates.js",
+      "i18n.js",
+      "locales.js"
     ],
     "extraResources": [
       {

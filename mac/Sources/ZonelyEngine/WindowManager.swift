@@ -102,16 +102,16 @@ final class WindowManager {
     /// Ejecuta algo con la ventana activa si se puede gestionar; si no, avisa.
     private func withWindow(_ body: (ForeignWindow, CGRect) -> Void) {
         guard Accessibility.isTrusted(prompt: false) else {
-            Hud.showText("Falta el permiso de Accesibilidad (menú de Zonely)")
+            Hud.showText(tr("Falta el permiso de Accesibilidad (menú de Zonely)"))
             Accessibility.openSettings()
             return
         }
         guard profile?.isZoned == true else {
-            Hud.showText("El perfil «\(engine.currentProfileName)» no tiene zonas")
+            Hud.showText(tr("El perfil «{name}» no tiene zonas", ["name": engine.currentProfileName]))
             return
         }
         guard let window = Accessibility.focusedWindow(), let frame = window.frame else {
-            Hud.showText("No hay ventana gestionable")
+            Hud.showText(tr("No hay ventana gestionable"))
             return
         }
         body(window, frame)
@@ -166,7 +166,7 @@ final class WindowManager {
         if let i = gameMode.firstIndex(where: { $0.window.sameWindow(as: window) }) {
             let saved = gameMode.remove(at: i)
             window.setFrame(saved.frame)
-            Hud.showText("Ventana restaurada")
+            Hud.showText(tr("Ventana restaurada"))
             Log.write("Modo juego OFF: \(window.processName)")
             return
         }
@@ -175,7 +175,7 @@ final class WindowManager {
         if zone == "auto" { zone = zoneName(of: current) }
         let target = keepSize ? Geometry.centered(size: current.size, in: rect(of: zone)) : rect(of: zone)
         place(window, target, from: current, record: false)
-        Hud.showText(keepSize ? "Modo juego (tamaño conservado)" : "Modo juego")
+        Hud.showText(keepSize ? tr("Modo juego (tamaño conservado)") : tr("Modo juego"))
         Log.write("Modo juego ON: \(window.processName) -> zona \(zone)")
     }
 
@@ -189,7 +189,7 @@ final class WindowManager {
 
     private func restoreOriginal(_ window: ForeignWindow, _ current: CGRect) {
         guard let entry = tracked.first(where: { $0.window.sameWindow(as: window) }) else {
-            Hud.showText("No tengo guardado el tamaño original de esta ventana")
+            Hud.showText(tr("No tengo guardado el tamaño original de esta ventana"))
             return
         }
         returnToOriginalSize(entry, from: current, followCursor: false)
@@ -219,10 +219,10 @@ final class WindowManager {
         while let saved = undoStack.popLast() {
             guard saved.window.frame != nil else { continue }          // la ventana ya no existe
             saved.window.setFrame(saved.frame)
-            Hud.showText("Colocación deshecha")
+            Hud.showText(tr("Colocación deshecha"))
             return
         }
-        Hud.showText("Nada que deshacer")
+        Hud.showText(tr("Nada que deshacer"))
     }
 
     private func push(_ stack: inout [Saved], _ item: Saved, limit: Int) {
@@ -301,7 +301,7 @@ final class WindowManager {
         if fixes.count > 30 { fixes.removeFirst() }
         if entry.count > 4 {
             ignored.append(window)
-            Hud.showText("El vigilante ignora esta ventana (se maximiza sola)")
+            Hud.showText(tr("El vigilante ignora esta ventana (se maximiza sola)"))
             Log.write("Vigilante: se ignora \(window.processName) (se maximiza sola)", level: "WARN")
             return false
         }

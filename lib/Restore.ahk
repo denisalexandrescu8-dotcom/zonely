@@ -130,15 +130,15 @@ RestoreOriginal(hwnd, o, v) {
 RestoreActive(target := 0) {
     hwnd := target ? target : WinExist("A")
     if !hwnd || HasValue(SystemClasses, WinGetClass(hwnd)) {
-        Notify("No hay ventana gestionable")
+        Notify(T("No hay ventana gestionable"))
         return
     }
     if GameSaved.Has(hwnd) {
-        Notify("Está en modo juego: sal con el atajo del modo juego")
+        Notify(T("Está en modo juego: sal con el atajo del modo juego"))
         return
     }
     if !ZoneOrig.Has(hwnd) {
-        Notify("No tengo guardado el tamaño original de esta ventana", 2500)
+        Notify(T("No tengo guardado el tamaño original de esta ventana"), 2500)
         return
     }
     try {

@@ -70,7 +70,7 @@ function paintCards() {
     name.textContent = p.id;                       // textContent: nada del .ini se interpreta como HTML
     const sizes = document.createElement('div');
     sizes.className = 'sizes';
-    sizes.textContent = p.zones.B ? ZONE_IDS.filter((id) => p.zones[id]).map((id) => `${id} ${p.zones[id].w}×${p.zones[id].h}`).join(' · ') : 'Pantalla completa · sin zonas';
+    sizes.textContent = p.zones.B ? ZONE_IDS.filter((id) => p.zones[id]).map((id) => `${id} ${p.zones[id].w}×${p.zones[id].h}`).join(' · ') : t('Pantalla completa · sin zonas');
     info.append(name, sizes);
     card.append(mini, info);
     card.onclick = () => window.zones.send({ type: 'profile', value: p.id }).then(refresh);
@@ -83,8 +83,8 @@ function paintEngine() {
   const el = $('engine');
   el.className = 'motor ' + (state.engineUp ? 'up' : 'down');
   $('engine-text').textContent = state.engineUp
-    ? (state.paused ? 'Motor activo · atajos en pausa' : 'Motor activo')
-    : 'Motor detenido';
+    ? (state.paused ? t('Motor activo · atajos en pausa') : t('Motor activo'))
+    : t('Motor detenido');
   const sw = $('engine-switch');
   if (document.activeElement !== sw && !engineBusy) sw.checked = !!state.engineUp;
   document.querySelector('.nav-item[data-nav="ajustes"]').classList.toggle('alert', !state.engineUp);     // punto rojo si el motor está apagado
@@ -96,6 +96,8 @@ function paintEngine() {
   s.checked = !!state.snap;
   const sk = $('opt-snapkey');
   if (document.activeElement !== sk && config.options?.snapkey) sk.value = config.options.snapkey;
+  const lg = $('opt-language');
+  if (document.activeElement !== lg) lg.value = config.options?.language || 'auto';
   // Opciones guardadas en zones.ini (se leen de la configuración, no del estado del motor).
   for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-fullscreen', 'fullscreen'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']]) {
     const el = $(id);
@@ -116,12 +118,12 @@ function flashZones() {
 }
 
 // Selector de monitor (barra lateral): enseña el elegido y, si hay más de uno conectado, los despliega para cambiar.
-const monitorLabel = (m) => `${m.name}${m.primary ? ' (principal)' : ''}`;
+const monitorLabel = (m) => (m.primary ? t('{name} (principal)', { name: m.name }) : m.name);
 let monitorsKey = '';
 function paintMonitorPicker() {
   const list = state.monitors ?? [];
   const chosen = list.find((m) => m.id === config.monitor.id) ?? list.find((m) => m.primary) ?? list[0];
-  $('mon-name').textContent = chosen ? chosen.name : 'Monitor principal';
+  $('mon-name').textContent = chosen ? chosen.name : t('Monitor principal');
   $('res').textContent = `${config.monitor.w}×${config.monitor.h}`;
   $('monitor-card').title = `${$('mon-name').textContent} · ${$('res').textContent}`;      // el nombre completo, por si no cabe
   const pickable = list.length > 1;
@@ -191,6 +193,16 @@ async function refresh() {
 
 $('watcher').addEventListener('change', (e) =>
   window.zones.send({ type: 'watcher', value: e.target.checked ? 'on' : 'off' }).then(refresh));
+// Idioma: las opciones salen con su nombre en su propio idioma; «Automático» sigue al sistema. Al cambiarlo se recarga el panel.
+(() => {
+  const sel = $('opt-language');
+  for (const [code, name] of LANGUAGES) sel.add(new Option(name || t('Automático'), code));
+  sel.value = (config && config.options && config.options.language) || 'auto';
+  sel.addEventListener('change', async () => {
+    await window.zones.setLanguage(sel.value);
+    location.reload();
+  });
+})();
 $('opt-snapkey').addEventListener('change', async (e) => {
   await window.zones.setSnapKey(e.target.value);
   refresh();

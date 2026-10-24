@@ -31,7 +31,7 @@ LogRotate() {
 ; Los errores no esperados se anotan y NO muestran el diálogo bloqueante: aparece un aviso breve.
 LogUnhandled(e, mode) {
     Log(e.Message " | en " e.What " | " e.File ":" e.Line (e.Extra != "" ? " | " e.Extra : ""), "ERROR")
-    try Notify("Error interno: mira el registro del panel", 3000)
+    try Notify(T("Error interno: mira el registro del panel"), 3000)
     return 1
 }
 

@@ -1,11 +1,11 @@
 // Navegación lateral: muestra una sola vista a la vez y recuerda la última.
 let devMode = false;      // el apartado Registro solo se muestra en desarrollo (ver abajo)
 const VIEWS = {
-  zonas:    ['Zonas', 'Tu monitor, tus perfiles y sus zonas.'],
-  atajos:   ['Atajos', 'Cambia las combinaciones de teclado del motor.'],
-  ajustes:  ['Ajustes', 'Modo juego, capa oscura y exclusiones.'],
-  manual:   ['Manual', 'Guía de uso de Zonely.'],
-  registro: ['Registro', 'Lo que hace el motor y la última ventana usada.'],
+  zonas:    [t('Zonas'), t('Tu monitor, tus perfiles y sus zonas.')],
+  atajos:   [t('Atajos'), t('Cambia las combinaciones de teclado del motor.')],
+  ajustes:  [t('Ajustes'), t('Modo juego, capa oscura y exclusiones.')],
+  manual:   [t('Manual'), t('Guía de uso de Zonely.')],
+  registro: [t('Registro'), t('Lo que hace el motor y la última ventana usada.')],
 };     // IS_MAC viene de hotkeys.js
 
 function showView(name) {
@@ -41,12 +41,7 @@ Promise.resolve(window.zones?.isDev?.()).then((dev) => {
   if (lastView === 'registro') showView('registro');
 }).catch(() => {});
 
-// En macOS los atajos de fábrica son ⌃⌥ + tecla: los textos fijos de la interfaz que dicen «Win+Alt+X» se adaptan.
+// En macOS se muestran los ajustes que solo existen allí (los textos «Win+Alt+X» se adaptan en i18n.js).
 if (IS_MAC) {
-  for (const el of document.querySelectorAll('.mac-only')) el.hidden = false;      // ajustes que solo existen en macOS
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  for (let n = walker.nextNode(); n; n = walker.nextNode())
-    n.nodeValue = n.nodeValue
-      .replace(/Win\+Alt\+Mayús\+(\w)/g, (_, k) => `⌃⌥⇧${k.toUpperCase()}`)
-      .replace(/Win\+Alt\+(\w)/g, (_, k) => `⌃⌥${k.toUpperCase()}`);
+  for (const el of document.querySelectorAll('.mac-only')) el.hidden = false;
 }

@@ -37,7 +37,7 @@ CheckIniChanged() {
     msg := Config.TryLoad()
     if msg != "" {
         Log("zones.ini ha cambiado pero no es válido; se mantiene la configuración anterior: " msg, "WARN")
-        Notify("zones.ini no es válido: " msg, 4000)
+        Notify(T("zones.ini no es válido: {error}", "error", msg), 4000)
         return
     }
     Log("zones.ini ha cambiado: recargando")

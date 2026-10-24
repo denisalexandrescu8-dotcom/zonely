@@ -90,6 +90,7 @@ final class Engine {
             config = loaded
             configError = nil
             Screens.selectedId = loaded.monitorId
+            Strings.language = Strings.resolve(chosen: loaded.language)
             if loaded.profile(named: state.profile) == nil || ticks == 0 {
                 let last = (try? String(contentsOf: Paths.lastProfileURL, encoding: .utf8))?
                     .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -139,13 +140,13 @@ final class Engine {
     func toggleWatcher() {
         state.watcher.toggle()
         writeState()
-        Hud.showText("Vigilante \(state.watcher ? "activado" : "desactivado")")
+        Hud.showText(state.watcher ? tr("Vigilante activado") : tr("Vigilante desactivado"))
     }
 
     /// Capa oscura (⌃⌥O): la apaga si estaba encendida; si no, oscurece todas las zonas menos la de la ventana activa.
     func toggleDim() {
         guard let profile = config?.profile(named: state.profile), profile.isZoned else {
-            Hud.showText("El perfil «\(state.profile)» no tiene zonas")
+            Hud.showText(tr("El perfil «{name}» no tiene zonas", ["name": state.profile]))
             return
         }
         state.dim = state.dim.isEmpty ? Geometry.otherZones(than: windows.activeZoneName(), in: profile) : ""

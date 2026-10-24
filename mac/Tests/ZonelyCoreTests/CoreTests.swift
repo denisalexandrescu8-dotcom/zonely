@@ -176,6 +176,27 @@ final class GeometryTests: XCTestCase {
         XCTAssertEqual(try Config(ini: IniFile(text: gap)).profile(named: "g")?.zones.count, 2)
     }
 
+    func testEngineTextsAreTranslated() {
+        let saved = Strings.language
+        defer { Strings.language = saved }
+        Strings.language = "es"
+        XCTAssertEqual(tr("Salir"), "Salir")
+        Strings.language = "en"
+        XCTAssertEqual(tr("Salir"), "Quit")
+        XCTAssertEqual(tr("El perfil «{name}» no tiene zonas", ["name": "x"]), "The profile “x” has no zones")
+        Strings.language = "fr"
+        XCTAssertEqual(tr("Modo juego: {w}x{h}", ["w": "5", "h": "7"]), "Mode jeu : 5x7")
+        XCTAssertEqual(tr("Texto que no existe"), "Texto que no existe")      // sin traducción se devuelve tal cual
+    }
+
+    func testLanguageResolution() throws {
+        XCTAssertEqual(Strings.resolve(chosen: "de", system: ["es-ES"]), "de")
+        XCTAssertEqual(Strings.resolve(chosen: "auto", system: ["it-IT", "en"]), "it")
+        XCTAssertEqual(Strings.resolve(chosen: "auto", system: ["ja-JP"]), "en")
+        XCTAssertEqual(try Config(ini: IniFile(text: "[General]\nLanguage=pt\n[Profile.a]\nA=0,0,1920,1080\n")).language, "pt")
+        XCTAssertEqual(try Config(ini: IniFile(text: "[Profile.a]\nA=0,0,1920,1080\n")).language, "auto")
+    }
+
     func testMonitorIdIsReadFromTheIni() throws {
         XCTAssertEqual(try Config(ini: IniFile(text: "[Monitor]\nWidth=2560\nHeight=1440\nId=69733632\n[Profile.a]\nA=0,0,2560,1440\n")).monitorId, "69733632")
         XCTAssertEqual(try Config(ini: IniFile(text: "[Profile.a]\nA=0,0,1920,1080\n")).monitorId, "")
