@@ -1,0 +1,5 @@
+*.log
+ipc/
+node_modules/
+dist/
+.claude/

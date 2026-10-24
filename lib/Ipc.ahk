@@ -1,0 +1,192 @@
+#Requires AutoHotkey v2.0
+; ============================================================
+;  Ipc.ahk - Comunicación con el panel de control (app Electron)
+;  El panel escribe órdenes en ipc\cmd.txt (una por línea) y lee
+;  el estado de ipc\state.json. Sin red ni dependencias: son dos
+;  ficheros pequeños y un timer de 250 ms.
+;
+;  Órdenes:  profile <nombre> | watcher on|off | snap on|off | halves on|off | restore on|off | dim A|B|off | dimlevel <0-100> | watch | reload
+; ============================================================
+
+IpcDir := DataDir "\ipc"
+IpcTicks := 0
+IpcWatchUntil := 0                     ; el panel renueva esto cada 5 s mientras está abierto
+IpcLastWin := 0                        ; última ventana activa que NO es el panel (para depuración y exclusiones)
+
+StartIpc() {
+    DirCreate(IpcDir)
+    try FileDelete(IpcDir "\cmd.txt")     ; descarta órdenes viejas
+    SetTimer(IpcTick, 250)
+    WriteState()
+}
+
+IpcTick() {
+    global IpcTicks
+    IpcTicks++
+    TrackTarget()
+    if A_TickCount < IpcWatchUntil && Mod(IpcTicks, 2) = 0       ; solo se trabaja de más si el panel está mirando
+        WriteDebug()
+    cmdFile := IpcDir "\cmd.txt"
+    if FileExist(cmdFile) {
+        try {
+            txt := FileRead(cmdFile, "UTF-8")
+            FileDelete(cmdFile)
+            for line in StrSplit(txt, "`n", "`r")
+                if Trim(line) != ""
+                    IpcRun(Trim(line))
+        }
+        WriteState()
+    } else if Mod(IpcTicks, 8) = 0 {
+        WriteState()                       ; latido cada 2 s: el panel sabe que seguimos vivos
+    }
+}
+
+IpcRun(line) {
+    parts := StrSplit(line, " ", , 2)
+    arg := parts.Length > 1 ? parts[2] : ""
+    switch StrLower(parts[1]) {
+        case "profile":
+            ApplyProfile(arg, "desde el panel")
+        case "dim":                        ; dim A | dim B | dim off
+            SetDim(RegExMatch(arg, "^[ABC](\+[ABC])*$") ? arg : "")
+        case "dimlevel":
+            if IsInteger(arg)
+                SetDimLevel(Integer(arg))
+        case "watcher":
+            if (arg = "on") != WatcherOn
+                ToggleWatcher()
+        case "snap":
+            SetSnap(arg = "on")
+        case "halves":
+            Config.SnapHalves := arg = "on"
+        case "restore":
+            Config.RestoreOnLeave := arg = "on"
+            if arg != "on"
+                ZoneOrig.Clear()
+        case "watch":
+            global IpcWatchUntil := A_TickCount + 15000
+        case "reload":
+            ReloadKeepingState()
+    }
+}
+
+; Recarga el script conservando perfil, vigilante, encaje y capa oscura (si no, volverían a lo que diga el .ini).
+ReloadKeepingState() {
+    Log("Recargando (perfil " Config.ProfileName ")")
+    try {
+        f := FileOpen(IpcDir "\resume.txt", "w", "UTF-8-RAW")
+        f.Write("profile=" Config.ProfileName "`nwatcher=" (WatcherOn ? 1 : 0) "`nsnap=" (SnapOn ? 1 : 0)
+            . "`ndim=" DimZoneName GameResumeLines() RestoreResumeLines())
+        f.Close()
+    }
+    Reload()
+}
+
+; Tras Config.Load(): aplica el estado guardado por ReloadKeepingState (si existe).
+ApplyResume() {
+    global DimZoneName
+    file := IpcDir "\resume.txt"
+    if !FileExist(file)
+        return
+    try {
+        for line in StrSplit(FileRead(file, "UTF-8"), "`n", "`r") {
+            kv := StrSplit(line, "=", , 2)
+            if kv.Length < 2
+                continue
+            switch kv[1] {
+                case "profile": Config.SetProfile(kv[2])
+                case "watcher": Config.WatcherEnabled := kv[2] = 1
+                case "snap":    Config.SnapEnabled := kv[2] = 1
+                case "dim":     DimZoneName := kv[2]
+                case "orig":
+                    og := StrSplit(kv[2], ",")
+                    if og.Length = 7 && WinExist(Integer(og[1]))
+                        ZoneOrig[Integer(og[1])] := Map("w", Integer(og[2]), "h", Integer(og[3]), "zone", [Integer(og[4]), Integer(og[5]), Integer(og[6]), Integer(og[7])], "pending", 0)
+                case "game":
+                    g := StrSplit(kv[2], ",")
+                    if g.Length = 8 && WinExist(Integer(g[1]))
+                        GameSaved[Integer(g[1])] := Map("style", Integer(g[2]), "exStyle", Integer(g[3]), "x", Integer(g[4])
+                            , "y", Integer(g[5]), "w", Integer(g[6]), "h", Integer(g[7]), "minmax", Integer(g[8]))
+            }
+        }
+    }
+    try FileDelete(file)
+}
+
+; Recuerda la última ventana activa que no sea el propio panel (el panel roba el foco al hacer clic).
+TrackTarget() {
+    global IpcLastWin
+    try {
+        hwnd := WinExist("A")
+        if hwnd && WinGetTitle(hwnd) != "Zonely" && !HasValue(SystemClasses, WinGetClass(hwnd))
+            IpcLastWin := hwnd
+    }
+}
+
+; Escapa un texto para meterlo en JSON.
+JsonStr(s) {
+    s := StrReplace(s, "\", "\\")
+    s := StrReplace(s, "`"", "\`"")
+    s := RegExReplace(s, "[\x00-\x1F]", " ")
+    return s
+}
+
+; Datos de la última ventana usada en JSON ("null" si no hay).
+TargetJson() {
+    try {
+        if IpcLastWin && WinExist(IpcLastWin)
+            return '{"hwnd":' IpcLastWin ',"proc":"' JsonStr(WinGetProcessName(IpcLastWin)) '","title":"' JsonStr(SubStr(WinGetTitle(IpcLastWin), 1, 80)) '"}'
+    }
+    return "null"
+}
+
+; Ficha JSON completa de una ventana (la que enseña la tarjeta de depuración del panel).
+WindowInfo(hwnd) {
+    try {
+        mm := WinGetMinMax(hwnd)
+        v := GetVisibleRect(hwnd)
+        vw := v["R"] - v["L"], vh := v["B"] - v["T"]
+        z := ZoneOf(hwnd)
+        exact := v["L"] = z.X && v["T"] = z.Y && vw = z.W && vh = z.H
+        WinGetPos(&ox, &oy, &ow, &oh, hwnd)
+        WinGetClientPos(, , &cw, &ch, hwnd)
+        style := WinGetStyle(hwnd)
+        return '{"hwnd":' hwnd ',"proc":"' JsonStr(WinGetProcessName(hwnd)) '","title":"' JsonStr(SubStr(WinGetTitle(hwnd), 1, 90))
+            . '","state":' mm ',"zone":"' (mm = -1 ? "" : z.Name) '","x":' v["L"] ',"y":' v["T"] ',"w":' vw ',"h":' vh
+            . ',"exact":' (exact ? "true" : "false") ',"dw":' (vw - z.W) ',"dh":' (vh - z.H)
+            . ',"game":' (GameSaved.Has(hwnd) ? "true" : "false")
+            . ',"class":"' JsonStr(WinGetClass(hwnd)) '","path":"' JsonStr(WinGetProcessPath(hwnd)) '"'
+            . ',"style":"' Format("0x{:08X}", style) '","caption":' ((style & 0xC00000) = 0xC00000 ? "true" : "false")
+            . ',"ox":' ox ',"oy":' oy ',"ow":' ow ',"oh":' oh ',"cw":' cw ',"ch":' ch
+            . ',"zx":' z.X ',"zy":' z.Y ',"zw":' z.W ',"zh":' z.H '}'
+    }
+    return ""
+}
+
+; Datos completos de la última ventana usada.
+WriteDebug() {
+    info := (IpcLastWin && WinExist(IpcLastWin)) ? WindowInfo(IpcLastWin) : ""
+    WriteJson("debug.json", info != "" ? info : "null")
+}
+
+; Escribe un JSON en ipc\ (a un temporal y renombrando: nunca se lee a medias).
+WriteJson(name, json) {
+    tmp := IpcDir "\" name ".tmp"
+    try {
+        f := FileOpen(tmp, "w", "UTF-8-RAW")
+        f.Write(json)
+        f.Close()
+        FileMove(tmp, IpcDir "\" name, 1)
+    }
+}
+
+; Escribe el estado en JSON.
+WriteState() {
+    ts := DateDiff(A_NowUTC, "19700101000000", "Seconds")
+    json := '{"ts":' ts ',"version":"' AppVersion '","profile":"' Config.ProfileName '","watcher":' (WatcherOn ? "true" : "false")
+        . ',"snap":' (SnapOn ? "true" : "false")
+        . ',"dim":"' DimZoneName '","dimLevel":' Config.DimOpacity
+        . ',"target":' TargetJson()
+        . ',"paused":' (A_IsSuspended ? "true" : "false") '}'
+    WriteJson("state.json", json)
+}

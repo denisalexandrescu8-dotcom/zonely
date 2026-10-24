@@ -1,0 +1,87 @@
+{
+  "name": "zone-panel",
+  "version": "0.1.0",
+  "description": "Zonely: gestor de zonas para tu monitor",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "private": true,
+  "devDependencies": {
+    "electron": "^44.9.0",
+    "electron-builder": "^26.18.0"
+  },
+  "author": "Zonely",
+  "build": {
+    "appId": "com.zonely.app",
+    "productName": "Zonely",
+    "copyright": "Zonely",
+    "directories": {
+      "output": "../dist/installer"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "renderer.js",
+      "editor.js",
+      "dim.js",
+      "log.js",
+      "debug.js",
+      "hotkeys.js",
+      "gamezone.js",
+      "nav.js",
+      "fonts/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist/engine/ZonelyEngine.exe",
+        "to": "ZonelyEngine.exe"
+      },
+      {
+        "from": "../version.txt",
+        "to": "version.txt"
+      },
+      {
+        "from": "../zones.ini",
+        "to": "zones.ini"
+      },
+      {
+        "from": "../assets/zonely.ico",
+        "to": "assets/zonely.ico"
+      },
+      {
+        "from": "../manual",
+        "to": "manual"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "../assets/zonely.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Zonely",
+      "deleteAppDataOnUninstall": false,
+      "include": "installer.nsh",
+      "artifactName": "Zonely-Setup-${version}.${ext}",
+      "installerIcon": "../assets/zonely.ico",
+      "uninstallerIcon": "../assets/zonely.ico"
+    },
+    "electronDist": "node_modules/electron/dist"
+  }
+}

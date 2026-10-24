@@ -1,0 +1,264 @@
+// Panel de control del gestor de zonas (proceso principal de Electron).
+// El motor es el script AutoHotkey; aquí solo leemos zones.ini / ipc\state.json
+// y escribimos órdenes en ipc\cmd.txt.
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const { spawn } = require('child_process');
+
+const ROOT = path.join(__dirname, '..');
+
+// Datos del usuario (ajustes, registro, comunicación con el motor): %APPDATA%\Zonely, igual que el motor
+// (lib\Paths.ahk). Así una actualización o un instalador nuevo nunca los pisa. ZONELY_DATA cambia la carpeta.
+const DATA_DIR = process.env.ZONELY_DATA || path.join(process.env.APPDATA || app.getPath('appData'), 'Zonely');
+const INI = path.join(DATA_DIR, 'zones.ini');
+const IPC_DIR = path.join(DATA_DIR, 'ipc');
+try {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  // Primer arranque: se copia zones.ini de la carpeta de la aplicación (la de fábrica, o la tuya si ya existía).
+  if (!fs.existsSync(INI) && fs.existsSync(path.join(ROOT, 'zones.ini'))) fs.copyFileSync(path.join(ROOT, 'zones.ini'), INI);
+} catch { /* sin permisos: el panel dirá que no encuentra zones.ini */ }
+
+// El apartado Registro (registro de actividad y depuración) es solo para desarrollo: en la versión instalada
+// no se ve. Se puede forzar con ZONELY_DEV=1.
+const IS_DEV = !app.isPackaged || process.env.ZONELY_DEV === '1';
+
+// ---- zones.ini -> objeto -------------------------------------
+function parseIni(text) {
+  const out = {};
+  let section = null;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith(';')) continue;
+    const m = line.match(/^\[(.+)\]$/);
+    if (m) { section = m[1]; out[section] = {}; continue; }
+    const kv = line.match(/^([^=]+)=(.*)$/);
+    if (kv && section) out[section][kv[1].trim()] = kv[2].trim();
+  }
+  return out;
+}
+
+function parseZone(s) {
+  const [x, y, w, h] = String(s).split(',').map((n) => parseInt(n, 10));
+  return { x, y, w, h };
+}
+
+// ---- registro compartido con el motor (logs/gestor.log) ----------
+const LOG_DIR = path.join(DATA_DIR, 'logs');
+const LOG_FILE = path.join(LOG_DIR, 'gestor.log');
+function stamp() {
+  const d = new Date(), p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function appendLog(level, msg) {
+  try {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+    fs.appendFileSync(LOG_FILE, `${stamp()} [panel] ${level} ${String(msg).replace(/[\r\n]+/g, ' ').slice(0, 500)}\n`);
+  } catch { /* si el registro falla, no tumbamos el panel */ }
+}
+process.on('uncaughtException', (e) => appendLog('ERROR', `uncaughtException: ${e && e.stack || e}`));
+process.on('unhandledRejection', (e) => appendLog('ERROR', `unhandledRejection: ${e && e.stack || e}`));
+
+function readVersion() {
+  try { return fs.readFileSync(path.join(ROOT, 'version.txt'), 'utf8').trim(); } catch { return '?'; }
+}
+
+function readLogTail(n = 300) {
+  try {
+    const lines = fs.readFileSync(LOG_FILE, 'utf8').split(/\r?\n/).filter(Boolean);
+    return lines.slice(-n);
+  } catch { return []; }
+}
+
+const splitList = (s) => String(s ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+
+function readConfig() {
+  const ini = parseIni(fs.readFileSync(INI, 'utf8'));
+  const profiles = Object.keys(ini)
+    .filter((s) => s.startsWith('Profile.'))
+    .map((s) => ({
+      id: s.slice(8),
+      gameZone: (() => { const g = String(ini[s].GameZone ?? 'auto').toUpperCase(); return g === 'AUTO' ? 'auto' : g; })(),
+      zones: { A: parseZone(ini[s].A), B: ini[s].B ? parseZone(ini[s].B) : null, C: ini[s].B && ini[s].C ? parseZone(ini[s].C) : null },   // sin B = pantalla normal, sin zonas
+    }));
+  return {
+    monitor: { w: parseInt(ini.Monitor?.Width ?? 5120, 10), h: parseInt(ini.Monitor?.Height ?? 1440, 10) },
+    profiles,
+    startProfile: ini.General?.Profile ?? 'ultrawide',
+    version: readVersion(),
+    options: { halves: String(ini.Snap?.Halves ?? '0') === '1', restore: String(ini.General?.RestoreOnLeave ?? '1') === '1' },
+    exclusions: { processes: splitList(ini.Exclusions?.Processes), classes: splitList(ini.Exclusions?.Classes) },
+  };
+}
+
+// ---- escritura de zones.ini (conserva comentarios y orden) ------
+function setIniValue(text, section, key, value) {
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const lines = text.split(/\r?\n/);
+  let secStart = -1, secEnd = lines.length, done = false;
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    const m = t.match(/^\[(.+)\]$/);
+    if (m) {
+      if (secStart >= 0) { secEnd = i; break; }
+      if (m[1] === section) secStart = i;
+      continue;
+    }
+    if (secStart >= 0 && !t.startsWith(';') && t.includes('=') && t.split('=')[0].trim() === key) {
+      lines[i] = `${key}=${value}`;
+      done = true;
+    }
+  }
+  if (!done) {
+    if (secStart < 0) { lines.push('', `[${section}]`, `${key}=${value}`); }
+    else {
+      let at = secEnd;
+      while (at > secStart + 1 && lines[at - 1].trim() === '') at--;   // tras la última línea con contenido
+      lines.splice(at, 0, `${key}=${value}`);
+    }
+  }
+  return lines.join(eol);
+}
+
+function writeIni(edit) {
+  const raw = fs.readFileSync(INI, 'utf8');
+  const out = edit(raw);
+  const tmp = INI + '.tmp';
+  fs.writeFileSync(tmp, out, 'utf8');
+  fs.renameSync(tmp, INI);
+}
+
+// Cambia el ancho de la zona A de un perfil; B ocupa el resto.
+function setZones({ profile, aw }) {
+  const cfg = readConfig();
+  const p = cfg.profiles.find((x) => x.id === profile);
+  aw = Number(aw);
+  if (!p || !p.zones.B || p.zones.C || !Number.isInteger(aw) || aw < 400 || aw > cfg.monitor.w - 400) throw new Error('Zonas no válidas');
+  const h = cfg.monitor.h;
+  writeIni((t) => {
+    t = setIniValue(t, `Profile.${profile}`, 'A', `0,0,${aw},${h}`);
+    return setIniValue(t, `Profile.${profile}`, 'B', `${aw},0,${cfg.monitor.w - aw},${h}`);
+  });
+}
+
+function setExclusions({ processes, classes }) {
+  const ok = (a) => Array.isArray(a) && a.length <= 100 && a.every((s) => typeof s === 'string' && /^[\w.\- ]{1,80}$/.test(s));
+  if (!ok(processes) || !ok(classes)) throw new Error('Exclusiones no válidas');
+  writeIni((t) => {
+    t = setIniValue(t, 'Exclusions', 'Processes', processes.join(','));
+    return setIniValue(t, 'Exclusions', 'Classes', classes.join(','));
+  });
+}
+
+// ---- estado del motor ----------------------------------------
+function readState() {
+  try {
+    const s = JSON.parse(fs.readFileSync(path.join(IPC_DIR, 'state.json'), 'utf8'));
+    const age = Date.now() / 1000 - s.ts;
+    return { ...s, engineUp: age < 6 };   // el motor late cada 2 s
+  } catch {
+    return { engineUp: false };
+  }
+}
+
+// ---- órdenes al motor (lista cerrada, nada de texto libre) ----
+function sendCommand(cmd) {
+  const profiles = readConfig().profiles.map((p) => p.id);
+  const ok =
+    (cmd.type === 'profile' && profiles.includes(cmd.value)) ||
+    (['watcher', 'snap', 'halves', 'restore'].includes(cmd.type) && (cmd.value === 'on' || cmd.value === 'off')) ||
+    (cmd.type === 'dim' && ['A', 'B', 'C', 'off'].includes(cmd.value)) ||
+    (cmd.type === 'dimlevel' && /^(100|[1-9]?\d)$/.test(String(cmd.value))) ||
+    cmd.type === 'watch' ||
+    cmd.type === 'reload';
+  if (!ok) throw new Error('Orden no válida');
+  const line = cmd.type === 'reload' || cmd.type === 'watch' ? cmd.type : `${cmd.type} ${cmd.value}`;
+  fs.mkdirSync(IPC_DIR, { recursive: true });
+  const tmp = path.join(IPC_DIR, 'cmd.tmp');
+  fs.writeFileSync(tmp, line + '\n');
+  fs.renameSync(tmp, path.join(IPC_DIR, 'cmd.txt'));
+}
+function startEngine() {
+  if (app.isPackaged) {                              // versión instalada: el motor ya viene compilado
+    const exe = path.join(ROOT, 'ZonelyEngine.exe');
+    if (!fs.existsSync(exe)) throw new Error('No encuentro ZonelyEngine.exe');
+    spawn(exe, [], { detached: true, stdio: 'ignore', cwd: ROOT }).unref();
+    return;
+  }
+  const candidates = [
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'AutoHotkey', 'v2', 'AutoHotkey64.exe'),
+    path.join(process.env.ProgramFiles || '', 'AutoHotkey', 'v2', 'AutoHotkey64.exe'),
+  ];
+  const exe = candidates.find((p) => fs.existsSync(p));
+  if (!exe) throw new Error('No encuentro AutoHotkey v2');
+  spawn(exe, [path.join(ROOT, 'ZoneManager.ahk')], { detached: true, stdio: 'ignore', cwd: ROOT }).unref();
+}
+
+ipcMain.handle('config:get', () => readConfig());
+ipcMain.handle('state:get', () => readState());
+ipcMain.handle('cmd:send', (_e, cmd) => sendCommand(cmd));
+ipcMain.handle('config:setZones', (_e, a) => setZones(a));
+ipcMain.handle('config:setExclusions', (_e, a) => setExclusions(a));
+ipcMain.handle('ipc:read', (_e, name) => {
+  if (!['debug', 'hotkeys'].includes(name)) return null;       // lista cerrada
+  try { return JSON.parse(fs.readFileSync(path.join(IPC_DIR, name + '.json'), 'utf8')); } catch { return null; }
+});
+ipcMain.handle('config:setDim', (_e, pct) => {
+  pct = Number(pct);
+  if (!Number.isInteger(pct) || pct < 0 || pct > 100) throw new Error('Opacidad no válida');
+  writeIni((t) => setIniValue(t, 'Dim', 'Opacity', String(pct)));
+});
+ipcMain.handle('manual:open', () => shell.openPath(path.join(ROOT, 'manual', 'index.html')));
+ipcMain.handle('app:isDev', () => IS_DEV);
+ipcMain.handle('log:read', () => readLogTail());
+ipcMain.handle('log:open', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, ''); return shell.openPath(LOG_FILE); });
+ipcMain.handle('log:clear', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); fs.writeFileSync(LOG_FILE, ''); appendLog('INFO', 'Registro limpiado'); });
+ipcMain.handle('log:renderer', (_e, msg) => appendLog('ERROR', `interfaz: ${msg}`));
+ipcMain.handle('config:setOption', (_e, { key, on }) => {
+  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'] };
+  if (!map[key]) throw new Error('Opción no válida');
+  writeIni((t) => setIniValue(t, map[key][0], map[key][1], on ? '1' : '0'));
+});
+// Atajos: solo se aceptan ids que el motor ha publicado y combinaciones con el formato AutoHotkey conocido.
+const HOTKEY_RE = /^[#!^+]{1,4}([a-z0-9]|F([1-9]|1\d|2[0-4])|Numpad[0-9]|Left|Right|Up|Down|BackSpace|Space|Tab|Enter|Esc|Delete|Insert|Home|End|PgUp|PgDn)$/i;
+ipcMain.handle('config:setHotkeys', (_e, changes) => {
+  let known = [];
+  try { known = JSON.parse(fs.readFileSync(path.join(IPC_DIR, 'hotkeys.json'), 'utf8')).map((h) => h.id); } catch { /* motor parado */ }
+  const entries = Object.entries(changes || {});
+  if (!entries.length || entries.length > 40) throw new Error('Cambios no válidos');
+  for (const [id, key] of entries) {
+    if (!/^[A-Za-z]{3,24}$/.test(id) || (known.length && !known.includes(id)) || !HOTKEY_RE.test(String(key))) throw new Error(`Atajo no válido: ${id}`);
+  }
+  writeIni((t) => entries.reduce((acc, [id, key]) => setIniValue(acc, 'Hotkeys', id, String(key)), t));
+});
+ipcMain.handle('config:setGameZone', (_e, { profile, zone }) => {
+  const p = readConfig().profiles.find((x) => x.id === profile);
+  if (!p || !p.zones.B) throw new Error('Perfil no válido');
+  if (zone !== 'auto' && !(['A', 'B', 'C'].includes(zone) && p.zones[zone])) throw new Error('Zona no válida');
+  writeIni((t) => setIniValue(t, `Profile.${profile}`, 'GameZone', zone));
+});
+ipcMain.handle('engine:start', () => startEngine());
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 760,
+    minHeight: 560,
+    center: true,                  // siempre en el centro de la pantalla, sea cual sea el perfil
+    backgroundColor: '#0b0f17',
+    autoHideMenuBar: true,
+    title: 'Zonely',
+    icon: path.join(ROOT, 'assets', 'zonely.ico'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'index.html'));
+}
+
+app.whenReady().then(() => { appendLog('INFO', `Panel iniciado v${readVersion()}`); createWindow(); });
+app.on('window-all-closed', () => app.quit());

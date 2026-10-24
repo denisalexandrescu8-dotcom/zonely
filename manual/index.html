@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zonely · Manual de uso</title>
+<style>
+  :root {
+    --bg: #05060a; --surface: #0e1017; --surface-2: #161923; --line: #262a38;
+    --text: #e9ecf5; --muted: #8f95aa;
+    --a: #3b82f6; --b: #8b5cf6; --ok: #3ddc97; --bad: #ff5d6c; --warn: #ffb547;
+    --radius: 16px;
+  }
+  @media print {
+    :root { --bg: #fff; --surface: #f6f7fb; --surface-2: #eceef6; --line: #cfd3e2; --text: #151823; --muted: #566; }
+    nav.toc { display: none; }
+    .layout { display: block; }
+    section.chap { break-inside: avoid-page; }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.65 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; }
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; max-width: 1180px; margin: 0 auto; padding: 32px 28px 80px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; gap: 16px; padding: 20px 16px 60px; } nav.toc { position: static !important; } }
+
+  nav.toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; font-size: 14px; }
+  nav.toc .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .logo { width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(90deg, var(--a) 0 62%, var(--b) 62% 100%); box-shadow: 0 0 22px #3b82f633; flex: none; }
+  nav.toc b { display: block; line-height: 1.2; }
+  nav.toc small { color: var(--muted); }
+  nav.toc a { display: block; padding: 5px 10px; border-radius: 8px; color: var(--muted); text-decoration: none; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+  nav.toc a span { color: var(--a); font-variant-numeric: tabular-nums; margin-right: 6px; }
+
+  a { color: var(--a); }
+  main { min-width: 0; }
+  header.hero { padding: 8px 0 28px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  header.hero h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; letter-spacing: -.5px; }
+  header.hero p { color: var(--muted); font-size: 18px; margin-top: 12px; max-width: 60ch; }
+
+  section.chap { padding: 44px 0 8px; border-bottom: 1px solid var(--line); }
+  section.chap:last-of-type { border-bottom: 0; }
+  h2 { font-size: 28px; line-height: 1.2; margin-bottom: 14px; display: flex; align-items: baseline; gap: 12px; }
+  h2 .n { color: var(--a); font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+  h3 { font-size: 18px; margin: 28px 0 8px; }
+  p { margin: 10px 0; max-width: 72ch; }
+  ul, ol { margin: 10px 0 10px 22px; max-width: 72ch; }
+  li { margin: 4px 0; }
+  code { font: 14px Consolas, "Cascadia Mono", monospace; background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+  pre { font: 14px/1.5 Consolas, "Cascadia Mono", monospace; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin: 14px 0; }
+  .muted { color: var(--muted); }
+
+  kbd { display: inline-block; min-width: 28px; text-align: center; font: 600 13px "Segoe UI", sans-serif; padding: 2px 8px 3px; border-radius: 7px;
+        background: linear-gradient(#222635, #171a25); border: 1px solid #343a4e; border-bottom-width: 3px; color: var(--text); white-space: nowrap; }
+  .keys { display: inline-flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  .keys i { color: var(--muted); font-style: normal; }
+
+  figure { margin: 22px 0; }
+  figure.shot img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); }
+  figure svg { display: block; width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+  figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; max-width: 80ch; }
+
+  .callout { border-left: 4px solid var(--a); background: var(--surface); border-radius: 0 12px 12px 0; padding: 12px 16px; margin: 18px 0; max-width: 78ch; }
+  .callout.warn { border-color: var(--warn); }
+  .callout.bad { border-color: var(--bad); }
+  .callout.ok { border-color: var(--ok); }
+  .callout b:first-child { display: block; margin-bottom: 2px; }
+
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  td:first-child { white-space: nowrap; }
+  .tablewrap { overflow-x: auto; }
+
+  .steps { counter-reset: s; list-style: none; margin-left: 0; }
+  .steps li { counter-increment: s; position: relative; padding-left: 44px; margin: 14px 0; }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+                      background: linear-gradient(135deg, #3b82f633, #8b5cf633); border: 1px solid #3b82f677; font-weight: 700; font-size: 14px; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; margin: 10px 0; max-width: 80ch; }
+  details summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
+  details[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+
+  /* Colores de los dibujos */
+  svg text { font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; fill: var(--text); }
+  svg .t-muted { fill: var(--muted); }
+  svg .zA { fill: #3b82f622; stroke: #3b82f6; }
+  svg .zB { fill: #8b5cf622; stroke: #8b5cf6; }
+  svg .box { fill: var(--surface-2); stroke: var(--line); }
+  svg .scr { fill: #02030a; stroke: #3a4056; stroke-width: 2; }
+  svg .win { fill: #202537; stroke: #4a5170; }
+  svg .arrow { stroke: var(--muted); stroke-width: 2; fill: none; }
+  svg .hl { fill: #ffffff33; stroke: #fff; stroke-width: 2; }
+  svg .tA { fill: var(--a); }
+  svg .tB { fill: var(--b); }
+  svg .tOk { fill: var(--ok); }
+  svg .tBad { fill: var(--bad); }
+  svg .tWarn { fill: var(--warn); }
+  svg .big { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Índice">
+  <div class="brand"><span class="logo"></span><div><b>Zonely</b><small>Manual de uso</small></div></div>
+  <a href="#que-es"><span>1</span>Qué es y cómo funciona</a>
+  <a href="#empezar"><span>2</span>Primeros pasos</a>
+  <a href="#panel"><span>3</span>El panel de control</a>
+  <a href="#zonas"><span>4</span>Zonas y perfiles</a>
+  <a href="#mover"><span>5</span>Mover y encajar ventanas</a>
+  <a href="#vigilante"><span>6</span>El vigilante</a>
+  <a href="#juegos"><span>7</span>Jugar con una zona</a>
+  <a href="#oscura"><span>8</span>Capa oscura</a>
+  <a href="#config"><span>9</span>Archivos de configuración</a>
+  <a href="#problemas"><span>10</span>Si algo falla</a>
+  <a href="#resumen"><span>11</span>Chuleta de atajos</a>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Dos pantallas en un solo monitor</h1>
+  <p>Zonely divide tu Odyssey OLED G9 (5120×1440) en zonas independientes, para jugar en una mitad mientras usas Discord, el navegador o OBS en la otra, como si fueran dos monitores.</p>
+</header>
+
+<!-- ============ 1 ============ -->
+<section class="chap" id="que-es">
+  <h2><span class="n">01</span>Qué es y cómo funciona</h2>
+  <p>La aplicación tiene dos piezas que trabajan juntas:</p>
+  <ul>
+    <li><b>El motor</b> (el programa <code>ZonelyEngine</code>) vive en segundo plano, casi sin gastar recursos. Es quien mueve las ventanas, responde a los atajos y vigila los maximizados. <b>Es lo único que tiene que estar siempre abierto.</b></li>
+    <li><b>El panel</b> es la ventana con la interfaz visual. Sirve para ver el estado y cambiar ajustes con el ratón. Puedes cerrarlo mientras juegas: el motor sigue funcionando.</li>
+  </ul>
+
+  <figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="Esquema: el panel y el motor se comunican por ficheros; el motor controla las ventanas de Windows">
+      <rect class="box" x="30" y="60" width="210" height="130" rx="16"/>
+      <text x="135" y="105" text-anchor="middle" font-size="20" class="big">Panel</text>
+      <text x="135" y="132" text-anchor="middle" font-size="14" class="t-muted">la interfaz visual</text>
+      <text x="135" y="154" text-anchor="middle" font-size="14" class="t-muted">se puede cerrar</text>
+
+      <rect class="box" x="345" y="60" width="210" height="130" rx="16" style="stroke:#3b82f6"/>
+      <text x="450" y="105" text-anchor="middle" font-size="20" class="big">Motor</text>
+      <text x="450" y="132" text-anchor="middle" font-size="14" class="t-muted">atajos, vigilante, encaje…</text>
+      <text x="450" y="154" text-anchor="middle" font-size="14" class="t-muted">siempre en segundo plano</text>
+
+      <rect class="box" x="660" y="60" width="210" height="130" rx="16" style="stroke:#8b5cf6"/>
+      <text x="765" y="105" text-anchor="middle" font-size="20" class="big">Tus ventanas</text>
+      <text x="765" y="132" text-anchor="middle" font-size="14" class="t-muted">juego, Discord, navegador…</text>
+
+      <path class="arrow" d="M245 100 H340 M330 92 l10 8 -10 8"/>
+      <path class="arrow" d="M340 150 H245 M255 142 l-10 8 10 8"/>
+      <text x="292" y="86" text-anchor="middle" font-size="12" class="t-muted">órdenes</text>
+      <text x="292" y="176" text-anchor="middle" font-size="12" class="t-muted">estado</text>
+      <path class="arrow" d="M560 125 H655 M645 117 l10 8 -10 8"/>
+      <text x="607" y="112" text-anchor="middle" font-size="12" class="t-muted">las coloca</text>
+
+      <text x="450" y="228" text-anchor="middle" font-size="13" class="t-muted">Panel y motor se hablan con dos ficheros pequeños (carpeta ipc): no usan red.</text>
+    </svg>
+    <figcaption>Cómo encajan las piezas. Si el panel se cierra, nada deja de funcionar.</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <b>El límite que debes conocer</b>
+    La app coloca y redimensiona ventanas. No puede hacer que un juego en <b>pantalla completa exclusiva</b> use solo una parte del monitor: eso lo decide el propio juego. Para jugar en una zona, el juego debe tener modo <b>«ventana sin bordes»</b> (borderless) y poder elegir 3440×1440. Más detalle en el capítulo <a href="#juegos">Jugar con una zona</a>.
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="chap" id="empezar">
+  <h2><span class="n">02</span>Primeros pasos</h2>
+
+  <h3>Instalar</h3>
+  <ol class="steps">
+    <li>Descarga <code>Zonely-Setup-&lt;versión&gt;.exe</code> de la página de <i>Releases</i> del proyecto y ábrelo.</li>
+    <li>Si Windows muestra «Windows protegió su PC», pulsa <b>Más información → Ejecutar de todas formas</b>. Es normal: el instalador no está firmado con un certificado de pago.</li>
+    <li>Sigue el asistente (no pide permisos de administrador por defecto). Al terminar se abre el panel y arranca el motor.</li>
+  </ol>
+
+  <h3>Arrancar</h3>
+  <ul>
+    <li><b>El motor</b> se inicia solo con Windows. Si no está en marcha, ábrelo desde el panel con <b>Iniciar motor</b>.</li>
+    <li><b>El panel</b> se abre desde el menú Inicio o el escritorio, buscando <b>«Zonely»</b>.</li>
+    <li>Cuando el motor funciona, aparece un icono en la <b>bandeja del sistema</b> (junto al reloj). Haz clic derecho sobre él:</li>
+  </ul>
+  <div class="tablewrap"><table>
+    <tr><th>Entrada del menú</th><th>Qué hace</th></tr>
+    <tr><td>Vigilante de maximizado</td><td>Activa o desactiva el vigilante (marcado = activo).</td></tr>
+    <tr><td>Pausar atajos</td><td>Suspende todos los atajos hasta que lo vuelvas a pulsar. Útil si un juego usa las mismas teclas.</td></tr>
+    <tr><td>Recargar (zones.ini)</td><td>Relee la configuración. Conserva el perfil, los interruptores y el modo juego.</td></tr>
+    <tr><td>Salir</td><td>Cierra el motor y devuelve a su estado las ventanas que estuvieran en modo juego.</td></tr>
+  </table></div>
+
+  <h3>Tu primera prueba, en 1 minuto</h3>
+  <ol class="steps">
+    <li>Abre el Bloc de notas y haz clic en él para que sea la ventana activa.</li>
+    <li>Pulsa <span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Z</kbd></span>: la ventana se estira hasta ocupar exactamente la <b>zona A</b> (3440 px de ancho).</li>
+    <li>Pulsa <span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>→</kbd></span>: salta a la <b>zona B</b>.</li>
+    <li>Pulsa <span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>↑</kbd></span>: ocupa solo la <b>mitad de arriba</b> de la zona B.</li>
+  </ol>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="chap" id="panel">
+  <h2><span class="n">03</span>El panel de control</h2>
+  <p>El panel tiene una <b>barra lateral</b> con tres secciones y, arriba a la derecha, el estado del motor:</p>
+  <figure class="shot">
+    <img src="img/panel.png" alt="El panel de Zonely: barra lateral con Zonas, Atajos y Ajustes, y la vista Zonas con el dibujo del monitor y los perfiles">
+    <figcaption>Arriba a la derecha, el estado del motor (punto verde = funcionando) y los botones <b>Recargar</b> y <b>Manual</b>. Abajo a la izquierda, tu monitor y la versión.</figcaption>
+  </figure>
+  <div class="tablewrap"><table>
+    <tr><th>Sección</th><th>Qué hay</th><th>Capítulo</th></tr>
+    <tr><td>Zonas</td><td>Dibujo en vivo de tu monitor, perfiles y editor de zonas.</td><td><a href="#zonas">4</a></td></tr>
+    <tr><td>Atajos</td><td>Ver y cambiar las combinaciones de teclado.</td><td><a href="#resumen">11</a></td></tr>
+    <tr><td>Ajustes</td><td>Comportamiento de las ventanas (vigilante, encaje con Shift, mitades, recuperar tamaño), modo juego, capa oscura y exclusiones.</td><td><a href="#vigilante">6</a>, <a href="#juegos">7</a>, <a href="#oscura">8</a></td></tr>
+  </table></div>
+  <figure class="shot">
+    <img src="img/comportamiento.png" alt="Ajustes: comportamiento de ventanas, con interruptores para el vigilante, encajar con Shift, elegir mitades y recuperar tamaño">
+    <figcaption>Ajustes → Comportamiento de ventanas: cada función tiene su interruptor.</figcaption>
+  </figure>
+</section>
+<!-- ============ 4 ============ -->
+<section class="chap" id="zonas">
+  <h2><span class="n">04</span>Zonas y perfiles</h2>
+  <p>Una <b>zona</b> es un rectángulo fijo del monitor. Hay dos, <b>A</b> (izquierda) y <b>B</b> (derecha), y su reparto lo define el <b>perfil</b> activo. Vienen dos perfiles:</p>
+
+  <figure>
+    <svg viewBox="0 0 900 270" role="img" aria-label="Dos perfiles: ultrawide con A de 3440 y B de 1680 píxeles, y dual con dos zonas de 2560">
+      <text x="40" y="34" font-size="15" class="big">Perfil «ultrawide»</text>
+      <rect class="scr" x="40" y="46" width="820" height="90" rx="6"/>
+      <rect class="zA" x="42" y="48" width="550" height="86" stroke-width="2"/>
+      <rect class="zB" x="593" y="48" width="265" height="86" stroke-width="2"/>
+      <text x="317" y="93" text-anchor="middle" font-size="28" class="big tA">A</text>
+      <text x="317" y="118" text-anchor="middle" font-size="13" class="t-muted">3440 × 1440</text>
+      <text x="725" y="93" text-anchor="middle" font-size="28" class="big tB">B</text>
+      <text x="725" y="118" text-anchor="middle" font-size="13" class="t-muted">1680 × 1440</text>
+
+      <text x="40" y="176" font-size="15" class="big">Perfil «dual»</text>
+      <rect class="scr" x="40" y="188" width="820" height="90" rx="6" style="display:none"/>
+      <rect class="scr" x="40" y="188" width="820" height="60" rx="6" transform="translate(0,0)"/>
+      <rect class="zA" x="42" y="190" width="407" height="56" stroke-width="2"/>
+      <rect class="zB" x="450" y="190" width="408" height="56" stroke-width="2"/>
+      <text x="245" y="224" text-anchor="middle" font-size="22" class="big tA">A · 2560 × 1440</text>
+      <text x="654" y="224" text-anchor="middle" font-size="22" class="big tB">B · 2560 × 1440</text>
+    </svg>
+    <figcaption>Proporciones reales del monitor de 5120 px. «ultrawide» deja una pantalla 21:9 a la izquierda y una columna a la derecha; «dual» son dos pantallas 16:9 iguales.</figcaption>
+  </figure>
+
+  <h3>Cambiar de perfil</h3>
+  <ul>
+    <li><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>P</kbd></span> abre un selector con una fila por perfil: su dibujo, el reparto en píxeles y en porcentaje, y un botón <b>Aplicar</b>. <b>Un clic en cualquier parte de la fila lo aplica al instante</b> (el actual aparece como «Aplicado», con borde azul); <kbd>Esc</kbd> o la ✕ lo cierran.</li>
+    <li>En el panel, haz clic en una tarjeta de <b>Perfiles</b>; la que está activa tiene el borde azul.</li>
+  </ul>
+  <figure class="shot">
+    <img src="img/selector.png" alt="Selector de perfiles con una fila por perfil y el botón Aplicar">
+    <figcaption>El selector de <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</figcaption>
+  </figure>
+  <p>Al elegir un perfil desde el selector aparece, abajo en el centro de la pantalla, un <b>aviso breve</b> con su dibujo y su nombre. No roba el foco ni bloquea el ratón, y desaparece solo en un par de segundos.</p>
+  <figure class="shot">
+    <img src="img/aviso.png" alt="Aviso «Perfil aplicado» con la miniatura del perfil y su nombre" style="max-width:340px">
+    <figcaption>El aviso de «Perfil aplicado».</figcaption>
+  </figure>
+  <p>El perfil <b>«centrado»</b> pone una pantalla 16:9 (2560×1440) en el centro, que es la zona <b>A</b> (la del modo juego), y una zona a cada lado con lo que sobra: <b>B</b> a la derecha y <b>C</b> a la izquierda (1280 px cada una). Con tres zonas, <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>←</kbd>/<kbd>→</kbd> pasa la ventana a la zona vecina, y <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Mayús</kbd>+<kbd>←</kbd>/<kbd>→</kbd> la centra en ella sin cambiar el tamaño. La capa oscura atenúa todas las zonas menos la de la ventana activa. Este perfil no se edita en el editor de zonas; se cambia en <code>zones.ini</code>.</p>
+  <p>El perfil <b>«normal»</b> es la pantalla de siempre, <b>sin zonas</b>: los atajos de colocación, el encaje con Shift, el vigilante de maximizado y la capa oscura no hacen nada (maximizar vuelve a ser maximizar). Úsalo cuando no quieras que el gestor toque tus ventanas; no tiene zona B y por eso no sale en el editor de zonas.</p>
+  <p class="muted">Cambiar de perfil no mueve las ventanas que ya están colocadas: afecta a las siguientes acciones. Para recolocar una ventana, usa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd>.</p>
+  <figure class="shot">
+    <img src="img/perfiles.png" alt="Tarjetas de perfiles ultrawide y dual con miniaturas">
+    <figcaption>Las tarjetas de perfiles. La activa se marca con borde azul.</figcaption>
+  </figure>
+
+  <h3>Ajustar las medidas con el editor de zonas</h3>
+  <p>¿Prefieres A más estrecha o más ancha? Arrastra la línea blanca o escribe el ancho. La zona B ocupa siempre el resto del monitor. Cada zona tiene un mínimo de 400 px.</p>
+  <figure class="shot">
+    <img src="img/editor.png" alt="Editor de zonas con un divisor arrastrable entre A y B">
+    <figcaption>Editor de zonas: el divisor salta de 10 en 10 px. «Guardar y aplicar» escribe el cambio en <code>zones.ini</code> y el motor lo recarga al instante.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="chap" id="mover">
+  <h2><span class="n">05</span>Mover y encajar ventanas</h2>
+  <p>Hay tres formas de colocar una ventana. Usa la que te resulte más cómoda:</p>
+
+  <h3>A) Con atajos de teclado</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Atajo</th><th>Qué hace</th></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Z</kbd></span></td><td>Llena la zona en la que está la ventana (la «maximiza» sin pasar de la zona).</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>←</kbd></span></td><td>La manda a la zona A, ocupándola entera.</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>→</kbd></span></td><td>La manda a la zona B, ocupándola entera.</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>↑</kbd></span></td><td>En la zona B: mitad de arriba.</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>↓</kbd></span></td><td>En la zona B: mitad de abajo.</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Mayús</kbd><i>+</i><kbd>G</kbd></span></td><td>Modo juego <b>conservando el tamaño interior</b> (sin bordes, centrado en la zona del modo juego).</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Mayús</kbd><i>+</i><kbd>←</kbd> <kbd>→</kbd></span></td><td>Centra la ventana en la zona A / B <b>sin cambiar su tamaño</b> (para juegos que no admiten el tamaño de la zona).</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Retroceso</kbd></span></td><td><b>Deshacer</b> la última colocación: la ventana vuelve a su posición y tamaño anteriores (hasta 20 pasos).</td></tr>
+  </table></div>
+
+  <h3>B) Arrastrando con Shift (como FancyZones)</h3>
+  <ol class="steps">
+    <li>Empieza a arrastrar una ventana por su barra de título.</li>
+    <li>Sin soltar el botón, <b>mantén pulsada <kbd>Shift</kbd></b>. Aparecen las zonas sobre el monitor, y la que vas a elegir se ilumina en blanco. <b>Por defecto solo puedes elegir la zona de la izquierda o la de la derecha</b>, enteras.</li>
+    <li>Suelta el botón del ratón: la ventana encaja en esa zona.</li>
+  </ol>
+  <figure>
+    <svg viewBox="0 0 900 300" role="img" aria-label="Al arrastrar con Shift sobre la zona B, el tercio superior da la mitad de arriba, el centro la zona entera y el tercio inferior la mitad de abajo">
+      <text x="30" y="30" font-size="15" class="big">En la zona A: siempre la zona entera</text>
+      <rect class="scr" x="30" y="44" width="400" height="115" rx="6"/>
+      <rect class="zA" x="32" y="46" width="270" height="111" stroke-width="2"/>
+      <rect class="zB" x="303" y="46" width="125" height="111" stroke-width="2" opacity=".5"/>
+      <rect class="hl" x="32" y="46" width="270" height="111"/>
+      <text x="167" y="108" text-anchor="middle" font-size="22" class="big">A</text>
+      <path d="M190 90 l22 10 -10 4 6 12 -5 2 -6 -12 -8 6z" fill="#fff" stroke="#000" stroke-width="1"/>
+
+      <text x="470" y="30" font-size="15" class="big">Con «Permitir elegir mitades» activado, en la zona B:</text>
+      <rect class="scr" x="470" y="44" width="400" height="230" rx="6" style="display:none"/>
+      <rect class="zB" x="560" y="44" width="230" height="230" stroke-width="2" rx="6"/>
+      <line x1="560" y1="121" x2="790" y2="121" stroke="#8b5cf6" stroke-dasharray="5 5"/>
+      <line x1="560" y1="197" x2="790" y2="197" stroke="#8b5cf6" stroke-dasharray="5 5"/>
+      <text x="675" y="86" text-anchor="middle" font-size="14" class="tB big">tercio de arriba</text>
+      <text x="675" y="104" text-anchor="middle" font-size="12" class="t-muted">→ mitad de arriba</text>
+      <text x="675" y="156" text-anchor="middle" font-size="14" class="tB big">centro</text>
+      <text x="675" y="174" text-anchor="middle" font-size="12" class="t-muted">→ zona B entera</text>
+      <text x="675" y="237" text-anchor="middle" font-size="14" class="tB big">tercio de abajo</text>
+      <text x="675" y="255" text-anchor="middle" font-size="12" class="t-muted">→ mitad de abajo</text>
+      <text x="30" y="200" font-size="13" class="t-muted">Soltar fuera de las zonas o sin Shift no encaja nada:</text>
+      <text x="30" y="220" font-size="13" class="t-muted">la ventana se queda donde la sueltes.</text>
+    </svg>
+    <figcaption>Cómo se decide a qué zona encaja la ventana al soltar. La tecla (Shift, Ctrl o Alt) se cambia en <code>[Snap]</code> de <code>zones.ini</code>; se activa o desactiva desde el panel. Las mitades (arriba/abajo de la zona B) <b>no vienen activadas</b>: se habilitan con el interruptor «Permitir elegir mitades» (o <code>Halves=1</code> en <code>[Snap]</code>); con él apagado, soltar en la zona B siempre da la zona entera.</figcaption>
+  </figure>
+
+  <h3>C) Deshacer, centrar y recuperar el tamaño original</h3>
+  <ul>
+    <li><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Retroceso</kbd></span> <b>deshace</b> la última colocación: la ventana vuelve a su sitio y tamaño anteriores (hasta 20 pasos).</li>
+    <li><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Mayús</kbd><i>+</i><kbd>←</kbd> <kbd>→</kbd></span> centra la ventana en la zona A o B <b>sin cambiarle el tamaño</b>.</li>
+    <li><b>Al salirse de una zona recupera su tamaño.</b> Cuando el motor coloca una ventana en una zona (atajo, Shift+arrastrar o vigilante), anota el tamaño que tenía <i>antes</i> de entrar. Si luego la sacas de esa zona (la arrastras fuera o la estiras más allá), al soltar vuelve a ese tamaño, colocada donde tienes el cursor. Se apaga con el interruptor «Devolver la ventana a su tamaño original» (<code>RestoreOnLeave=0</code> en <code>[General]</code>). No actúa sobre ventanas maximizadas, minimizadas ni en modo juego.</li>
+  </ul>
+</section>
+<!-- ============ 6 ============ -->
+<section class="chap" id="vigilante">
+  <h2><span class="n">06</span>El vigilante</h2>
+  <p>Cuando maximizas una ventana con el botón de la esquina o con <kbd>Win</kbd>+<kbd>↑</kbd>, Windows la estira a los 5120 px. El <b>vigilante</b> lo detecta (revisa la ventana activa unas 6 veces por segundo) y la devuelve a su zona.</p>
+  <figure>
+    <svg viewBox="0 0 900 190" role="img" aria-label="Antes: ventana maximizada ocupando 5120 píxeles. Después: ventana ajustada a su zona">
+      <text x="30" y="26" font-size="15" class="big">Sin vigilante</text>
+      <rect class="scr" x="30" y="38" width="380" height="107" rx="6"/>
+      <rect class="win" x="32" y="40" width="376" height="103" stroke-width="2"/>
+      <text x="220" y="98" text-anchor="middle" font-size="16" class="tBad big">ocupa los 5120 px</text>
+      <path class="arrow" d="M425 92 H475 M465 84 l10 8 -10 8"/>
+      <text x="490" y="26" font-size="15" class="big">Con vigilante</text>
+      <rect class="scr" x="490" y="38" width="380" height="107" rx="6"/>
+      <rect class="zA" x="492" y="40" width="251" height="103" stroke-width="2"/>
+      <rect class="win" x="494" y="42" width="247" height="99"/>
+      <text x="618" y="98" text-anchor="middle" font-size="16" class="tOk big">se queda en su zona</text>
+      <text x="450" y="178" text-anchor="middle" font-size="13" class="t-muted">La ventana vuelve a su tamaño normal y se ajusta a la zona donde estaba.</text>
+    </svg>
+    <figcaption>El vigilante convierte un «maximizar» en «llenar mi zona».</figcaption>
+  </figure>
+
+  <h3>Qué ventanas deja en paz</h3>
+  <ul>
+    <li>Las del sistema (escritorio, barra de tareas, menú Inicio, Alt+Tab).</li>
+    <li>Las que no tienen barra de título (pantalla completa de verdad o borderless): no son «maximizadas» normales.</li>
+    <li>Las que estén en <b>modo juego</b> (Win+Alt+G).</li>
+    <li>Las que añadas a la lista de <b>Exclusiones</b> (por proceso o por clase de ventana).</li>
+    <li>Los <b>juegos de la lista <code>Games=</code></b> de <code>[Exclusions]</code> en <code>zones.ini</code> (por defecto <code>RainbowSix.exe</code>): ni el vigilante, ni el encaje con Shift, ni la restauración de tamaño los tocan nunca. Mover o redimensionar un juego en marcha puede soltarle el ratón o chocar con su anti-cheat. Los atajos que pulses tú sí funcionan sobre ellos.</li>
+    <li>Si una app se vuelve a maximizar sola más de 4 veces en 3 segundos, el vigilante la ignora para no pelearse con ella.</li>
+  </ul>
+
+  <figure class="shot">
+    <img src="img/exclusiones.png" alt="Editor de exclusiones del vigilante con procesos y clases de ventana">
+    <figcaption>Exclusiones: añade el proceso (por ejemplo <code>obs64.exe</code>) o usa <b>Excluir la última ventana usada</b> para copiarlo automáticamente.</figcaption>
+  </figure>
+  <p><b>Activar o desactivar:</b> <span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>W</kbd></span>, el interruptor del panel, o la entrada «Vigilante de maximizado» del icono de la bandeja.</p>
+  <figure class="shot">
+    <img src="img/comportamiento.png" alt="Interruptores del vigilante y del encaje al arrastrar">
+    <figcaption>Interruptores del vigilante y del encaje con Shift, en Ajustes.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="chap" id="juegos">
+  <h2><span class="n">07</span>Jugar con una zona</h2>
+  <p>Este es el uso principal: el juego en la zona A (3440×1440) y tus otras apps en la zona B. Tienes que conseguir que el juego ocupe <b>solo</b> la zona A.</p>
+
+  <figure>
+    <svg viewBox="0 0 900 360" role="img" aria-label="Diagrama de decisión para jugar en una zona">
+      <rect class="box" x="300" y="14" width="300" height="46" rx="12"/>
+      <text x="450" y="43" text-anchor="middle" font-size="15" class="big">¿Tu juego tiene modo «ventana sin bordes»?</text>
+
+      <path class="arrow" d="M380 62 L190 110 M200 100 l-12 10 15 4"/>
+      <path class="arrow" d="M520 62 L710 110 M700 100 l12 10 -15 4"/>
+      <text x="260" y="78" font-size="14" class="tOk big">Sí</text>
+      <text x="632" y="78" font-size="14" class="tBad big">No, solo pantalla completa</text>
+
+      <rect class="box" x="40" y="112" width="300" height="60" rx="12"/>
+      <text x="190" y="138" text-anchor="middle" font-size="14" class="big">Ponlo en borderless y elige 3440×1440</text>
+      <text x="190" y="158" text-anchor="middle" font-size="12" class="t-muted">en las opciones gráficas del juego</text>
+
+      <rect class="box" x="570" y="112" width="290" height="60" rx="12"/>
+      <text x="715" y="138" text-anchor="middle" font-size="14" class="big">No hay solución limpia con esta app</text>
+      <text x="715" y="158" text-anchor="middle" font-size="12" class="t-muted">el juego tomaría los 5120 px</text>
+
+      <path class="arrow" d="M190 174 V208 M182 198 l8 10 8 -10"/>
+      <rect class="box" x="40" y="210" width="300" height="60" rx="12"/>
+      <text x="190" y="236" text-anchor="middle" font-size="14" class="big">Cada vez que abras el juego:</text>
+      <text x="190" y="256" text-anchor="middle" font-size="12" class="t-muted">Win+Alt+G, y revisa con Win+Alt+D</text>
+
+      <path class="arrow" d="M190 272 V300 M182 290 l8 10 8 -10"/>
+      <rect class="box" x="40" y="302" width="300" height="46" rx="12" style="stroke:#3ddc97"/>
+      <text x="190" y="330" text-anchor="middle" font-size="14" class="big tOk">Juego en A, el resto en B</text>
+
+      <text x="715" y="215" text-anchor="middle" font-size="13" class="t-muted">Opciones: forzar modo ventana con una</text>
+      <text x="715" y="233" text-anchor="middle" font-size="13" class="t-muted">herramienta externa, o jugar a 5120×1440.</text>
+      <text x="715" y="262" text-anchor="middle" font-size="13" class="t-muted">Con anti-cheat estricto, tampoco se</text>
+      <text x="715" y="280" text-anchor="middle" font-size="13" class="t-muted">puede tocar la ventana: no se intenta.</text>
+    </svg>
+    <figcaption>Árbol de decisión. La app nunca intenta trucos para saltarse una pantalla completa exclusiva ni un anti-cheat.</figcaption>
+  </figure>
+
+  <div class="callout">
+    <b>Juegos que no admiten el tamaño de la zona (p. ej. Rainbow Six Siege)</b>
+    <b>Opción recomendada:</b> pon el juego en <b>modo Ventana</b> con una resolución que quepa en la zona (por ejemplo <b>2560×1440</b>) y pulsa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Mayús</kbd>+<kbd>G</kbd>: le quita la barra y los bordes <b>sin cambiar su tamaño interior</b> y lo centra en la zona del modo juego. Con el perfil «dual» (zona A de 2560×1440) lo llena exactamente. Para salir, la misma combinación.<br><br>
+    Si el juego solo ofrece resoluciones que no son la de la zona, o dibuja barras negras por dentro y el ratón queda desplazado, <b>no lo redimensiones</b>. Ponlo en <b>modo Ventana</b> con una resolución que sí admita (por ejemplo 2560×1080 o 1920×1080) y usa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Mayús</kbd>+<kbd>←</kbd>: solo lo mueve y lo centra en la zona A, conservando su tamaño. Si el juego se empeña en usar el escritorio completo (5120×1440) en «sin bordes», esta app no puede evitarlo.
+  </div>
+
+  <h3>Modo juego (Win+Alt+G)</h3>
+  <p><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>G</kbd></span> quita los bordes y la barra de título de la ventana activa y la deja exactamente en la <b>zona del modo juego</b>. Si lo pulsas otra vez, la ventana vuelve a su estado anterior (bordes, tamaño y posición).</p>
+  <p>Por defecto esa zona es <b>la zona en la que ya está la ventana</b>. Se puede fijar por perfil (A, B o C) en <b>Ajustes → Modo juego</b>, o con <code>GameZone=</code> en la sección del perfil de <code>zones.ini</code>.</p>
+  <figure class="shot">
+    <img src="img/modo-juego.png" alt="Tarjeta Modo juego del panel: por perfil, zona A, B, C o donde esté">
+    <figcaption>Cada perfil elige su zona del modo juego, o «Donde esté» para respetar la zona actual de la ventana.</figcaption>
+  </figure>
+  <div class="callout warn">
+    <b>Si Win+Alt+G no hace nada</b>
+    Windows usa esa misma combinación para la <b>barra de juegos de Xbox</b> («grabar los últimos 30 segundos»). Si choca, desactiva ese atajo en <i>Configuración → Juegos → Xbox Game Bar</i>, o usa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd>. Además, si el juego usa pantalla completa exclusiva o anti-cheat, no hará caso a ninguno de los dos.
+  </div>
+
+  <h3>Comprobar qué hace realmente el juego (depuración)</h3>
+  <p>Con el juego en primer plano, pulsa <span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>D</kbd></span>. Aparece una ventanita en la zona B (sin quitarle el foco al juego) con el proceso, la posición y el tamaño reales, y se actualiza sola. La última línea te dice si <b>coincide exactamente</b> con la zona o en cuántos píxeles difiere. Pulsa el atajo otra vez para cerrarla.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Si ves…</th><th>Significa</th></tr>
+    <tr><td>✔ coincide con la zona</td><td>Todo bien: el juego respeta 3440×1440.</td></tr>
+    <tr><td>✘ difiere N × M px</td><td>El juego cambió su tamaño. Revisa su modo de ventana y su resolución.</td></tr>
+    <tr><td>«SIN barra de título»</td><td>Está en borderless (lo normal en modo juego).</td></tr>
+    <tr><td>«No puedo leer esta ventana»</td><td>Probablemente anti-cheat o programa ejecutado como administrador.</td></tr>
+  </table></div>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="chap" id="oscura">
+  <h2><span class="n">08</span>Capa oscura</h2>
+  <p>Pone un velo negro sobre una zona para que no te distraiga mientras juegas en la otra. En un OLED, el negro puro apaga los píxeles. El velo <b>no bloquea el ratón</b>: puedes seguir usando lo que hay debajo.</p>
+  <figure>
+    <svg viewBox="0 0 900 190" role="img" aria-label="Monitor con la zona A visible y la zona B oscurecida">
+      <rect class="scr" x="40" y="24" width="820" height="130" rx="6"/>
+      <rect class="zA" x="42" y="26" width="550" height="126" stroke-width="2"/>
+      <text x="317" y="84" text-anchor="middle" font-size="28" class="big tA">Juego</text>
+      <text x="317" y="110" text-anchor="middle" font-size="13" class="t-muted">zona A · brillo normal</text>
+      <rect x="593" y="26" width="265" height="126" fill="#000" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="725" y="84" text-anchor="middle" font-size="22" class="big t-muted">B atenuada</text>
+      <text x="725" y="110" text-anchor="middle" font-size="13" class="t-muted">negro al 85 %</text>
+      <text x="450" y="182" text-anchor="middle" font-size="13" class="t-muted">Win+Alt+O atenúa la zona donde NO está la ventana activa.</text>
+    </svg>
+    <figcaption>Ejemplo: jugando en A, la zona B queda casi apagada.</figcaption>
+  </figure>
+  <ul>
+    <li><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>O</kbd></span>: enciende la capa oscura sobre la zona <b>donde no está la ventana activa</b>. Púlsalo otra vez para apagarla.</li>
+    <li>En el panel puedes elegir <b>Atenuar zona A</b>, <b>Atenuar zona B</b> o <b>Apagada</b>, y regular la <b>opacidad</b> con el deslizador (0 % no hace nada; 100 % es negro total).</li>
+    <li>La opacidad se guarda en <code>[Dim] Opacity</code> de <code>zones.ini</code>.</li>
+  </ul>
+  <figure class="shot">
+    <img src="img/capa-oscura.png" alt="Controles de la capa oscura: elegir zona y deslizador de opacidad">
+    <figcaption>Controles de la capa oscura.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="chap" id="config">
+  <h2><span class="n">09</span>Archivos de configuración</h2>
+  <p>Casi todo se ajusta desde el panel, pero todo vive en un archivo de texto, <code>zones.ini</code>, en la carpeta <code>%APPDATA%\Zonely</code> (pega esa ruta en el Explorador de archivos). Al instalar una versión nueva, tus ajustes se conservan. Puedes editar el archivo a mano y pulsar <b>Recargar</b>. En esa carpeta también están <code>logs</code> (el registro de actividad) e <code>ipc</code> (la comunicación entre el panel y el motor).</p>
+
+  <h3><code>zones.ini</code></h3>
+  <pre>[General]
+Profile=ultrawide      ; perfil al arrancar: ultrawide | dual | centrado | normal
+RestoreOnLeave=1      ; 1 = al salirse de una zona, la ventana recupera su tamaño original
+
+[Monitor]
+Width=5120             ; tamaño del escritorio (solo valida las zonas)
+Height=1440
+
+[Profile.ultrawide]    ; zonas: x, y, ancho, alto
+A=0,0,3440,1440
+B=3440,0,1680,1440
+
+[Profile.dual]
+A=0,0,2560,1440
+B=2560,0,2560,1440
+
+[Profile.centrado]   ; 3 zonas: A = centro 16:9, B = derecha, C = izquierda
+A=1280,0,2560,1440
+B=3840,0,1280,1440
+C=0,0,1280,1440
+
+[Profile.normal]     ; sin B = pantalla normal, sin zonas
+A=0,0,5120,1440
+
+[Dim]
+Opacity=85             ; 0-100
+
+[Snap]
+Enabled=1
+Key=Shift              ; Shift | Ctrl | Alt
+Halves=0               ; 1 = permitir elegir mitades al arrastrar (zona B)
+
+[Watcher]
+Enabled=1
+IntervalMs=150         ; cada cuánto mira la ventana activa (mínimo 50)
+
+[Exclusions]
+Processes=obs64.exe,vlc.exe
+Classes=
+Games=RainbowSix.exe   ; juegos que el vigilante, el encaje y la restauración nunca tocan</pre>
+  <p class="muted">Los perfiles son las secciones <code>[Profile.nombre]</code>: puedes añadir más copiando una. Si algo está mal escrito (una zona que se sale del monitor, por ejemplo), el motor te lo dice al arrancar con un mensaje de error.</p>
+
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="chap" id="problemas">
+  <h2><span class="n">10</span>Si algo falla</h2>
+  <details open>
+    <summary>Los atajos no hacen nada</summary>
+    <ul>
+      <li>Mira el icono de la bandeja: ¿está <b>«Pausar atajos»</b> marcado? Quítalo.</li>
+      <li>¿El panel dice «Motor detenido»? Pulsa <b>Iniciar motor</b>.</li>
+      <li>Win+Alt+G puede chocar con la barra de juegos de Xbox (ver capítulo 7).</li>
+      <li>Si la ventana activa es una app ejecutada <b>como administrador</b>, el motor no puede moverla: ejecuta el motor también como administrador.</li>
+    </ul>
+  </details>
+  <details>
+    <summary>El juego no respeta los 3440×1440</summary>
+    <p>Abre la ventana de depuración (<kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>D</kbd>) con el juego en primer plano. Si dice que difiere, el juego cambia su propio tamaño: ponlo en <b>ventana sin bordes</b> y a 3440×1440 desde sus opciones. Con pantalla completa exclusiva o con anti-cheat estricto no hay solución con esta app.</p>
+  </details>
+  <details>
+    <summary>Una ventana se maximiza a 5120 px</summary>
+    <p>Comprueba que el vigilante está activado (interruptor del panel o icono de la bandeja) y que la app no está en la lista de <b>Exclusiones</b>. Las ventanas sin barra de título se consideran pantalla completa y no se tocan.</p>
+  </details>
+  <details>
+    <summary>Al recargar se pierde algo</summary>
+    <p>Recargar conserva el perfil, los interruptores, la capa oscura, el modo juego y los tamaños originales apuntados. Si algo no vuelve, cierra y abre el motor desde la bandeja (Salir) y vuelve a arrancarlo.</p>
+  </details>
+  <details>
+    <summary>Una ventana quedó mal colocada o sin bordes: cómo la recupero</summary>
+    <ul>
+      <li><b>Modo juego:</b> pulsa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd> otra vez. Vuelve a su estilo, posición y tamaño anteriores.</li>
+      <li><b>Movida o redimensionada</b> (atajo, Shift+arrastrar, vigilante): pulsa <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>Retroceso</kbd> () y vuelve a su sitio anterior; repítelo para ir más atrás. Si la sacaste de su zona, ya recupera sola su tamaño original.</li>
+      <li><b>Zona oscurecida:</b> <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> o «Apagada» en el panel.</li>
+      <li><b>Recargar el motor</b> no afecta al modo juego: el estado anterior se conserva y se sigue restaurando con Win+Alt+G. Al salir del motor (bandeja → Salir), las ventanas en modo juego también se restauran.</li>
+    </ul>
+  </details>
+  <details>
+    <summary>Quiero desinstalar Zonely</summary>
+    <p>Desde <i>Configuración → Aplicaciones → Aplicaciones instaladas → Zonely → Desinstalar</i>. Se quita el programa y el arranque con Windows, pero <b>no se borran tus ajustes</b>: están en <code>%APPDATA%\Zonely</code>, y puedes borrar esa carpeta a mano si no los quieres.</p>
+  </details>
+
+  <h3>Límites que no se pueden saltar</h3>
+  <ul>
+    <li><b>Pantalla completa exclusiva</b>: el juego controla el monitor entero.</li>
+    <li><b>Anti-cheat estricto</b>: puede bloquear cualquier cambio en su ventana. La app no intenta saltárselo.</li>
+    <li><b>Programas como administrador</b>: solo se pueden mover desde un motor también elevado.</li>
+  </ul>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="chap" id="resumen">
+  <h2><span class="n">11</span>Chuleta de atajos</h2>
+  <h3>Cambiar los atajos</h3>
+  <p>Todos los atajos se pueden cambiar desde el panel, en la sección <b>Atajos</b>. Pulsa <b>Cambiar</b> en la acción que quieras, marca los modificadores (Win, Alt, Ctrl, Mayús) y pulsa la tecla; después <b>Guardar</b>. El motor se recarga solo y el atajo nuevo funciona al momento.</p>
+  <figure class="shot">
+    <img src="img/atajos.png" alt="Tarjeta de atajos de teclado del panel, con una acción en modo edición">
+    <figcaption>Cada fila muestra el atajo actual; «Restablecer» devuelve el de fábrica y «Restablecer todos» los devuelve todos.</figcaption>
+  </figure>
+  <ul>
+    <li>Hace falta <b>al menos un modificador</b>, para no quitarle teclas normales al resto de programas.</li>
+    <li>No se permiten dos acciones con el mismo atajo.</li>
+    <li>Si dos atajos chocan en <code>zones.ini</code> o uno no es válido, el motor usa el de fábrica y lo avisa en la propia fila del atajo.</li>
+    <li>Algunos atajos de Windows tienen prioridad (por ejemplo los que usa la barra de juegos de Xbox); si uno no responde, prueba otra combinación.</li>
+  </ul>
+  <h3>Atajos de fábrica</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Atajo</th><th>Acción</th></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Z</kbd></span></td><td>Llenar la zona actual</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>←</kbd> <kbd>→</kbd></span></td><td>Mover a la zona de la izquierda / derecha</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>↑</kbd> <kbd>↓</kbd></span></td><td>Mitad de arriba / abajo (zona B)</td></tr>
+    <tr><td><span class="keys"><kbd>Shift</kbd><i>+ arrastrar</i></span></td><td>Encajar en una zona al soltar</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>G</kbd></span></td><td>Modo juego (sin bordes, en la zona del juego) / restaurar</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>P</kbd></span></td><td>Elegir perfil (abre un selector)</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>W</kbd></span></td><td>Activar/desactivar el vigilante</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>D</kbd></span></td><td>Ventana de depuración</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>O</kbd></span></td><td>Capa oscura sobre la zona que no es la activa</td></tr>
+      <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Mayús</kbd><i>+</i><kbd>G</kbd></span></td><td>Modo juego conservando el tamaño interior (sin bordes, centrado en la zona del juego)</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Mayús</kbd><i>+</i><kbd>←</kbd> <kbd>→</kbd></span></td><td>Centrar en la zona izquierda / derecha sin cambiar el tamaño</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Retroceso</kbd></span></td><td>Deshacer la última colocación</td></tr>
+    <tr><td><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>Q</kbd></span></td><td>Devolver la ventana activa a su tamaño original (aunque la hayas movido muchas veces)</td></tr>
+</table></div>
+  <p class="muted">Manual de Zonely. Esta página se puede imprimir o guardar como PDF desde el navegador (Ctrl+P).</p>
+</section>
+
+</main>
+</div>
+</body>
+</html>
