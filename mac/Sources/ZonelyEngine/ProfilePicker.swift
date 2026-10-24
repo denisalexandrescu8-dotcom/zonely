@@ -83,6 +83,7 @@ final class PickerRowView: NSView {
 /// Fondo del selector: título, subtítulo, la ✕ de cerrar y el pie.
 final class PickerContentView: NSView {
     var onClose: (() -> Void)?
+    var monitorName: String?
     private let closeRect = NSRect(x: 612, y: 22, width: 28, height: 28)
 
     override var isFlipped: Bool { true }
@@ -102,7 +103,7 @@ final class PickerContentView: NSView {
         }
         NSAttributedString(string: tr("Elegir perfil"), attributes: [.font: NSFont.systemFont(ofSize: 22, weight: .semibold), .foregroundColor: Palette.text])
             .draw(at: NSPoint(x: 86, y: 20))
-        NSAttributedString(string: tr("Aplica una distribución de zonas a tu pantalla."), attributes: [.font: NSFont.systemFont(ofSize: 13), .foregroundColor: Palette.muted])
+        NSAttributedString(string: monitorName.map { tr("Monitor: {name}", ["name": $0]) } ?? tr("Aplica una distribución de zonas a tu pantalla."), attributes: [.font: NSFont.systemFont(ofSize: 13), .foregroundColor: Palette.muted])
             .draw(at: NSPoint(x: 86, y: 52))
         NSAttributedString(string: "✕", attributes: [.font: NSFont.systemFont(ofSize: 16), .foregroundColor: Palette.muted])
             .draw(at: NSPoint(x: closeRect.minX + 6, y: closeRect.minY + 3))
@@ -126,7 +127,7 @@ final class ProfilePicker {
         panel = nil
     }
 
-    func show(profiles: [Profile], current: String, monitorWidth: Int, onSelect: @escaping (String) -> Void) {
+    func show(profiles: [Profile], current: String, monitorWidth: Int, monitorName: String? = nil, onSelect: @escaping (String) -> Void) {
         close()
         let width: CGFloat = 660
         let rowHeight: CGFloat = 98
@@ -135,6 +136,7 @@ final class ProfilePicker {
 
         let content = PickerContentView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         content.onClose = { [weak self] in self?.close() }
+        content.monitorName = monitorName
         for (i, profile) in profiles.enumerated() {
             let row = PickerRowView(profile: profile, monitorWidth: monitorWidth, isCurrent: profile.name == current,
                                     size: NSSize(width: width - 48, height: rowHeight)) { [weak self] in

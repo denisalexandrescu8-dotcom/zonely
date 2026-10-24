@@ -37,8 +37,19 @@ StopWatcher() {
 ; Reacción inmediata: al maximizarse la ventana activa la recolocamos en el mismo instante, y a cada ventana
 ; que pasa a ser la activa le quitamos la animación de maximizar para que no se vea el «amago» de pantalla completa.
 WatcherEvent(hook, event, hwnd, idObject, idChild, thread, time) {
-    if idObject != 0 || !hwnd || !WatcherOn || A_IsSuspended || !Config.Zoned
+    if idObject != 0 || !hwnd || !WatcherOn || A_IsSuspended
         return
+    Critical "On"
+    try {
+        v := GetVisibleRect(hwnd)
+        Config.UseAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
+        if Config.Zoned
+            WatcherEventHere(event, hwnd)
+    }
+    Config.UseMain()
+}
+
+WatcherEventHere(event, hwnd) {
     try {
         if event = 0x0003 {
             if !WatcherNoAnim.Has(hwnd) && !WatcherSkips(hwnd, false) {
@@ -81,14 +92,19 @@ WatcherSkips(hwnd, onlyMonitor := true) {
 }
 
 WatcherTick() {
-    if A_IsSuspended || !Config.Zoned                ; sin zonas, maximizar es lo normal
+    if A_IsSuspended
         return
+    Critical "On"
     try {
         hwnd := WinExist("A")
-        if !hwnd || WinGetMinMax(hwnd) != 1 || WatcherSkips(hwnd)
-            return
-        WatcherFix(hwnd)
+        if hwnd && WinGetMinMax(hwnd) = 1 {
+            v := GetVisibleRect(hwnd)
+            Config.UseAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
+            if Config.Zoned && !WatcherSkips(hwnd)   ; sin zonas, maximizar es lo normal
+                WatcherFix(hwnd)
+        }
     }   ; la ventana puede desaparecer o ser de otro nivel de permisos: se ignora
+    Config.UseMain()
 }
 
 WatcherFix(hwnd) {

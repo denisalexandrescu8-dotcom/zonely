@@ -201,12 +201,28 @@ function snapshotMonitor() {
   try {
     const cfg = readConfig();
     if (!cfg.monitor.id || !cfg.profiles.length) return;
-    fs.mkdirSync(MONITORS_DIR, { recursive: true });
     let last = '';
-    try { last = fs.readFileSync(path.join(DATA_DIR, 'last-profile.txt'), 'utf8').trim(); } catch { /* aún no hay */ }
+    try { last = fs.readFileSync(monitorFile(cfg.monitor.id).replace(/\.json$/, '.last'), 'utf8').trim(); } catch { /* aún no hay */ }
+    if (!last) { try { last = fs.readFileSync(path.join(DATA_DIR, 'last-profile.txt'), 'utf8').trim(); } catch { /* aún no hay */ } }
     const active = [last, cfg.startProfile].find((n) => n && cfg.profiles.some((p) => p.id === n)) || cfg.profiles[0].id;
-    fs.writeFileSync(monitorFile(cfg.monitor.id), JSON.stringify({ w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles }));
+    writeMonitorFiles(cfg.monitor.id, { w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles });
   } catch { /* la copia por monitor es un extra: si falla, el ini sigue valiendo */ }
+}
+
+// Conjunto de perfiles de un monitor: un .json para el panel y un .ini (mismo formato que zones.ini) que leen los motores,
+// así cada monitor con zonas tiene su perfil aunque no sea el elegido en el panel.
+function writeMonitorFiles(id, set) {
+  fs.mkdirSync(MONITORS_DIR, { recursive: true });
+  fs.writeFileSync(monitorFile(id), JSON.stringify(set));
+  const lines = ['[General]', `Profile=${set.active}`, '', '[Monitor]', `Width=${set.w}`, `Height=${set.h}`, `Id=${id}`];
+  for (const p of set.profiles) {
+    lines.push('', `[Profile.${p.id}]`);
+    for (const k of ZONE_KEYS) if (p.zones[k]) lines.push(`${k}=${zoneText(p.zones[k])}`);
+    if (p.gameZone && p.gameZone !== 'auto') lines.push(`GameZone=${p.gameZone}`);
+  }
+  const ini = monitorFile(id).replace(/\.json$/, '.ini'), tmp = ini + '.tmp';
+  fs.writeFileSync(tmp, lines.join('\n') + '\n', 'utf8');
+  fs.renameSync(tmp, ini);
 }
 
 // ---- perfiles: editar, crear, borrar y un conjunto por monitor ------------------------------------------------------
@@ -319,13 +335,13 @@ function setMonitor(id) {
   if (!st.engineUp || !mon) throw new Error('Monitor no disponible: enciende el motor y vuelve a probar');
   const cfg = readConfig();
   const current = cfg.monitor.id || st.monitor || (st.monitors.find((m) => m.primary) || {}).id || '';
-  const active = st.profile && cfg.profiles.some((p) => p.id === st.profile) ? st.profile : cfg.startProfile;
+  const reported = (st.monitors.find((m) => m.id === current) || {}).profile || st.profile;     // el perfil que usa el motor en ese monitor
+  const active = reported && cfg.profiles.some((p) => p.id === reported) ? reported : cfg.startProfile;
   if (current === mon.id && cfg.monitor.w === mon.w && cfg.monitor.h === mon.h) return;
 
   // 1) se guarda el conjunto del monitor que se deja
   try {
-    fs.mkdirSync(MONITORS_DIR, { recursive: true });
-    fs.writeFileSync(monitorFile(current), JSON.stringify({ w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles }));
+    writeMonitorFiles(current, { w: cfg.monitor.w, h: cfg.monitor.h, active, profiles: cfg.profiles });
   } catch (e) { appendLog('WARN', `No pude guardar los perfiles del monitor: ${e.message}`); }
 
   // 2) se carga el del monitor nuevo (o se parte de una copia de los actuales)
@@ -336,6 +352,7 @@ function setMonitor(id) {
   const profiles = base.profiles.map((p) => ({ id: p.id, gameZone: p.gameZone, zones: scaleZones(p.zones, sx, sy) }));
   const nextActive = profiles.some((p) => p.id === base.active) ? base.active : profiles[0].id;
 
+  try { fs.writeFileSync(monitorFile(mon.id).replace(/\.json$/, '.last'), nextActive, 'utf8'); } catch { /* el motor usará el del ini */ }
   writeIni((t) => {
     for (const p of cfg.profiles) t = removeIniSection(t, `Profile.${p.id}`);
     for (const p of profiles) {
@@ -349,8 +366,9 @@ function setMonitor(id) {
     return setIniValue(t, 'General', 'Profile', nextActive);
   });
   appendLog('INFO', `Monitor elegido: ${mon.name} (${mon.w}x${mon.h}) · perfil ${nextActive}`);
-  // El motor recarga zones.ini en un par de segundos; después se le pide el perfil de este monitor.
-  setTimeout(() => { try { sendCommand({ type: 'profile', value: nextActive }); } catch { /* motor parado */ } }, 3500);
+  // Se le pide al motor que relea zones.ini ya (si no, lo notaría en un par de segundos); el perfil de este monitor lo
+  // saca él de monitors/<monitor>.last, que se acaba de escribir.
+  try { sendCommand({ type: 'reload' }); } catch { /* motor parado */ }
 }
 
 function setExclusions({ processes, classes }) {

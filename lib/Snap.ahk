@@ -17,6 +17,7 @@ SnapWin := 0                   ; ventana sobre la que se pulsÃ³
 SnapStartPos := [0, 0]
 SnapDragging := false          ; la ventana se estÃ¡ moviendo de verdad
 SnapShown := false             ; overlay visible
+SnapMon := ""
 SnapTarget := ""               ; Map(x,y,w,h) de la zona resaltada
 SnapGuis := ""                 ; Map(A, B, HL)
 
@@ -99,7 +100,11 @@ SnapTick() {
             SnapReset()
     } else if !down && SnapPrevDown {                ; botÃ³n soltado
         if SnapDragging && SnapShown && IsObject(SnapTarget) {
+            Critical "On"
+            Config.Use(SnapMon)
             try PlaceInRect(SnapWin, SnapTarget["x"], SnapTarget["y"], SnapTarget["w"], SnapTarget["h"])
+            Config.UseMain()
+            Critical "Off"
         }
         SnapHideOverlay()
         SnapWin := 0
@@ -112,17 +117,27 @@ SnapTick() {
 
 ; Calcula la zona bajo el cursor y dibuja el overlay.
 SnapUpdateOverlay() {
-    global SnapShown := true, SnapTarget
-    if !Config.Zoned {                               ; perfil sin zonas: nada que encajar
-        SnapShown := false
-        return
-    }
+    Critical "On"
     MouseGetPos(&mx, &my)
-    if !Config.OnMonitor(mx, my) {                   ; el cursor está en otro monitor: nada que encajar
+    Config.UseAt(mx, my)                             ; las zonas son las del monitor donde está el cursor
+    try SnapUpdateOverlayHere(mx, my)
+    Config.UseMain()
+    Critical "Off"
+}
+
+SnapUpdateOverlayHere(mx, my) {
+    global SnapShown := true, SnapTarget, SnapMon
+    if !Config.Zoned {                               ; perfil sin zonas: nada que encajar
         SnapShown := false
         SnapHideOverlay()
         return
     }
+    if !Config.OnMonitor(mx, my) {                   ; el cursor está en un monitor sin zonas: nada que encajar
+        SnapShown := false
+        SnapHideOverlay()
+        return
+    }
+    SnapMon := Config.MonId
     ; zona bajo el cursor (la más cercana si está en un hueco o fuera)
     zone := ZoneAt(mx, my)
 

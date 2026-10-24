@@ -322,6 +322,13 @@ final class IpcTests: XCTestCase {
         XCTAssertTrue(object["target"] is NSNull)
     }
 
+    func testMonitorFileNamesMatchThePanel() {
+        XCTAssertEqual(Paths.slug("1"), "1")
+        XCTAssertEqual(Paths.slug("69734208"), "69734208")
+        XCTAssertEqual(Paths.slug(#"\\.\DISPLAY2"#), "_DISPLAY2")
+        XCTAssertEqual(Paths.lastProfileURL(forMonitor: "3").lastPathComponent, "3.last")
+    }
+
     func testHotkeysJson() throws {
         let rows = HotkeyTable.resolve(overrides: [:])
         let array = try XCTUnwrap(JSONSerialization.jsonObject(with: Ipc.hotkeysData(rows)) as? [[String: String]])

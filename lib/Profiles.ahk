@@ -6,17 +6,41 @@
 ; ============================================================
 
 PickerGui := ""
+PickerMon := ""            ; monitor del que el selector abierto cambia el perfil
+
+; Nombre del monitor tal como lo detecta Windows (el que se enseña en el panel); "" si solo hay uno.
+MonitorLabel(id) {
+    if MonitorGetCount() < 2
+        return ""
+    Loop MonitorGetCount()
+        if MonitorGetName(A_Index) = id
+            return MonitorModelName(id, A_Index)
+    return ""
+}
+
+; Activa un perfil en el monitor indicado (cada monitor con zonas tiene el suyo) y vuelve al monitor principal.
+ApplyProfileOn(id, name, origin := "") {
+    Critical "On"
+    ok := false
+    if Config.Use(id)
+        ok := ApplyProfile(name, origin)
+    Config.UseMain()
+    return ok
+}
 
 ; Activa un perfil (atajo, selector o panel) y deja la capa oscura coherente.
 ApplyProfile(name, origin := "") {
     if !Config.SetProfile(name)
         return false
-    if !Config.Zoned
-        SetDim("")                                   ; sin zonas no hay nada que atenuar
-    else
-        DimRefresh()
-    Log("Perfil: " name (origin ? " (" origin ")" : ""))
-    TrayRefreshProfiles()
+    if Config.MonId = Config.MainId {                ; la capa oscura y la bandeja son las del monitor principal
+        if !Config.Zoned
+            SetDim("")                               ; sin zonas no hay nada que atenuar
+        else
+            DimRefresh()
+    }
+    Log("Perfil: " name (origin ? " (" origin ")" : "") (MonitorLabel(Config.MonId) != "" ? " · " MonitorLabel(Config.MonId) : ""))
+    if Config.MonId = Config.MainId
+        TrayRefreshProfiles()
     if origin = "selector" || origin = "bandeja"
         ProfileToast(name)                           ; confirmación breve al cambiar con Win+Alt+P o desde la bandeja
     return true
@@ -63,6 +87,9 @@ ShowProfilePicker() {
         ClosePicker()
         return
     }
+    MouseGetPos(&cx, &cy)
+    Config.UseAt(cx, cy)                             ; el selector cambia el perfil del monitor donde está el cursor
+    global PickerMon := Config.MonId
     Config.ReloadProfiles()                          ; por si se editó zones.ini a mano
     pad := 24, rowW := 612, rowH := 98, gap := 10, miniW := 230, miniH := 65, btnW := 112, btnH := 40
     winW := rowW + pad * 2
@@ -78,7 +105,8 @@ ShowProfilePicker() {
     g.SetFont("s16 w600 cEEF0F7", "Segoe UI")
     g.Add("Text", "x" (pad + 62) " y20 w" (rowW - 110) " BackgroundTrans", T("Elegir perfil"))
     g.SetFont("s10 w400 c8A92A8", "Segoe UI")
-    g.Add("Text", "x" (pad + 62) " y52 w" (rowW - 110) " BackgroundTrans", T("Aplica una distribución de zonas a tu pantalla."))
+    mlabel := MonitorLabel(Config.MonId)
+    g.Add("Text", "x" (pad + 62) " y52 w" (rowW - 110) " BackgroundTrans", mlabel != "" ? T("Monitor: {name}", "name", mlabel) : T("Aplica una distribución de zonas a tu pantalla."))
     g.SetFont("s14 w400 c8A92A8", "Segoe UI")
     closeBtn := g.Add("Text", "x" (winW - pad - 28) " y22 w28 h28 Center +0x200 +0x100 BackgroundTrans", "✕")
     closeBtn.OnEvent("Click", (*) => ClosePicker())
@@ -193,7 +221,7 @@ MiniMonitor(g, x, y, w, h, zs, onClick) {
 }
 
 PickerChoose(name, *) {
-    SetTimer(() => (ClosePicker(), ApplyProfile(name, "selector")), -10)    ; se cierra fuera del evento del clic
+    SetTimer(() => (ClosePicker(), ApplyProfileOn(PickerMon, name, "selector")), -10)    ; se cierra fuera del evento del clic
 }
 
 ClosePicker() {
@@ -221,7 +249,8 @@ ProfileToast(name) {
     mx := 18, my := (h - miniH) // 2
     MiniMonitor(g, mx, my, miniW, miniH, zs, (*) => 0)
     g.SetFont("s9 w400 c94A3B8", "Segoe UI")
-    g.Add("Text", "x" (mx + miniW + 18) " y14 w180 BackgroundTrans", T("Perfil aplicado"))
+    mlabel := MonitorLabel(Config.MonId)
+    g.Add("Text", "x" (mx + miniW + 18) " y14 w210 BackgroundTrans", mlabel != "" ? T("Perfil aplicado") " · " mlabel : T("Perfil aplicado"))
     g.SetFont("s14 w600 cEEF0F7", "Segoe UI")
     g.Add("Text", "x" (mx + miniW + 18) " y32 w180 BackgroundTrans", StrUpper(SubStr(name, 1, 1)) SubStr(name, 2))
 

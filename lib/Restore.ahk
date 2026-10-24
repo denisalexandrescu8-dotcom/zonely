@@ -71,7 +71,7 @@ RestoreTick() {
         SetTimer(RestoreTick, 0)                    ; nada apuntado: se para hasta que haya otra ventana
         return
     }
-    if A_IsSuspended || !Config.RestoreOnLeave || !Config.Zoned
+    if A_IsSuspended || !Config.RestoreOnLeave || !Config.AnyZoned()
         return
     if GetKeyState("LButton")
         return                                      ; se está arrastrando o pulsando: se espera a que suelte

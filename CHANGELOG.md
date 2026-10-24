@@ -1,5 +1,11 @@
 # Historial de versiones
 
+## 0.51.0
+- **Cada monitor con su perfil, a la vez.** Los monitores que tienen su propio conjunto de perfiles (los que has elegido alguna vez en el panel) funcionan los dos a la vez: el encaje al arrastrar, el vigilante de maximizado, los atajos de colocar y la recuperación del tamaño usan las zonas del monitor donde está la ventana o el cursor. Antes solo funcionaba el monitor elegido en el panel y, al cambiar, el perfil de uno se colaba en el otro (por ejemplo, al mantener la tecla de encajar salían las zonas del perfil del otro monitor).
+- **Win+Alt+P (⌃⌥P en Mac)** cambia el perfil del monitor donde está el cursor, y el selector y el aviso de «Perfil aplicado» dicen de qué monitor se trata (con más de un monitor conectado).
+- **Panel:** al cambiar de monitor el cambio se ve casi al instante (el motor recarga en cuanto se le avisa, ya no espera varios segundos), y la lista de monitores enseña el perfil que usa cada uno.
+- Cada monitor recuerda su propio último perfil (`monitors/<monitor>.last`) y su conjunto de perfiles se guarda también como `monitors/<monitor>.ini`.
+
 ## 0.50.0
 - **Perfiles por monitor:** el conjunto de perfiles de cada monitor se guarda ahora **en cada cambio** (antes solo al cambiar de monitor), así que no se pierde si el monitor desaparece, se desenchufa o se cierra la app; el perfil activo también se guarda por monitor.
 - **Editor de perfiles:** la zona elegida tiene ahora campos **Ancho (px)** y **Alto (px)** para escribir su tamaño exacto; la zona contigua se ajusta (mínimo 300×200).

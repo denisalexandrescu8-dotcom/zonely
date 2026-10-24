@@ -233,12 +233,20 @@ final class WindowManager {
     // MARK: - Vigilante y «recuperar tamaño» (se llama cada pocos cientos de milisegundos)
 
     func watcherTick() {
-        guard Accessibility.isTrusted(prompt: false), profile?.isZoned == true else {
+        guard Accessibility.isTrusted(prompt: false) else {
             lastNormal = nil
             return
         }
-        if engine.state.watcher { fixMaximized() }
-        if engine.config?.restoreOnLeave ?? true { restoreWindowsThatLeftTheirZone() }
+        // La ventana activa se vigila con las zonas de su monitor; recuperar el tamaño sirve para todos.
+        let center = (Accessibility.focusedWindow()?.frame).map { CGPoint(x: $0.midX, y: $0.midY) }
+        engine.inMonitor(at: center) { () -> Void in
+            guard profile?.isZoned == true else {
+                lastNormal = nil
+                return
+            }
+            if engine.state.watcher { fixMaximized() }
+        }
+        if (engine.config?.restoreOnLeave ?? true) && engine.anyZoned { restoreWindowsThatLeftTheirZone() }
     }
 
     /// Si la ventana activa se ha maximizado (ocupa toda el área útil), vuelve a su zona.
@@ -318,7 +326,8 @@ final class WindowManager {
                 tracked.remove(at: i)
                 continue
             }
-            if isGame(window) || window.isFullScreen || window.isMinimized || Geometry.isMaximized(frame, in: Screens.usable)
+            if isGame(window) || window.isFullScreen || window.isMinimized
+                || Geometry.isMaximized(frame, in: Screens.usable(containing: CGPoint(x: frame.midX, y: frame.midY)))
                 || gameMode.contains(where: { $0.window.sameWindow(as: window) }) {
                 tracked[i].pending = 0
                 continue

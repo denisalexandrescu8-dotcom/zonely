@@ -14,6 +14,13 @@ public enum Paths {
 
     public static var iniURL: URL { dataDir.appendingPathComponent("zones.ini") }
     public static var lastProfileURL: URL { dataDir.appendingPathComponent("last-profile.txt") }
+    /// Un conjunto de perfiles por monitor (`<monitor>.ini`, mismo formato que zones.ini) y el perfil que usa (`<monitor>.last`).
+    public static var monitorsDir: URL { dataDir.appendingPathComponent("monitors", isDirectory: true) }
+    /// Nombre de archivo de un monitor, igual que en el panel: todo lo que no sea letra, número, «_» o «-» pasa a «_».
+    public static func slug(_ id: String) -> String {
+        id.replacingOccurrences(of: "[^A-Za-z0-9_-]+", with: "_", options: .regularExpression)
+    }
+    public static func lastProfileURL(forMonitor id: String) -> URL { monitorsDir.appendingPathComponent(slug(id) + ".last") }
     public static var ipcDir: URL { dataDir.appendingPathComponent("ipc", isDirectory: true) }
     public static var logDir: URL { dataDir.appendingPathComponent("logs", isDirectory: true) }
     public static var logFile: URL { logDir.appendingPathComponent("gestor.log") }

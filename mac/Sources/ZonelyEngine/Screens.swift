@@ -46,6 +46,17 @@ enum Screens {
         return Geometry.axRect(fromAppKit: screen.frame, primaryHeight: primaryHeight).contains(point)
     }
 
+    /// Identificador de la pantalla que contiene el punto (coordenadas de Accesibilidad); nil si no cae en ninguna.
+    static func id(containing point: CGPoint) -> String? {
+        NSScreen.screens.first { Geometry.axRect(fromAppKit: $0.frame, primaryHeight: primaryHeight).contains(point) }.map { id(of: $0) }
+    }
+
+    /// Nombre de la pantalla (el que le da macOS), solo si hay más de una conectada.
+    static func name(of id: String) -> String? {
+        guard NSScreen.screens.count > 1 else { return nil }
+        return NSScreen.screens.first { Screens.id(of: $0) == id }?.localizedName
+    }
+
     /// Posición del cursor (origen arriba a la izquierda de la pantalla principal).
     static var mouse: CGPoint {
         let p = NSEvent.mouseLocation

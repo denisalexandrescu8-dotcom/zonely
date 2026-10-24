@@ -42,6 +42,7 @@ const ROWS = [
 
   // ---- selector de perfiles y aviso de perfil aplicado ----
   ['Elegir perfil', 'Choose profile', 'Choisir le profil', 'Profil wählen', 'Escolher perfil', 'Scegli profilo'],
+  ['Monitor: {name}', 'Monitor: {name}', 'Écran : {name}', 'Monitor: {name}', 'Monitor: {name}', 'Monitor: {name}'],
   ['Aplica una distribución de zonas a tu pantalla.', 'Apply a zone layout to your screen.', 'Applique une répartition de zones à votre écran.', 'Wendet eine Zonenaufteilung auf deinen Bildschirm an.', 'Aplica uma divisão de zonas à sua tela.', 'Applica una suddivisione in zone al tuo schermo.'],
   ['Esc para cerrar', 'Esc to close', 'Échap pour fermer', 'Esc zum Schließen', 'Esc para fechar', 'Esc per chiudere'],
   ['Aplicar', 'Apply', 'Appliquer', 'Anwenden', 'Aplicar', 'Applica'],

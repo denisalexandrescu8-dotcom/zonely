@@ -73,7 +73,7 @@ function paintCards() {
     sizes.textContent = p.zones.B ? ZONE_IDS.filter((id) => p.zones[id]).map((id) => `${id} ${p.zones[id].w}×${p.zones[id].h}`).join(' · ') : t('Pantalla completa · sin zonas');
     info.append(name, sizes);
     card.append(mini, info);
-    card.onclick = () => window.zones.send({ type: 'profile', value: p.id }).then(refresh);
+    card.onclick = () => window.zones.send({ type: 'profile', value: p.id }).then(refreshSoon);
     box.appendChild(card);
   }
 }
@@ -144,14 +144,14 @@ function paintMonitorPicker() {
     const text = document.createElement('div');
     text.textContent = monitorLabel(m);
     const small = document.createElement('small');
-    small.textContent = `${m.w}×${m.h}`;
+    small.textContent = m.profile ? `${m.w}×${m.h} · ${t('perfil {name}', { name: m.profile })}` : `${m.w}×${m.h}`;
     text.appendChild(small);
     li.append(tick, text);
     li.addEventListener('click', async () => {
       closeMonitorMenu();
       if (m === chosen) return;
       try { await window.zones.setMonitor(m.id); } catch (err) { window.zones.logError(`monitor: ${err && err.message}`); }
-      setTimeout(refresh, 1500);                                // el motor relee zones.ini solo
+      refreshSoon();                                            // el motor relee zones.ini y reinicia: se mira varias veces mientras tanto
     });
     return li;
   }));
@@ -168,6 +168,13 @@ $('monitor-card').addEventListener('click', () => {
 });
 document.addEventListener('click', (e) => { if (!e.target.closest('.monitor-pick')) closeMonitorMenu(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMonitorMenu(); });
+
+// Tras una orden al motor: se vuelve a mirar enseguida y unas cuantas veces más, para ver el cambio en cuanto ocurre.
+let soonTimers = [];
+function refreshSoon() {
+  soonTimers.forEach(clearTimeout);
+  soonTimers = [0, 250, 600, 1100, 1800, 2800].map((ms) => setTimeout(refresh, ms));
+}
 
 let lastKey = '';
 async function refresh() {

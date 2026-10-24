@@ -33,10 +33,27 @@ HotkeyValid(s) {
     return RegExMatch(m[2], "i)^([a-z0-9]|F([1-9]|1\d|2[0-4])|Numpad[0-9]|Left|Right|Up|Down|BackSpace|Space|Tab|Enter|Esc|Delete|Insert|Home|End|PgUp|PgDn)$")
 }
 
+; Ejecuta la acción de un atajo con el contexto del monitor donde está la ventana activa (si ese monitor tiene zonas;
+; si no, el del monitor principal) y vuelve al principal al acabar. Critical: ningún temporizador cambia de monitor a medias.
+HotkeyRun(cb) {
+    Critical "On"
+    try {
+        hwnd := WinExist("A")
+        if hwnd {
+            v := GetVisibleRect(hwnd)
+            Config.UseAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
+        }
+    }
+    try cb()
+    catch Error as e
+        Log("Atajo: " e.Message " (" e.What ")", "ERROR")
+    Config.UseMain()
+}
+
 ; Activa un atajo concreto. Devuelve "" si todo va bien o el motivo del fallo.
 RegHotkey(key, cb) {
     try {
-        Hotkey(key, (*) => cb())
+        Hotkey(key, (*) => HotkeyRun(cb))
         return ""
     } catch Error as e {
         return e.Message

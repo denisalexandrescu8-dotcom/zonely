@@ -49,6 +49,7 @@ const LOCALE_ROWS = [
   ['Perfil eliminado.', 'Profile deleted.', 'Profil supprimé.', 'Profil gelöscht.', 'Perfil excluído.', 'Profilo eliminato.'],
   ['Zona {zone}', 'Zone {zone}', 'Zone {zone}', 'Zone {zone}', 'Zona {zone}', 'Zona {zone}'],
   ['Entre {min} y {max} px', 'Between {min} and {max} px', 'Entre {min} et {max} px', 'Zwischen {min} und {max} px', 'Entre {min} e {max} px', 'Tra {min} e {max} px'],
+  ['perfil {name}', 'profile {name}', 'profil {name}', 'Profil {name}', 'perfil {name}', 'profilo {name}'],
   ['Ancho (px)', 'Width (px)', 'Largeur (px)', 'Breite (px)', 'Largura (px)', 'Larghezza (px)'],
   ['Alto (px)', 'Height (px)', 'Hauteur (px)', 'Höhe (px)', 'Altura (px)', 'Altezza (px)'],
   ['Tamaño exacto de la zona elegida; la contigua se ajusta', 'Exact size of the selected zone; the adjacent one adjusts', 'Taille exacte de la zone choisie ; la voisine s’ajuste', 'Genaue Größe der gewählten Zone; die angrenzende passt sich an', 'Tamanho exato da zona escolhida; a vizinha ajusta-se', 'Dimensione esatta della zona scelta; quella adiacente si adegua'],

@@ -42,6 +42,13 @@ class Config {
     static ExcludeProcesses := []
     static ExcludeClasses := []
     static GameProcesses := []         ; juegos: el encaje, el vigilante y la restauración los ignoran por completo
+    ; Un contexto por monitor con zonas: el elegido en el panel ([Monitor] de zones.ini, el «principal» del motor) y los demás
+    ; que tienen su conjunto de perfiles en monitors\<monitor>.ini. Los campos de arriba (Profiles, ProfileName, Mon*…) son
+    ; los del contexto en uso; los otros están aparcados en Parked. Use()/UseAt() cambian de contexto y UseMain() vuelve al
+    ; principal: el resto del motor sigue trabajando con `Config.Zones`, `Config.MonW`… sin enterarse.
+    static MainId := ""
+    static Parked := Map()
+    static CtxFields := ["ProfileOrder", "GameZoneOf", "Profiles", "ProfileName", "MonW", "MonH", "MonLeft", "MonTop", "MonId", "DesignW", "DesignH"]
 
     ; Carga el .ini completo. Lanza Error con mensaje claro si algo no cuadra.
     static Load() {
@@ -51,25 +58,127 @@ class Config {
         this.DesignW := Integer(IniRead(this.IniPath, "Monitor", "Width", 5120))
         this.DesignH := Integer(IniRead(this.IniPath, "Monitor", "Height", 1440))
         this._ResolveMonitor(IniRead(this.IniPath, "Monitor", "Id", ""))
+        this.MainId := this.MonId
 
         this._LoadProfiles()
         if this.Profiles.Count = 0
             throw Error("zones.ini no define ningún perfil [Profile.xxx]")
 
         this.ProfileName := IniRead(this.IniPath, "General", "Profile", "ultrawide")
-        last := this.LastProfile()                         ; el último perfil usado gana sobre el del .ini
+        last := this.LastProfile(this.MonId)               ; el último perfil usado en este monitor gana sobre el del .ini
         if last != "" && this.Profiles.Has(last)
             this.ProfileName := last
         if !this.Profiles.Has(this.ProfileName)
             throw Error("El perfil '" this.ProfileName "' no existe en zones.ini")
         this._LoadOptions()
+        this._LoadParked()
+    }
+
+    ; Nombre de archivo de un monitor (como en el panel): \.DISPLAY2 -> _DISPLAY2.
+    static Slug(id) => RegExReplace(id, "[^\w-]+", "_")
+
+    ; Los demás monitores con zonas: uno por archivo monitors\<monitor>.ini (lo escribe el panel con el mismo formato que
+    ; zones.ini). Solo cuentan los que están conectados ahora.
+    static _LoadParked() {
+        this.Parked := Map()
+        main := Map()
+        for name in this.CtxFields
+            main[name] := this.%name%
+        mainIni := this.IniPath
+        Loop Files DataDir "\monitors\*.ini" {
+            try {
+                id := IniRead(A_LoopFilePath, "Monitor", "Id", "")
+                if id = "" || id = this.MainId || !this.MonitorConnected(id)
+                    continue
+                this.IniPath := A_LoopFilePath
+                this.DesignW := Integer(IniRead(A_LoopFilePath, "Monitor", "Width", 0))
+                this.DesignH := Integer(IniRead(A_LoopFilePath, "Monitor", "Height", 0))
+                this._ResolveMonitor(id)
+                this._LoadProfiles()
+                if this.Profiles.Count = 0
+                    continue
+                this.ProfileName := IniRead(A_LoopFilePath, "General", "Profile", "")
+                last := this.LastProfile(id)
+                if last != "" && this.Profiles.Has(last)
+                    this.ProfileName := last
+                if !this.Profiles.Has(this.ProfileName)
+                    this.ProfileName := this.ProfileOrder[1]
+                snap := Map()
+                for name in this.CtxFields
+                    snap[name] := this.%name%
+                this.Parked[id] := snap
+            } catch Error as e {
+                try Log("Perfiles del monitor " A_LoopFileName ": " e.Message, "WARN")
+            }
+        }
+        this.IniPath := mainIni
+        for name, value in main
+            this.%name% := value
+    }
+
+    static MonitorConnected(id) {
+        Loop MonitorGetCount()
+            if MonitorGetName(A_Index) = id
+                return true
+        return false
+    }
+
+    ; Cambia al contexto de ese monitor. Devuelve false si el monitor no tiene zonas (y deja el contexto como estaba).
+    static Use(id) {
+        if id = this.MonId
+            return true
+        if !this.Parked.Has(id)
+            return false
+        cur := Map()
+        for name in this.CtxFields
+            cur[name] := this.%name%
+        next := this.Parked[id]
+        this.Parked.Delete(id)
+        this.Parked[this.MonId] := cur
+        for name, value in next
+            this.%name% := value
+        return true
+    }
+
+    static UseMain() => this.Use(this.MainId)
+
+    ; Cambia al contexto del monitor que contiene el punto (false si ese monitor no tiene zonas).
+    static UseAt(x, y) {
+        id := this.MonitorIdAt(x, y)
+        return id != "" && this.Use(id)
+    }
+
+    static MonitorIdAt(x, y) {
+        Loop MonitorGetCount() {
+            MonitorGet(A_Index, &l, &t, &r, &b)
+            if x >= l && x < r && y >= t && y < b
+                return MonitorGetName(A_Index)
+        }
+        return ""
+    }
+
+    ; Perfil activo de un monitor con zonas ("" si no tiene).
+    static ProfileOf(id) {
+        if id = this.MonId
+            return this.ProfileName
+        return this.Parked.Has(id) ? this.Parked[id]["ProfileName"] : ""
+    }
+
+    ; ¿Algún monitor con zonas reparte la pantalla? (la restauración de tamaños sirve para todos)
+    static AnyZoned() {
+        if this.Zoned
+            return true
+        for _, c in this.Parked
+            if c["Profiles"][c["ProfileName"]].Has("B")
+                return true
+        return false
     }
 
     ; ¿Se puede cargar zones.ini sin errores? Si falla, deja todo como estaba y devuelve el motivo;
     ; si va bien devuelve "" y conserva el perfil activo (la recarga automática solo continúa si es válido).
     static TryLoad() {
         names := ["ProfileOrder", "GameZoneOf", "Profiles", "ProfileName", "MonW", "MonH", "MonLeft", "MonTop", "MonId"
-            , "DesignW", "DesignH", "DimOpacity", "SnapHalves"
+            , "MainId", "Parked", "DesignW", "DesignH", "DimOpacity", "SnapHalves"
             , "RestoreOnLeave", "SnapEnabled", "SnapKey", "WatcherEnabled", "WatcherInterval", "ExcludeProcesses"
             , "ExcludeClasses", "GameProcesses"]
         old := Map()
@@ -82,7 +191,7 @@ class Config {
                 this.%name% := value
             return e.Message
         }
-        if this.Profiles.Has(old["ProfileName"])
+        if old["MainId"] = this.MainId && this.Profiles.Has(old["ProfileName"])      ; el mismo monitor conserva su perfil; otro monitor, el suyo
             this.ProfileName := old["ProfileName"]
         return ""
     }
@@ -91,6 +200,8 @@ class Config {
     ; (así un cambio hecho en zones.ini se ve sin recargar el motor). Si el archivo
     ; está mal, se queda lo que había.
     static ReloadProfiles() {
+        if this.MonId != this.MainId                  ; solo se relee el ini del monitor principal
+            return
         old := [this.Profiles, this.ProfileOrder, this.GameZoneOf]
         try {
             this._LoadProfiles()
@@ -159,8 +270,11 @@ class Config {
     }
 
     ; Último perfil usado (guardado en last-profile.txt para recuperarlo al reiniciar). "" si no hay.
-    static LastProfile() {
-        try return Trim(FileRead(DataDir "\last-profile.txt", "UTF-8"), " `t`r`n")
+    static LastProfile(id := "") {
+        if id != ""
+            try return Trim(FileRead(DataDir "\monitors\" this.Slug(id) ".last", "UTF-8"), " `t`r`n")
+        if id = "" || id = this.MainId
+            try return Trim(FileRead(DataDir "\last-profile.txt", "UTF-8"), " `t`r`n")
         return ""
     }
 
@@ -170,7 +284,10 @@ class Config {
             return false
         this.ProfileName := name
         try {
-            FileOpen(DataDir "\last-profile.txt", "w", "UTF-8-RAW").Write(name)
+            DirCreate(DataDir "\monitors")
+            FileOpen(DataDir "\monitors\" this.Slug(this.MonId) ".last", "w", "UTF-8-RAW").Write(name)
+            if this.MonId = this.MainId
+                FileOpen(DataDir "\last-profile.txt", "w", "UTF-8-RAW").Write(name)
         }
         return true
     }

@@ -13,6 +13,7 @@ final class SnapController {
     private var startOrigin = CGPoint.zero
     private var dragging = false
     private var target: (zone: String, rect: CGRect)?
+    private var targetMonitor = ""                // monitor de las zonas que se están enseñando
     private var zonePanels: [String: NSPanel] = [:]
     private var highlight: NSPanel?
 
@@ -60,7 +61,8 @@ final class SnapController {
     private func begin() {
         dragging = false
         window = nil
-        guard engine.config?.profile(named: engine.state.profile)?.isZoned == true,
+        let zoned = engine.inMonitor(at: Screens.mouse) { engine.config?.profile(named: engine.state.profile)?.isZoned == true }
+        guard zoned,
               let found = Accessibility.window(at: Screens.mouse), !windows.isGame(found), let frame = found.frame else { return }
         window = found
         startOrigin = frame.origin
@@ -71,12 +73,15 @@ final class SnapController {
         guard let window = window, let frame = window.frame else { reset(); return }
         if !dragging, abs(frame.minX - startOrigin.x) > 6 || abs(frame.minY - startOrigin.y) > 6 { dragging = true }
         guard dragging else { return }
-        if NSEvent.modifierFlags.contains(snapFlag) { updateOverlay() } else { hideOverlay() }
+        if NSEvent.modifierFlags.contains(snapFlag) { engine.inMonitor(at: Screens.mouse) { updateOverlay() } } else { hideOverlay() }
     }
 
     /// Botón soltado: si se estaba enseñando una zona, la ventana encaja en ella.
     private func end() {
-        if dragging, let window = window, let target = target { windows.snap(window, to: target.rect) }
+        if dragging, let window = window, let target = target {
+            let id = targetMonitor
+            engine.inMonitor(id: id) { windows.snap(window, to: target.rect) }
+        }
         reset()
     }
 
@@ -98,6 +103,7 @@ final class SnapController {
             return
         }
         let usable = Screens.usable
+        targetMonitor = engine.monitorInUse
         target = Geometry.snapTarget(at: Screens.mouse, profile: profile, monitorWidth: config.monitorWidth,
                                      monitorHeight: config.monitorHeight, usable: usable, halves: config.snapHalves)
         for zone in profile.zones.values {

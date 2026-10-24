@@ -114,7 +114,7 @@ ReloadKeepingState() {
     Log("Recargando (perfil " Config.ProfileName ")")
     try {
         f := FileOpen(IpcDir "\resume.txt", "w", "UTF-8-RAW")
-        f.Write("profile=" Config.ProfileName "`nwatcher=" (WatcherOn ? 1 : 0) "`nsnap=" (SnapOn ? 1 : 0)
+        f.Write("mon=" Config.MainId "`nprofile=" Config.ProfileName "`nwatcher="(WatcherOn ? 1 : 0) "`nsnap=" (SnapOn ? 1 : 0)
             . "`ndim=" DimZoneName GameResumeLines() RestoreResumeLines())
         f.Close()
     }
@@ -124,6 +124,7 @@ ReloadKeepingState() {
 ; Tras Config.Load(): aplica el estado guardado por ReloadKeepingState (si existe).
 ApplyResume() {
     global DimZoneName
+    ResumeMon := ""
     file := IpcDir "\resume.txt"
     if !FileExist(file)
         return
@@ -133,7 +134,9 @@ ApplyResume() {
             if kv.Length < 2
                 continue
             switch kv[1] {
-                case "profile": Config.SetProfile(kv[2])
+                case "mon":     ResumeMon := kv[2]
+                case "profile": if ResumeMon = "" || ResumeMon = Config.MainId      ; solo si sigue siendo el mismo monitor
+                                    Config.SetProfile(kv[2])
                 case "watcher": Config.WatcherEnabled := kv[2] = 1
                 case "snap":    Config.SnapEnabled := kv[2] = 1
                 case "dim":     DimZoneName := kv[2]
@@ -296,7 +299,8 @@ MonitorsJson() {
     Loop n {
         MonitorGet(A_Index, &l, &t, &r, &b)
         out .= (out = "" ? "" : ",") '{"id":"' JsonEsc(MonitorGetName(A_Index)) '","name":"' JsonEsc(MonitorNames[A_Index]) '","x":' l ',"y":' t
-            . ',"w":' (r - l) ',"h":' (b - t) ',"primary":' (A_Index = prim ? "true" : "false") '}'
+            . ',"w":' (r - l) ',"h":' (b - t) ',"primary":' (A_Index = prim ? "true" : "false")
+            . ',"profile":"' JsonEsc(Config.ProfileOf(MonitorGetName(A_Index))) '"}'
     }
     return "[" out "]"
 }
