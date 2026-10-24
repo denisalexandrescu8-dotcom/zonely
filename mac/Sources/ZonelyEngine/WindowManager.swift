@@ -14,7 +14,7 @@ final class WindowManager {
     /// Una ventana colocada en una zona: su tamaño de antes y la zona donde quedó (para «recuperar tamaño al salir»).
     private struct Tracked {
         let window: ForeignWindow
-        let size: CGSize
+        var size: CGSize
         var zone: CGRect?
         var pending = 0
         var placed: CGRect?                     // cómo dejó Zonely la ventana (para notar si luego la redimensionas tú con el ratón)
