@@ -29,6 +29,10 @@
         <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></svg>
         <span>Atajos</span>
       </button>
+      <button class="nav-item" data-action="manual" title="Abre el manual de uso">
+        <svg viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 017.5 3H19v15H7.5A2.5 2.5 0 005 20.5z"/><path d="M5 20.5A2.5 2.5 0 007.5 18H19v3H7.5A2.5 2.5 0 015 20.5z"/></svg>
+        <span>Manual</span>
+      </button>
       <button class="nav-item" data-nav="ajustes">
         <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
         <span>Ajustes</span>
@@ -44,7 +48,7 @@
     <div class="monitor-card">
       <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       <div>
-        <strong>Odyssey OLED G9</strong>
+        <strong>Monitor principal</strong>
         <small><span id="res">5120×1440</span></small>
       </div>
     </div>
@@ -57,12 +61,6 @@
       <div>
         <h2 id="view-title">Zonas</h2>
         <p id="view-sub">Tu monitor, tus perfiles y sus zonas.</p>
-      </div>
-      <div class="engine" id="engine">
-        <span class="dot"></span><span id="engine-text">Conectando…</span>
-        <button id="engine-start" hidden>Iniciar motor</button>
-        <button id="engine-reload" title="Relee zones.ini (solo en desarrollo)" hidden>Recargar</button>
-        <button id="open-manual" title="Abre el manual de uso">Manual</button>
       </div>
     </header>
 
@@ -116,6 +114,20 @@
         <!-- ---- Vista: Ajustes ---- -->
         <div class="view cols" data-view="ajustes">
           <div class="col">
+          <section id="engine" class="motor">
+            <h3>Motor</h3>
+            <p class="hint">El motor es el que mueve las ventanas y atiende los atajos. Si lo apagas, Zonely deja de colocar ventanas hasta que lo vuelvas a encender (o hasta que inicies sesión de nuevo).</p>
+            <label class="set-row">
+              <i class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1010.8 0"/></svg></i>
+              <span><strong><span class="dot"></span><span id="engine-text">Conectando…</span></strong><small>Interruptor encendido = motor en marcha.</small></span>
+              <input type="checkbox" id="engine-switch" class="switch">
+            </label>
+            <div class="ed-row">
+              <span class="spacer"></span>
+              <button id="engine-reload" title="Relee zones.ini (solo en desarrollo)" hidden>Recargar (desarrollo)</button>
+            </div>
+          </section>
+
           <section class="behaviour">
             <h3>Comportamiento de ventanas</h3>
             <p class="hint">Cómo interactúan las ventanas con las zonas.</p>

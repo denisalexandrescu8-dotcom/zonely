@@ -220,15 +220,20 @@ function sendCommand(cmd) {
     (cmd.type === 'dim' && ['A', 'B', 'C', 'off'].includes(cmd.value)) ||
     (cmd.type === 'dimlevel' && /^(100|[1-9]?\d)$/.test(String(cmd.value))) ||
     cmd.type === 'watch' ||
-    cmd.type === 'reload';
+    cmd.type === 'reload' ||
+    cmd.type === 'quit';                              // apagar el motor (Ajustes → Motor)
   if (!ok) throw new Error('Orden no válida');
-  const line = cmd.type === 'reload' || cmd.type === 'watch' ? cmd.type : `${cmd.type} ${cmd.value}`;
+  const line = ['reload', 'watch', 'quit'].includes(cmd.type) ? cmd.type : `${cmd.type} ${cmd.value}`;
+  if (cmd.type === 'quit') { try { fs.writeFileSync(ENGINE_STOPPED, ''); } catch { /* sin marca, solo afecta al arranque automático del panel en macOS */ } }
   fs.mkdirSync(IPC_DIR, { recursive: true });
   const tmp = path.join(IPC_DIR, 'cmd.tmp');
   fs.writeFileSync(tmp, line + '\n');
   fs.renameSync(tmp, path.join(IPC_DIR, 'cmd.txt'));
 }
+// Marca de «apagado a mano»: en macOS el panel arranca el motor al abrirse, salvo que el usuario lo haya apagado desde Ajustes.
+const ENGINE_STOPPED = path.join(DATA_DIR, '.engine-stopped');
 function startEngine() {
+  try { fs.unlinkSync(ENGINE_STOPPED); } catch { /* no había marca */ }
   if (process.platform === 'darwin') {               // macOS: motor en Swift (mac/), instalado o compilado con `swift build`
     const exe = [path.join(ROOT, 'ZonelyEngine'), path.join(ROOT, 'mac', '.build', 'release', 'ZonelyEngine'), path.join(ROOT, 'mac', '.build', 'debug', 'ZonelyEngine')]
       .find((p) => fs.existsSync(p));
@@ -339,7 +344,7 @@ app.whenReady().then(() => {
   ensureIni();
   appendLog('INFO', `Panel iniciado v${readVersion()}`);
   // macOS instalado: el panel arranca el motor si no está en marcha (el motor evita ser lanzado dos veces).
-  if (app.isPackaged && process.platform === 'darwin') { try { startEngine(); } catch (e) { appendLog('WARN', `No pude iniciar el motor: ${e.message}`); } }
+  if (app.isPackaged && process.platform === 'darwin' && !fs.existsSync(ENGINE_STOPPED)) { try { startEngine(); } catch (e) { appendLog('WARN', `No pude iniciar el motor: ${e.message}`); } }
   createWindow();
   updater.init({ getWindow: () => mainWindow, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled });
 });

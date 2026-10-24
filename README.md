@@ -99,7 +99,7 @@ npm install
 npm start
 ```
 
-Then double-click `ZoneManager.ahk` to start the engine (or use the **Start engine** button of the panel).
+Then double-click `ZoneManager.ahk` to start the engine (or use the **Engine** switch in the panel's Settings).
 
 ## Build the installer
 ```powershell

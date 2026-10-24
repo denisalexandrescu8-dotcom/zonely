@@ -19,7 +19,10 @@ function showView(name) {
 }
 
 for (const b of document.querySelectorAll('.nav-item'))
-  b.addEventListener('click', () => showView(b.dataset.nav));
+  b.addEventListener('click', () => {
+    if (b.dataset.action === 'manual') window.zones?.openManual?.();     // el manual no es una vista: se abre aparte
+    else showView(b.dataset.nav);
+  });
 
 let lastView = 'zonas';
 try { lastView = localStorage.getItem('view') || 'zonas'; } catch { /* idem */ }

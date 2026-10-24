@@ -71,13 +71,16 @@ function paintCards() {
   }
 }
 
+let engineBusy = false;                       // mientras el motor arranca o se apaga, el interruptor no se toca solo
 function paintEngine() {
   const el = $('engine');
-  el.className = 'engine ' + (state.engineUp ? 'up' : 'down');
+  el.className = 'motor ' + (state.engineUp ? 'up' : 'down');
   $('engine-text').textContent = state.engineUp
     ? (state.paused ? 'Motor activo · atajos en pausa' : 'Motor activo')
     : 'Motor detenido';
-  $('engine-start').hidden = state.engineUp;
+  const sw = $('engine-switch');
+  if (document.activeElement !== sw && !engineBusy) sw.checked = !!state.engineUp;
+  document.querySelector('.nav-item[data-nav="ajustes"]').classList.toggle('alert', !state.engineUp);     // punto rojo si el motor está apagado
   const w = $('watcher');
   w.disabled = !state.engineUp;
   w.checked = !!state.watcher;
@@ -138,10 +141,17 @@ for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], [
     refresh();
   });
 $('engine-reload').addEventListener('click', () => window.zones.send({ type: 'reload' }).then(() => setTimeout(refresh, 1500)));
-$('open-manual').addEventListener('click', () => window.zones.openManual());
-$('engine-start').addEventListener('click', async () => {
-  await window.zones.startEngine();
-  setTimeout(refresh, 1500);
+// Interruptor del motor (Ajustes → Motor): encender lo arranca; apagarlo le manda cerrarse.
+$('engine-switch').addEventListener('change', async (e) => {
+  engineBusy = true;
+  try {
+    if (e.target.checked) await window.zones.startEngine();
+    else await window.zones.send({ type: 'quit' });
+  } catch (err) {
+    e.target.checked = !e.target.checked;                              // no se pudo: el interruptor vuelve a como estaba
+    window.zones.logError(`motor: ${err && err.message}`);
+  }
+  setTimeout(() => { engineBusy = false; refresh(); }, 2500);          // se espera a que el estado del motor cambie de verdad
 });
 
 refresh();

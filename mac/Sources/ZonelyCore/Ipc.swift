@@ -11,6 +11,7 @@ public enum Command: Equatable {
     case dimLevel(Int)
     case watch
     case reload
+    case quit               // apagar el motor (Ajustes → Motor)
 }
 
 /// Estado que el motor publica en `ipc/state.json`.
@@ -55,6 +56,7 @@ public enum Ipc {
                 if let n = Int(arg) { result.append(.dimLevel(min(100, max(0, n)))) }
             case "watch": result.append(.watch)
             case "reload": result.append(.reload)
+            case "quit": result.append(.quit)
             default: break
             }
         }

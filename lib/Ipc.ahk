@@ -92,6 +92,8 @@ IpcRun(line) {
             global IpcWatchUntil := A_TickCount + 15000
         case "reload":
             ReloadKeepingState()
+        case "quit":                       ; Ajustes → Motor apagado: se cierra el motor (las ventanas en modo juego se restauran al salir)
+            ExitApp()
     }
 }
 

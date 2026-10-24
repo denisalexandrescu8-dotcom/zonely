@@ -99,7 +99,7 @@ npm install
 npm start
 ```
 
-Después, doble clic en `ZoneManager.ahk` para lanzar el motor (o el botón **Iniciar motor** del panel).
+Después, doble clic en `ZoneManager.ahk` para lanzar el motor (o el interruptor **Motor** de Ajustes en el panel).
 
 ## Construir el instalador
 ```powershell

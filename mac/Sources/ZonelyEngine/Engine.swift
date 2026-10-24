@@ -177,6 +177,9 @@ final class Engine {
         case .reload:
             Log.write("Recargando")
             reloadConfig()
+        case .quit:
+            Log.write("Motor detenido (desde el panel)")
+            NSApp.terminate(nil)
         }
     }
 

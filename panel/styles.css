@@ -74,10 +74,12 @@ small { color: var(--muted); }
 .ver-warn { color: var(--warn); }
 
 /* ---- Motor ---- */
-.engine { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); padding: 7px 8px 7px 14px; border-radius: 999px; }
-.engine .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
-.engine.up .dot { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
-.engine.down .dot { background: var(--bad); }
+/* Estado del motor (Ajustes → Motor) */
+.motor .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px; }
+.motor.up .dot { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.motor.down .dot { background: var(--bad); }
+.nav-item { position: relative; }
+.nav-item.alert::after { content: ""; position: absolute; right: 12px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 8px var(--bad); }
 
 button {
   font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line);
@@ -87,7 +89,6 @@ button:hover { border-color: #3b82f699; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 button.primary { background: linear-gradient(180deg, #4b87ff, #2f6af0); border-color: #5d92ff; color: #fff; }
 button.primary:disabled { background: var(--surface-2); border-color: var(--line); color: var(--muted); }
-.engine button { border-radius: 999px; padding: 4px 12px; }
 
 /* ---- Secciones ---- */
 .view { display: none; }
@@ -232,8 +233,8 @@ button:active:not(:disabled) { transform: scale(.96); }
 .card:active { transform: translateY(0) scale(.985); }
 .nav-item { transition: background-color .2s, border-color .2s, color .2s, transform .12s; }
 
-.engine .dot { transition: background-color .3s, box-shadow .3s; }
-.engine.up .dot { animation: breathe 2.8s ease-in-out infinite; }
+.motor .dot { transition: background-color .3s, box-shadow .3s; }
+.motor.up .dot { animation: breathe 2.8s ease-in-out infinite; }
 
 .switch { transition: background-color .2s, box-shadow .25s; }
 .switch::after { transition: transform .28s cubic-bezier(.3, 1.6, .5, 1); }
@@ -265,7 +266,7 @@ button:active:not(:disabled) { transform: scale(.96); }
   padding: 12px 0; border-top: 1px solid var(--line); cursor: pointer;
 }
 .set-row:first-of-type { border-top: 0; }
-.set-row span { display: grid; gap: 2px; }
+.set-row > span { display: grid; gap: 2px; }
 .set-row small { font-size: 12px; line-height: 1.35; }
 .ico { width: 38px; height: 38px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted); }
 .ico svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
@@ -289,7 +290,7 @@ button:active:not(:disabled) { transform: scale(.96); }
 @supports (corner-shape: squircle) {
   section, .panel, .card, .monitor, .mini, .monitor-card, .nav-item, .ico, .seg, .seg button, .log,
   .hk-row, .gz-row, select, input[type="number"], .ex-form input, button, .keycap { corner-shape: squircle; }
-  .engine, .engine button, .chip, .chip.x, .verdict, .switch, .switch::after, .engine .dot,
+  .chip, .chip.x, .verdict, .switch, .switch::after, .motor .dot, .nav-item.alert::after,
   .ed .handle::after, ::-webkit-scrollbar-thumb { corner-shape: round; }
 }
 [hidden] { display: none !important; }

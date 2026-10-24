@@ -248,8 +248,8 @@ final class LoginItemTests: XCTestCase {
 
 final class IpcTests: XCTestCase {
     func testParsesCommands() {
-        let commands = Ipc.parse("profile dual\nwatcher off\ndim A+C\ndim lo-que-sea\ndimlevel 250\nreload\nbasura 1\n\n")
-        XCTAssertEqual(commands, [.profile("dual"), .watcher(false), .dim("A+C"), .dim(""), .dimLevel(100), .reload])
+        let commands = Ipc.parse("profile dual\nwatcher off\ndim A+C\ndim lo-que-sea\ndimlevel 250\nreload\nquit\nbasura 1\n\n")
+        XCTAssertEqual(commands, [.profile("dual"), .watcher(false), .dim("A+C"), .dim(""), .dimLevel(100), .reload, .quit])
     }
 
     func testStateJsonHasTheKeysThePanelReads() throws {
