@@ -113,6 +113,62 @@ final class HotkeyTests: XCTestCase {
     }
 }
 
+final class KeyCodesTests: XCTestCase {
+    func testParsesCombos() {
+        XCTAssertEqual(KeyCodes.parse("^!z"), HotkeyCombo(control: true, option: true, shift: false, command: false, keyCode: 6))
+        XCTAssertEqual(KeyCodes.parse("^!+Left"), HotkeyCombo(control: true, option: true, shift: true, command: false, keyCode: 123))
+        XCTAssertEqual(KeyCodes.parse("#F5")?.command, true)
+        XCTAssertEqual(KeyCodes.parse("^BackSpace")?.keyCode, 51)
+    }
+
+    func testRejectsWhatDoesNotExistOnAMac() {
+        XCTAssertNil(KeyCodes.parse("^F24"))     // válido en AutoHotkey, sin tecla en el Mac
+        XCTAssertNil(KeyCodes.parse("z"))        // sin modificador
+    }
+
+    func testEveryDefaultHotkeyCanBeRegistered() {
+        for def in HotkeyTable.all { XCTAssertNotNil(KeyCodes.parse(def.defaultKey), def.id) }
+    }
+}
+
+final class GeometryTests: XCTestCase {
+    private let screen = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+
+    func testUsableRectExcludesMenuBarAndDock() {
+        // Barra de menús de 25 arriba y Dock de 70 abajo (en NSScreen el origen está abajo a la izquierda).
+        let visible = CGRect(x: 0, y: 70, width: 1920, height: 1080 - 25 - 70)
+        let usable = Geometry.usableRect(frame: screen, visibleFrame: visible)
+        XCTAssertEqual(usable, CGRect(x: 0, y: 25, width: 1920, height: 985))
+    }
+
+    func testZoneIsScaledToTheRealScreen() {
+        let zone = Zone(name: "A", x: 0, y: 0, w: 2560, h: 1440)               // mitad de un monitor de 5120×1440
+        let r = Geometry.rect(of: zone, monitorWidth: 5120, monitorHeight: 1440, in: CGRect(x: 0, y: 25, width: 1920, height: 1000))
+        XCTAssertEqual(r, CGRect(x: 0, y: 25, width: 960, height: 1000))
+    }
+
+    func testZoneContainingAndNeighbours() throws {
+        let config = try Config(ini: IniFile(text: "[Monitor]\nWidth=5120\nHeight=1440\n[Profile.c]\nA=1280,0,2560,1440\nB=3840,0,1280,1440\nC=0,0,1280,1440\n"))
+        let profile = try XCTUnwrap(config.profile(named: "c"))
+        let usable = CGRect(x: 0, y: 0, width: 5120, height: 1440)
+        XCTAssertEqual(Geometry.zonesByX(profile).map { $0.name }, ["C", "A", "B"])
+        XCTAssertEqual(Geometry.zoneName(containing: CGRect(x: 100, y: 0, width: 200, height: 200), profile: profile, monitorWidth: 5120, monitorHeight: 1440, usable: usable), "C")
+        XCTAssertEqual(Geometry.zoneName(containing: CGRect(x: 2000, y: 0, width: 200, height: 200), profile: profile, monitorWidth: 5120, monitorHeight: 1440, usable: usable), "A")
+        XCTAssertEqual(Geometry.neighbour(of: "A", direction: 1, profile: profile), "B")
+        XCTAssertEqual(Geometry.neighbour(of: "A", direction: -1, profile: profile), "C")
+        XCTAssertEqual(Geometry.neighbour(of: "B", direction: 1, profile: profile), "B")      // no se sale por el extremo
+    }
+
+    func testHalvesAndCentering() {
+        let r = CGRect(x: 100, y: 50, width: 400, height: 301)
+        let (top, bottom) = Geometry.halves(of: r)
+        XCTAssertEqual(top.height + bottom.height, r.height)
+        XCTAssertEqual(bottom.minY, top.maxY)
+        XCTAssertEqual(Geometry.centered(size: CGSize(width: 200, height: 100), in: r), CGRect(x: 200, y: 150 + 1, width: 200, height: 100))
+        XCTAssertEqual(Geometry.centered(size: CGSize(width: 900, height: 900), in: r).origin, r.origin)   // más grande que la zona: pegada arriba a la izquierda
+    }
+}
+
 final class IpcTests: XCTestCase {
     func testParsesCommands() {
         let commands = Ipc.parse("profile dual\nwatcher off\ndim A+C\ndim lo-que-sea\ndimlevel 250\nreload\nbasura 1\n\n")

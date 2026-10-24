@@ -39,6 +39,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         reload.target = self
         menu.addItem(reload)
 
+        let access = NSMenuItem(title: "Permiso de Accesibilidad…", action: #selector(openAccessibility(_:)), keyEquivalent: "")
+        access.target = self
+        menu.addItem(access)
+
         let folder = NSMenuItem(title: "Abrir carpeta de datos", action: #selector(openDataFolder(_:)), keyEquivalent: "")
         folder.target = self
         menu.addItem(folder)
@@ -60,6 +64,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func reload(_ sender: NSMenuItem) {
         engine.reloadConfig()
+    }
+
+    @objc private func openAccessibility(_ sender: NSMenuItem) {
+        if !Accessibility.isTrusted(prompt: true) { Accessibility.openSettings() }
     }
 
     @objc private func openDataFolder(_ sender: NSMenuItem) {
