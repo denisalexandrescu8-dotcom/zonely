@@ -34,6 +34,15 @@ struct ForeignWindow {
         return a == .success && b == .success && c == .success
     }
 
+    /// Un paso de animación: posición y tamaño sin la comprobación extra de `setFrame`.
+    func setFrameStep(_ rect: CGRect) {
+        var origin = rect.origin
+        var dims = rect.size
+        guard let posValue = AXValueCreate(.cgPoint, &origin), let sizeValue = AXValueCreate(.cgSize, &dims) else { return }
+        AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, posValue)
+        AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, sizeValue)
+    }
+
     var isFullScreen: Bool {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, "AXFullScreen" as CFString, &value) == .success, let v = value else { return false }

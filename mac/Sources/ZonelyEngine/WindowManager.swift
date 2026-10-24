@@ -25,10 +25,61 @@ final class WindowManager {
     private var lastNormal: Saved?                   // última posición de la ventana activa sin maximizar (para el vigilante)
     private var fixes: [(window: ForeignWindow, count: Int, since: Date)] = []
     private var ignored: [ForeignWindow] = []        // ventanas que se pelean con el vigilante: se dejan en paz
+    private var moves: [Move] = []                // animaciones en curso
     private var leavingFullScreen: [ForeignWindow] = []   // ventanas que están saliendo de la pantalla completa nativa (dura una animación)
 
     init(engine: Engine) {
         self.engine = engine
+    }
+
+    /// Una ventana deslizándose de un sitio a otro.
+    private final class Move {
+        let window: ForeignWindow
+        let from: CGRect
+        let to: CGRect
+        let start = Date()
+        var timer: Timer?
+        init(window: ForeignWindow, from: CGRect, to: CGRect) {
+            self.window = window
+            self.from = from
+            self.to = to
+        }
+    }
+
+    /// Mientras alguna ventana se está animando, el vigilante espera (vería la ventana a medio camino).
+    var isAnimating: Bool { !moves.isEmpty }
+
+    /// Desliza la ventana hasta `to` en unos 0,17 s (con frenada suave al final) y llama a `done` cuando ha llegado.
+    /// Sin animación (apagada, «Reducir movimiento» del sistema o un cambio mínimo) se coloca de golpe.
+    private func animate(_ window: ForeignWindow, from: CGRect, to: CGRect, done: @escaping () -> Void) {
+        for m in moves where m.window.sameWindow(as: window) { m.timer?.invalidate() }
+        moves.removeAll { $0.window.sameWindow(as: window) }
+        let distance = abs(to.minX - from.minX) + abs(to.minY - from.minY) + abs(to.width - from.width) + abs(to.height - from.height)
+        guard engine.config?.animateWindows ?? true, distance > 24, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            window.setFrame(to)
+            done()
+            return
+        }
+        let move = Move(window: window, from: from, to: to)
+        moves.append(move)
+        let duration = 0.17
+        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            let t = min(1, Date().timeIntervalSince(move.start) / duration)
+            if t >= 1 {
+                move.timer?.invalidate()
+                self.moves.removeAll { $0 === move }
+                window.setFrame(to)                                     // el último paso, completo (posición, tamaño, posición)
+                done()
+                return
+            }
+            let e = 1 - pow(1 - t, 3)                                   // frenada suave
+            func mix(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * CGFloat(e) }
+            window.setFrameStep(CGRect(x: mix(from.minX, to.minX), y: mix(from.minY, to.minY),
+                                       width: mix(from.width, to.width), height: mix(from.height, to.height)))
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        move.timer = timer
     }
 
     // MARK: - Acciones de los atajos
@@ -133,14 +184,27 @@ final class WindowManager {
             push(&undoStack, Saved(window: window, frame: current), limit: 20)
             noteOriginal(window, current)
         }
-        window.setFrame(target)
-        let result = window.frame
-        if let result = result, !Geometry.matches(result, target, tolerance: 3) {
-            Log.write("No respeta la zona: \(window.processName) · pedido \(Int(target.minX)),\(Int(target.minY)) \(Int(target.width))x\(Int(target.height)) · obtenido \(Int(result.minX)),\(Int(result.minY)) \(Int(result.width))x\(Int(result.height))", level: "WARN")
-        }
+        // Mientras se desliza ya cuenta como «dentro de la zona» (así no se confunde con haberse salido).
         if record, let i = tracked.firstIndex(where: { $0.window.sameWindow(as: window) }) {
-            tracked[i].zone = result.map { target.union($0) } ?? target     // si la app no puede ser tan pequeña, no cuenta como «salirse»
+            tracked[i].zone = target
             tracked[i].pending = 0
+        }
+        animate(window, from: window.frame ?? current, to: target) { [weak self] in
+            self?.settle(window, target: target, record: record)
+        }
+    }
+
+    /// Comprueba cómo ha quedado la ventana. Muchas apps (navegadores, editores) terminan de cambiar de tamaño unos
+    /// instantes después, así que se mira otra vez: si la app no puede ser tan pequeña, esa zona más grande es la suya.
+    private func settle(_ window: ForeignWindow, target: CGRect, record: Bool) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+            guard let self = self, let result = window.frame else { return }
+            if !Geometry.matches(result, target, tolerance: 3) {
+                Log.write("No respeta la zona: \(window.processName) · pedido \(Int(target.minX)),\(Int(target.minY)) \(Int(target.width))x\(Int(target.height)) · obtenido \(Int(result.minX)),\(Int(result.minY)) \(Int(result.width))x\(Int(result.height))", level: "WARN")
+            }
+            guard record, let i = self.tracked.firstIndex(where: { $0.window.sameWindow(as: window) }) else { return }
+            self.tracked[i].zone = target.union(result)
+            self.tracked[i].pending = 0
         }
     }
 
@@ -183,6 +247,13 @@ final class WindowManager {
 
     private func noteOriginal(_ window: ForeignWindow, _ frame: CGRect) {
         guard !tracked.contains(where: { $0.window.sameWindow(as: window) }) else { return }
+        // Si ya llena una zona, ese no es su tamaño de antes (p. ej. se colocó en una zona antes de arrancar Zonely): apuntarlo
+        // haría que «recuperar tamaño» la dejara igual.
+        if let profile = profile, profile.zones.values.contains(where: { Geometry.matches(frame, rect(of: $0.name), tolerance: 6) }) {
+            Log.write("Tamaño original no apuntado (la ventana ya llena una zona): (window.processName)")
+            return
+        }
+        Log.write("Tamaño original apuntado: \(window.processName) \(Int(frame.width))x\(Int(frame.height))")
         tracked.append(Tracked(window: window, size: frame.size, zone: nil))
         if tracked.count > 50 { tracked.removeFirst(tracked.count - 50) }
     }
@@ -209,8 +280,9 @@ final class WindowManager {
         let area = Screens.usable(containing: CGPoint(x: origin.x + size.width / 2, y: current.midY))     // la pantalla donde queda la ventana
         origin.x = min(max(origin.x, area.minX), max(area.minX, area.maxX - size.width))
         origin.y = min(max(origin.y, area.minY), max(area.minY, area.maxY - size.height))
-        entry.window.setFrame(CGRect(origin: origin, size: size))
+        let destination = CGRect(origin: origin, size: size)
         tracked.removeAll { $0.window.sameWindow(as: entry.window) }
+        animate(entry.window, from: current, to: destination) {}
         Log.write("Tamaño original restaurado al salir de la zona: \(entry.window.processName) \(Int(size.width))x\(Int(size.height))")
     }
 
@@ -218,7 +290,7 @@ final class WindowManager {
         guard Accessibility.isTrusted(prompt: false) else { return }
         while let saved = undoStack.popLast() {
             guard saved.window.frame != nil else { continue }          // la ventana ya no existe
-            saved.window.setFrame(saved.frame)
+            animate(saved.window, from: saved.window.frame ?? saved.frame, to: saved.frame) {}
             Hud.showText(tr("Colocación deshecha"))
             return
         }
@@ -233,6 +305,7 @@ final class WindowManager {
     // MARK: - Vigilante y «recuperar tamaño» (se llama cada pocos cientos de milisegundos)
 
     func watcherTick() {
+        guard !isAnimating else { return }                  // una ventana se está deslizando: se mira cuando llegue
         guard Accessibility.isTrusted(prompt: false) else {
             lastNormal = nil
             return

@@ -148,6 +148,7 @@ function readConfig() {
       halves: String(ini.Snap?.Halves ?? '0') === '1',
       restore: String(ini.General?.RestoreOnLeave ?? '1') === '1',
       menubar: String(ini.General?.MenuBarIcon ?? '1') === '1',          // solo macOS: icono en la barra de menús
+      animate: String(ini.General?.Animations ?? '1') === '1',          // solo macOS: las ventanas se deslizan hasta su zona
       fullscreen: String(ini.General?.FullScreenToZone ?? '1') === '1',  // solo macOS: sacar de pantalla completa nativa y colocar en la zona
       snapkey: ['Shift', 'Ctrl', 'Alt'].includes(ini.Snap?.Key) ? ini.Snap.Key : 'Shift',
       language: LANGS.includes(ini.General?.Language) ? ini.General.Language : 'auto',
@@ -480,7 +481,7 @@ ipcMain.handle('log:open', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); i
 ipcMain.handle('log:clear', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); fs.writeFileSync(LOG_FILE, ''); appendLog('INFO', 'Registro limpiado'); });
 ipcMain.handle('log:renderer', (_e, msg) => appendLog('ERROR', `interfaz: ${msg}`));
 ipcMain.handle('config:setOption', (_e, { key, on }) => {
-  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'], fullscreen: ['General', 'FullScreenToZone'], autoupdate: ['General', 'AutoUpdate'] };
+  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'], fullscreen: ['General', 'FullScreenToZone'], animate: ['General', 'Animations'], autoupdate: ['General', 'AutoUpdate'] };
   if (!map[key]) throw new Error('Opción no válida');
   writeIni((t) => setIniValue(t, map[key][0], map[key][1], on ? '1' : '0'));
 });
