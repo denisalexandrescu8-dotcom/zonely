@@ -1,6 +1,8 @@
 # Historial de versiones
 
 ## Sin publicar (macOS, en desarrollo)
+- **Nuevo (fase 2 de macOS):** el motor ya coloca ventanas con la API de Accesibilidad (llenar zona, mover a la zona vecina, mitades de la zona B, centrar sin cambiar el tamaño, modo juego como «llenar la zona», recuperar el tamaño original y deshacer), atajos globales ⌃⌥ + tecla (Carbon), selector de perfiles (⌃⌥P) con el aviso de «Perfil aplicado» y avisos breves. Las zonas se adaptan al área útil real de la pantalla (sin barra de menús ni Dock). El panel muestra los atajos con ⌘⌥⌃⇧ en Mac. **Pendiente (fase 3):** encaje con Mayús, vigilante, capa oscura y lista de juegos.
+- La plantilla `zones.template.ini` ya no fija los atajos (cada sistema usa los suyos de fábrica).
 - **Nuevo (fase 1 de macOS):** motor en Swift (`mac/`) con el núcleo (rutas en `~/Library/Application Support/Zonely`, lector de `zones.ini`, configuración, IPC con el panel, tabla de atajos ⌃⌥) y un programa de barra de menús. Todavía **no coloca ventanas**: eso llega en la fase 2. El panel ya puede arrancarlo, ver su estado y cambiar de perfil. 14 pruebas automáticas en macOS (`swift test`).
 
 ## 0.32.0

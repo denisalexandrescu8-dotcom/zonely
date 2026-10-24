@@ -34,3 +34,10 @@ Promise.resolve(window.zones?.isDev?.()).then((dev) => {
   document.querySelector('.nav-item[data-nav="registro"]').hidden = false;
   if (lastView === 'registro') showView('registro');
 }).catch(() => {});
+
+// En macOS los atajos de fábrica son ⌃⌥ + tecla: los textos fijos de la interfaz que dicen «Win+Alt+X» se adaptan.
+if (/Mac/i.test(navigator.platform || '')) {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode())
+    n.nodeValue = n.nodeValue.replace(/Win\+Alt\+(\w)/g, (_, k) => `⌃⌥${k.toUpperCase()}`);
+}

@@ -1,8 +1,11 @@
 // Atajos de teclado: lista, cambio (modificadores + una tecla), restablecer.
 // El motor publica ipc\hotkeys.json con cada atajo; aquí se editan y se guardan en zones.ini ([Hotkeys]).
-const MOD_LABEL = { '#': 'Win', '!': 'Alt', '^': 'Ctrl', '+': 'Mayús' };
+// En macOS los modificadores se muestran con sus símbolos (⌃⌥⇧⌘) y en el orden habitual del Mac; # = Comando, ! = Opción, ^ = Control.
+const IS_MAC = /Mac/i.test(navigator.platform || navigator.userAgent || '');
+const MOD_LABEL = IS_MAC ? { '#': '⌘', '!': '⌥', '^': '⌃', '+': '⇧' } : { '#': 'Win', '!': 'Alt', '^': 'Ctrl', '+': 'Mayús' };
+const MOD_ORDER = IS_MAC ? ['^', '!', '+', '#'] : ['#', '!', '^', '+'];
 const KEY_LABEL = {
-  Left: '←', Right: '→', Up: '↑', Down: '↓', BackSpace: 'Retroceso', PgUp: 'RePág', PgDn: 'AvPág',
+  Left: '←', Right: '→', Up: '↑', Down: '↓', BackSpace: IS_MAC ? '⌫' : 'Retroceso', PgUp: 'RePág', PgDn: 'AvPág',
   Space: 'Espacio', Enter: 'Intro', Esc: 'Esc', Delete: 'Supr', Insert: 'Ins',
 };
 
@@ -15,13 +18,13 @@ function hkParse(s) {
   const m = String(s).match(/^([#!^+]*)(.*)$/);
   return { mods: new Set(m[1].split('').filter(Boolean)), key: m[2] };
 }
-function hkBuild(mods, key) { return ['#', '!', '^', '+'].filter((c) => mods.has(c)).join('') + key; }
+function hkBuild(mods, key) { return MOD_ORDER.filter((c) => mods.has(c)).join('') + key; }
 
 function keycaps(s) {
   const { mods, key } = hkParse(s);
   const box = document.createElement('span');
   box.className = 'hk-keys';
-  const parts = ['#', '!', '^', '+'].filter((c) => mods.has(c)).map((c) => MOD_LABEL[c]);
+  const parts = MOD_ORDER.filter((c) => mods.has(c)).map((c) => MOD_LABEL[c]);
   parts.push(KEY_LABEL[key] || (key.length === 1 ? key.toUpperCase() : key));
   parts.forEach((p, i) => {
     if (i) { const plus = document.createElement('i'); plus.textContent = '+'; box.appendChild(plus); }
