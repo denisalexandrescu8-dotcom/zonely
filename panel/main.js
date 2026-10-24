@@ -7,6 +7,9 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const updater = require('./updater');
 
+// El motor lanza «Zonely --background-update» para buscar e instalar actualizaciones sin enseñar ninguna ventana.
+const BACKGROUND = process.argv.includes('--background-update');
+
 // Una sola ventana del panel: si se vuelve a abrir (menú Inicio, doble clic en el icono de la bandeja…), se trae al frente la que ya hay.
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
@@ -132,6 +135,7 @@ function readConfig() {
       halves: String(ini.Snap?.Halves ?? '0') === '1',
       restore: String(ini.General?.RestoreOnLeave ?? '1') === '1',
       menubar: String(ini.General?.MenuBarIcon ?? '1') === '1',          // solo macOS: icono en la barra de menús
+      autoupdate: String(ini.General?.AutoUpdate ?? '1') === '1',        // actualizar automáticamente
     },
     exclusions: { processes: splitList(ini.Exclusions?.Processes), classes: splitList(ini.Exclusions?.Classes) },
   };
@@ -269,7 +273,7 @@ ipcMain.handle('log:open', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); i
 ipcMain.handle('log:clear', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); fs.writeFileSync(LOG_FILE, ''); appendLog('INFO', 'Registro limpiado'); });
 ipcMain.handle('log:renderer', (_e, msg) => appendLog('ERROR', `interfaz: ${msg}`));
 ipcMain.handle('config:setOption', (_e, { key, on }) => {
-  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'] };
+  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'], autoupdate: ['General', 'AutoUpdate'] };
   if (!map[key]) throw new Error('Opción no válida');
   writeIni((t) => setIniValue(t, map[key][0], map[key][1], on ? '1' : '0'));
 });
@@ -318,13 +322,25 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'index.html'));
 }
 
+// ¿Actualizar automáticamente? ([General] AutoUpdate en zones.ini; por defecto sí.)
+function autoUpdateEnabled() {
+  try { return String(parseIni(fs.readFileSync(INI, 'utf8')).General?.AutoUpdate ?? '1') === '1'; } catch { return true; }
+}
+
 app.whenReady().then(() => {
   if (!gotLock) return;                           // ya hay otro panel abierto: este se cierra solo
+  if (BACKGROUND) {                               // lo lanza el motor cada pocas horas: sin ventana, busca e instala la actualización
+    if (process.platform === 'darwin' && app.dock) app.dock.hide();
+    appendLog('INFO', `Comprobación de actualizaciones en segundo plano (v${readVersion()})`);
+    updater.init({ getWindow: () => null, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled, background: true });
+    updater.runBackground();
+    return;
+  }
   ensureIni();
   appendLog('INFO', `Panel iniciado v${readVersion()}`);
   // macOS instalado: el panel arranca el motor si no está en marcha (el motor evita ser lanzado dos veces).
   if (app.isPackaged && process.platform === 'darwin') { try { startEngine(); } catch (e) { appendLog('WARN', `No pude iniciar el motor: ${e.message}`); } }
   createWindow();
-  updater.init({ getWindow: () => mainWindow, version: readVersion(), logger: appendLog });
+  updater.init({ getWindow: () => mainWindow, version: readVersion(), logger: appendLog, isAuto: autoUpdateEnabled });
 });
 app.on('window-all-closed', () => app.quit());

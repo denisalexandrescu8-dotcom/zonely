@@ -17,6 +17,7 @@ final class Engine {
     private lazy var dim = DimController(engine: self)
     private lazy var snap = SnapController(engine: self, windows: windows)
     private var watcherTimer: Timer?
+    private let updates = BackgroundUpdates()
 
     var currentProfileName: String { state.profile }
 
@@ -66,6 +67,7 @@ final class Engine {
         watcherTimer = watcher
         snap.start()
         dim.update()
+        updates.start()
     }
 
     /// Relee zones.ini y vuelve a registrar los atajos. Si el archivo está mal, se queda lo que había y se anota el motivo.

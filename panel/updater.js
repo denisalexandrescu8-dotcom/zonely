@@ -78,7 +78,7 @@ async function downloadFile(url, file, onProgress, fetchFn) {
 // Guion que sustituye la app cuando Zonely ya se ha cerrado. Recibe: ruta de la app, ruta del .dmg y el pid de Zonely.
 // Si algo falla antes de copiar, la app antigua se queda como estaba; al final se vuelve a abrir en cualquier caso.
 const MAC_INSTALL_SCRIPT = `#!/bin/bash
-APP="$1"; DMG="$2"; PID="$3"
+APP="$1"; DMG="$2"; PID="$3"; MODE="$4"
 for i in $(seq 1 60); do kill -0 "$PID" 2>/dev/null || break; sleep 0.25; done
 pkill -x ZonelyEngine 2>/dev/null
 sleep 1
@@ -97,7 +97,11 @@ if [ -n "$MOUNT" ]; then
   hdiutil detach "$MOUNT" -quiet 2>/dev/null
 fi
 rm -f "$DMG"
-open "$APP"
+if [ "$MODE" = background ]; then
+  nohup "$APP/Contents/Resources/ZonelyEngine" >/dev/null 2>&1 &
+else
+  open "$APP"
+fi
 `;
 
 // ---- Estado y diálogos ------------------------------------------------------------------------------------------------
@@ -107,13 +111,28 @@ let current = '0.0.0';
 let log = () => {};
 let busy = false;
 let progressHooked = false;
+let isAuto = () => true;                            // ¿actualizar automáticamente? (Ajustes → Actualizaciones, [General] AutoUpdate)
 
 function init(options) {
   getWindow = options.getWindow || getWindow;
   current = options.version || current;
   log = options.logger || log;
+  isAuto = options.isAuto || isAuto;
   if (!enabled()) return;
-  setTimeout(() => { check(false); }, 6000);        // al iniciar, sin retrasar la apertura del panel
+  // Con la actualización automática activada, el motor lanza cada pocas horas el panel sin ventana (--background-update)
+  // y es ese el que descarga e instala. Si está apagada, se pregunta al abrir el panel.
+  if (!options.background && !isAuto()) setTimeout(() => { check(false, false); }, 6000);
+}
+
+// Modo sin ventana (lo lanza el motor): busca, descarga e instala sin preguntar ni enseñar nada, y se cierra.
+async function runBackground() {
+  const limit = setTimeout(() => app.quit(), 20 * 60 * 1000);     // por si algo se queda colgado
+  try {
+    if (enabled() && isAuto()) await check(false, true);
+  } finally {
+    clearTimeout(limit);
+    app.quit();
+  }
 }
 
 // En desarrollo (sin empaquetar) no se busca nada, salvo que se fuerce con ZONELY_UPDATE_TEST=1.
@@ -135,12 +154,12 @@ function progress(fraction) {
   if (w) w.setProgressBar(fraction);
 }
 
-async function check(manual) {
+async function check(manual, background = false) {
   if (!enabled()) return { status: 'dev' };
   if (busy) return { status: 'busy' };
   busy = true;
   try {
-    return process.platform === 'win32' ? await checkWindows(manual) : await checkMac(manual);
+    return process.platform === 'win32' ? await checkWindows(manual, background) : await checkMac(manual, background);
   } catch (e) {
     log('WARN', `Actualizaciones: ${e && e.message}`);
     progress(-1);
@@ -171,7 +190,7 @@ async function ask(version) {
 
 // ---- Windows ----------------------------------------------------------------------------------------------------------
 
-async function checkWindows(manual) {
+async function checkWindows(manual, background) {
   const { autoUpdater } = require('electron-updater');
   autoUpdater.autoDownload = false;               // primero se pregunta
   autoUpdater.autoInstallOnAppQuit = false;
@@ -185,10 +204,16 @@ async function checkWindows(manual) {
   const info = result && result.updateInfo;
   if (!info || compareVersions(info.version, current) <= 0) return upToDate(manual);
   log('INFO', `Actualizaciones: hay una versión nueva (${info.version})`);
-  if (!(await ask(info.version))) return { status: 'later', version: info.version };
+  const silent = background && !manual;            // en segundo plano no se pregunta nada
+  if (!silent && !(await ask(info.version))) return { status: 'later', version: info.version };
 
   await autoUpdater.downloadUpdate();
   progress(-1);
+  if (silent) {
+    log('INFO', `Actualizaciones: ${info.version} descargada; instalando en segundo plano`);
+    autoUpdater.quitAndInstall(true, false);       // silencioso y sin abrir el panel: el instalador vuelve a arrancar el motor
+    return { status: 'downloaded', version: info.version };
+  }
   const { response } = await box({
     type: 'info',
     buttons: ['Reiniciar y actualizar', 'Al cerrar Zonely'],
@@ -208,7 +233,7 @@ async function checkWindows(manual) {
 
 // ---- macOS ------------------------------------------------------------------------------------------------------------
 
-async function checkMac(manual) {
+async function checkMac(manual, background) {
   const res = await net.fetch(RELEASES_API, { headers: { 'User-Agent': 'Zonely', Accept: 'application/vnd.github+json' } });
   if (!res.ok) throw new Error(`GitHub respondió ${res.status}`);
   const release = await res.json();
@@ -221,8 +246,10 @@ async function checkMac(manual) {
   let writable = false;
   if (bundle) { try { fs.accessSync(path.dirname(bundle), fs.constants.W_OK); writable = true; } catch { /* sin permiso para sustituirla */ } }
 
+  const silent = background && !manual;            // en segundo plano no se pregunta nada
   // Sin instalador de Mac en la release, en un Mac con Intel, o sin poder escribir donde está la app: solo se avisa.
   if (!dmg || !sums || !bundle || !writable || process.arch !== 'arm64') {
+    if (silent) { log('INFO', 'Actualizaciones: esta vez no se puede instalar sola; se avisará al abrir el panel'); return { status: 'available', version: latest }; }
     const { response } = await box({
       type: 'question',
       buttons: ['Abrir la descarga', 'Más tarde'],
@@ -235,7 +262,7 @@ async function checkMac(manual) {
     return { status: 'available', version: latest };
   }
 
-  if (!(await ask(latest))) return { status: 'later', version: latest };
+  if (!silent && !(await ask(latest))) return { status: 'later', version: latest };
 
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'zonely-update-')), dmg.name);
   progress(0);
@@ -253,9 +280,9 @@ async function checkMac(manual) {
   log('INFO', `Actualizaciones: instalando ${latest} en ${bundle}`);
   const script = path.join(path.dirname(file), 'install.sh');
   fs.writeFileSync(script, MAC_INSTALL_SCRIPT, { mode: 0o755 });
-  spawn('/bin/bash', [script, bundle, file, String(process.pid)], { detached: true, stdio: 'ignore' }).unref();
-  app.quit();                                     // el guion espera a que Zonely se cierre, la sustituye y la vuelve a abrir
+  spawn('/bin/bash', [script, bundle, file, String(process.pid), silent ? 'background' : 'open'], { detached: true, stdio: 'ignore' }).unref();
+  app.quit();                                     // el guion espera a que Zonely se cierre y la sustituye; después abre el panel (o, en segundo plano, solo arranca el motor)
   return { status: 'downloaded', version: latest };
 }
 
-module.exports = { init, check, compareVersions, parseVersion, hashFor, appBundleFromExe, pickMacAssets, downloadFile, MAC_INSTALL_SCRIPT };
+module.exports = { init, check, runBackground, compareVersions, parseVersion, hashFor, appBundleFromExe, pickMacAssets, downloadFile, MAC_INSTALL_SCRIPT };

@@ -31,7 +31,7 @@ Zonely divide un monitor grande en **zonas** independientes y coloca tus ventana
 
 Tus ajustes viven en `%APPDATA%\Zonely` (`zones.ini`, registros): actualizar o reinstalar nunca los pisa, y desinstalar tampoco los borra.
 
-**Actualizaciones:** al abrirse, Zonely mira en GitHub si hay una versión nueva. Si la hay, te pregunta si quieres actualizar; si dices que sí, descarga el instalador, comprueba su SHA-256 y se reinicia sola (Windows y macOS; en macOS sustituye `Zonely.app` y puede que macOS pida de nuevo el permiso de Accesibilidad). También puedes comprobarlo desde *Ajustes → Actualizaciones*. No hay botón de «recargar»: los cambios de `zones.ini` se detectan solos.
+**Actualizaciones:** Zonely se actualiza sola. A los pocos minutos de arrancar, y después cada 6 horas, el motor lanza una comprobación sin ventana: si hay una versión nueva en GitHub, la descarga, comprueba su SHA-256, la instala y reinicia el motor, sin preguntar ni enseñar nada (en macOS sustituye `Zonely.app`, y puede que macOS pida de nuevo el permiso de Accesibilidad). Se puede apagar en *Ajustes → Actualizaciones → Actualizar automáticamente*; entonces Zonely pregunta al abrir el panel. El botón *Buscar ahora* siempre está. No hay botón de «recargar»: los cambios de `zones.ini` se detectan solos.
 
 La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y tras el botón **Manual** del panel.
 

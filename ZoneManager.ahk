@@ -29,6 +29,7 @@ DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
 #Include lib\Restore.ahk
 #Include lib\Hotkeys.ahk
 #Include lib\Ipc.ahk
+#Include lib\Updates.ahk
 
 try {
     Config.Load()
@@ -49,6 +50,7 @@ if Config.SnapEnabled
 StartRestore()
 RegisterHotkeys()
 StartIpc()
+StartBackgroundUpdates()
 DimRefresh()
 ShowZonesSummary()
 Log("Motor iniciado v" AppVersion " · perfil " Config.ProfileName " · vigilante " (WatcherOn ? "sí" : "no") " · encaje " (SnapOn ? "sí" : "no"))
