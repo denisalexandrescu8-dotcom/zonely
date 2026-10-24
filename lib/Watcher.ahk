@@ -13,14 +13,42 @@ WatcherOn := false
 WatcherLoops := Map()      ; hwnd -> [veces, tick inicial]  (anti-bucle)
 WatcherIgnored := Map()    ; hwnds que se pelean con nosotros: se dejan en paz
 
+WatcherHooks := []         ; manejadores de SetWinEventHook (reaccionan al instante, sin esperar al temporizador)
+WatcherNoAnim := Map()     ; hwnd -> true: ya sin animación de maximizar/restaurar
+
 StartWatcher() {
-    global WatcherOn := true
-    SetTimer(WatcherTick, Config.WatcherInterval)
+    global WatcherOn := true, WatcherHooks
+    SetTimer(WatcherTick, Config.WatcherInterval)       ; red de seguridad
+    if WatcherHooks.Length = 0 {
+        cb := CallbackCreate(WatcherEvent, , 7)
+        for ev in [0x0003, 0x800B]                      ; cambio de ventana activa / cambio de posición o tamaño
+            WatcherHooks.Push(DllCall("SetWinEventHook", "UInt", ev, "UInt", ev, "Ptr", 0, "Ptr", cb, "UInt", 0, "UInt", 0, "UInt", 0, "Ptr"))
+    }
 }
 
 StopWatcher() {
-    global WatcherOn := false
+    global WatcherOn := false, WatcherHooks
     SetTimer(WatcherTick, 0)
+    for h in WatcherHooks
+        DllCall("UnhookWinEvent", "Ptr", h)
+    WatcherHooks := []
+}
+
+; Reacción inmediata: al maximizarse la ventana activa la recolocamos en el mismo instante, y a cada ventana
+; que pasa a ser la activa le quitamos la animación de maximizar para que no se vea el «amago» de pantalla completa.
+WatcherEvent(hook, event, hwnd, idObject, idChild, thread, time) {
+    if idObject != 0 || !hwnd || !WatcherOn || A_IsSuspended || !Config.Zoned
+        return
+    try {
+        if event = 0x0003 {
+            if !WatcherNoAnim.Has(hwnd) && !WatcherSkips(hwnd) {
+                DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 3, "Int*", 1, "UInt", 4)   ; TRANSITIONS_FORCEDISABLED
+                WatcherNoAnim[hwnd] := true
+            }
+        } else if hwnd = WinExist("A") && WinGetMinMax(hwnd) = 1 && !WatcherSkips(hwnd) {
+            WatcherFix(hwnd)
+        }
+    }
 }
 
 ; Win+Alt+W / bandeja: activa o desactiva el vigilante.

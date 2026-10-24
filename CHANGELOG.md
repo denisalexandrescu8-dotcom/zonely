@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.41.0
+- **Mejora:** el vigilante de maximizado reacciona al instante (con un enlace a los eventos de ventana de Windows, en vez de esperar al temporizador) y quita la animación de maximizar a las ventanas que pasan a ser la activa, para que no se vea el «amago» de pantalla completa antes de encajar en la zona.
+
 ## 0.40.0
 - **Nuevo:** Zonely recuerda el último perfil que usaste (selector, atajo o panel) y lo vuelve a aplicar al reiniciar el ordenador o el motor. Se guarda en `last-profile.txt` dentro de la carpeta de datos; si ese perfil ya no existe, se usa el de `[General] Profile`.
 
