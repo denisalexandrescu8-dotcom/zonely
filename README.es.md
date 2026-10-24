@@ -36,8 +36,12 @@ Tus ajustes viven en `%APPDATA%\Zonely` (`zones.ini`, registros): actualizar o r
 La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y tras el botón **Manual** del panel.
 
 ## Instalar (macOS, Apple Silicon)
-1. Descarga `Zonely-<versión>-mac-arm64.dmg` desde [Releases](../../releases), ábrelo y arrastra **Zonely** a Aplicaciones.
-2. La app **no está notarizada** (todavía no hay cuenta de pago de Apple): la primera vez, **clic derecho en Zonely → Abrir → Abrir**.
+1. **Lo más fácil, sin avisos de seguridad:** pega esto en la Terminal. Descarga la última release con `curl`, comprueba su SHA-256 y copia Zonely a Aplicaciones. Lo descargado con `curl` no queda marcado como «en cuarentena», así que macOS abre la app directamente (puedes leer antes el script: [`scripts/install-mac.sh`](scripts/install-mac.sh)).
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/denisalexandrescu8-dotcom/zonely/main/scripts/install-mac.sh | bash
+   ```
+   O descarga `Zonely-<versión>-mac-arm64.dmg` desde [Releases](../../releases), ábrelo y arrastra **Zonely** a Aplicaciones.
+2. Si usaste el `.dmg` desde el navegador: la app **no está notarizada** (hace falta una cuenta de pago de Apple Developer), así que macOS la bloquea la primera vez. Abre **Ajustes del Sistema → Privacidad y seguridad**, baja hasta el aviso sobre Zonely y pulsa **Abrir igualmente**.
 3. Zonely necesita el permiso de **Accesibilidad** para mover ventanas de otras apps: Ajustes del Sistema → Privacidad y seguridad → Accesibilidad → activa *ZonelyEngine*. El icono de la barra de menús tiene un acceso directo a ese panel.
 4. En macOS los atajos son **⌃⌥ + tecla** (por ejemplo ⌃⌥Z), editables en el panel. El modo juego llena la zona (macOS no permite quitar los bordes de la ventana de otra app). Los ajustes están en `~/Library/Application Support/Zonely`.
 

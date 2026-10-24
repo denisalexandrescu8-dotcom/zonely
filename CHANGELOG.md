@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## Sin publicar
+- **Nuevo (macOS):** `scripts/install-mac.sh`, instalador de una línea (`curl ... | bash`) que descarga la última release, comprueba el SHA-256 y copia Zonely a Aplicaciones sin el aviso de Gatekeeper (lo descargado con `curl` no queda en cuarentena). README y manual de Mac actualizados: en las versiones recientes de macOS el «clic derecho → Abrir» ya no basta y hay que usar Ajustes → Privacidad y seguridad → «Abrir igualmente».
+
 ## 0.37.0
 - **Nuevo:** manual de uso para macOS (`manual/mac.html`, con capturas del panel tal como se ve en Mac): instalación y permiso de Accesibilidad, barra de menús, atajos ⌃⌥, diferencias con Windows (modo juego sin quitar bordes, exclusiones por nombre de app), actualizaciones, solución de problemas y desinstalación. El botón Manual del panel abre el manual que corresponde a cada sistema.
 - **Arreglo:** en el panel de macOS, los textos fijos con atajos largos («Win+Alt+Mayús+G») ahora salen como «⌃⌥⇧G». Se quita de la ayuda de Atajos la mención a «recargar el motor».

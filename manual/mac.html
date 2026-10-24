@@ -151,8 +151,10 @@
 
   <h3>Instalar</h3>
   <ol class="steps">
-    <li>Descarga <code>Zonely-&lt;versión&gt;-mac-arm64.dmg</code> de la página de <i>Releases</i> del proyecto, ábrelo y arrastra <b>Zonely</b> a la carpeta <b>Aplicaciones</b>.</li>
-    <li>La app <b>no está notarizada</b> (no hay cuenta de pago de Apple), así que la primera vez haz <b>clic derecho sobre Zonely → Abrir → Abrir</b>. Si macOS dice que la app «está dañada», mira el capítulo <a href="#problemas">Si algo falla</a>.</li>
+    <li><b>Lo más fácil, sin avisos de seguridad:</b> pega esto en la Terminal. Descarga la última versión con <code>curl</code>, comprueba su SHA-256 y copia Zonely a Aplicaciones. Lo descargado con <code>curl</code> no queda marcado como «en cuarentena», así que macOS abre la app directamente.
+      <pre>curl -fsSL https://raw.githubusercontent.com/denisalexandrescu8-dotcom/zonely/main/scripts/install-mac.sh | bash</pre>
+      También sirve para <b>actualizar</b> a una versión nueva.</li>
+    <li>O descarga <code>Zonely-&lt;versión&gt;-mac-arm64.dmg</code> de la página de <i>Releases</i>, ábrelo y arrastra <b>Zonely</b> a <b>Aplicaciones</b>. La app <b>no está notarizada</b> (hace falta una cuenta de pago de Apple Developer), así que macOS la bloquea la primera vez: abre <b>Ajustes del Sistema → Privacidad y seguridad</b>, baja hasta el aviso sobre Zonely y pulsa <b>Abrir igualmente</b>. Si dice que la app «está dañada», mira el capítulo <a href="#problemas">Si algo falla</a>.</li>
     <li>Al abrirse, Zonely pide el permiso de <b>Accesibilidad</b>: pulsa <i>Abrir Ajustes del Sistema</i> y activa <b>ZonelyEngine</b> en <i>Privacidad y seguridad → Accesibilidad</i>. Sin ese permiso, Zonely no puede mover ventanas. Si no sale el aviso, el menú del icono de la barra tiene «Permiso de Accesibilidad…».</li>
   </ol>
 
@@ -367,7 +369,7 @@ ZoneMaximize=^!z</pre>
   </details>
   <details>
     <summary>macOS dice que «Zonely está dañada» o no se abre</summary>
-    <p>Es el control de seguridad (Gatekeeper) con una app descargada y sin notarizar. Primero prueba <b>clic derecho → Abrir</b>. Si sigue sin abrir, abre la Terminal y ejecuta:</p>
+    <p>Es el control de seguridad (Gatekeeper) con una app descargada y sin notarizar. Primero prueba <b>Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente</b>. Si sigue sin abrir (o prefieres no pasar por ahí), abre la Terminal y ejecuta:</p>
     <pre>xattr -dr com.apple.quarantine /Applications/Zonely.app</pre>
   </details>
   <details>
