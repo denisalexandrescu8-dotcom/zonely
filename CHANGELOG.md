@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## 0.32.0
+- **Nuevo:** la primera vez, `zones.ini` se crea a partir de `zones.template.ini` con los perfiles calculados para el tamaño del monitor principal (antes era el del monitor de 5120×1440 del autor). En un monitor de 1920×1080 salen «dual» y «normal»; en uno ultrawide, también «ultrawide» y «centrado». Quien ya tiene un `zones.ini` en `%APPDATA%/Zonely` no nota ningún cambio.
+- **Nuevo:** flujo de GitHub Actions (`.github/workflows/build.yml`) que construye el instalador de Windows en cada cambio y, al subir una etiqueta `vX.Y.Z`, crea la release con el instalador y su SHA-256.
+- `scripts/build-installer.ps1` admite `-AhkBase` para indicar el `AutoHotkey64.exe` que sirve de base.
+
 ## 0.31.0
 - **Manual rehecho** con la interfaz nueva: capturas nuevas del panel (con datos de ejemplo), selector de perfiles y aviso, sección de instalación, carpeta de datos `%APPDATA%\Zonely` y la lista de juegos `Games=`. Se quitan el registro y la depuración del panel, que ya no se ven en la versión instalada.
 - **Licencia GPL-2.0** (`LICENSE`) y `THIRD_PARTY.md` con las licencias de los componentes que se usan.

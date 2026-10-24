@@ -5,7 +5,8 @@
 # Requisitos: AutoHotkey v2, Ahk2Exe (https://github.com/AutoHotkey/Ahk2Exe/releases) y `npm install` hecho en panel\.
 # Uso:  powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 [-Ahk2Exe C:\ruta\Ahk2Exe.exe] [-DirOnly]
 #   -DirOnly  solo genera la carpeta sin empaquetar (dist\installer\win-unpacked), útil para probar.
-param([string]$Ahk2Exe = $env:AHK2EXE, [switch]$DirOnly)
+#   -AhkBase  ruta de AutoHotkey64.exe (v2) que se usa como base del .exe (variable AHK_BASE); por defecto, el instalado.
+param([string]$Ahk2Exe = $env:AHK2EXE, [string]$AhkBase = $env:AHK_BASE, [switch]$DirOnly)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $version = (Get-Content (Join-Path $root 'version.txt') -Raw).Trim()
@@ -15,7 +16,7 @@ if (-not $Ahk2Exe) {
   $Ahk2Exe = @("$env:LOCALAPPDATA\Programs\AutoHotkey\Compiler\Ahk2Exe.exe", "$env:ProgramFiles\AutoHotkey\Compiler\Ahk2Exe.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
 }
 if (-not $Ahk2Exe -or -not (Test-Path $Ahk2Exe)) { throw 'No encuentro Ahk2Exe.exe: pasa -Ahk2Exe <ruta> o define la variable AHK2EXE.' }
-$base = @("$env:LOCALAPPDATA\Programs\AutoHotkey\v2\AutoHotkey64.exe", "$env:ProgramFiles\AutoHotkey\v2\AutoHotkey64.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+$base = @($AhkBase, "$env:LOCALAPPDATA\Programs\AutoHotkey\v2\AutoHotkey64.exe", "$env:ProgramFiles\AutoHotkey\v2\AutoHotkey64.exe") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 if (-not $base) { throw 'No encuentro AutoHotkey v2 (AutoHotkey64.exe).' }
 $engineDir = Join-Path $root 'dist\engine'
 New-Item -ItemType Directory -Force $engineDir | Out-Null

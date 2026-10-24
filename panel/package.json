@@ -45,8 +45,8 @@
         "to": "version.txt"
       },
       {
-        "from": "../zones.ini",
-        "to": "zones.ini"
+        "from": "../zones.template.ini",
+        "to": "zones.template.ini"
       },
       {
         "from": "../assets/zonely.ico",

@@ -2,7 +2,7 @@
 
 **Your screen. Your way.** · [Read in English](README.md)
 
-Zonely divide un monitor grande en **zonas** independientes y coloca tus ventanas en ellas: el juego a la izquierda, y Discord, el navegador u OBS a la derecha, como si tuvieras dos monitores. Pensado para pantallas ultrawide (las zonas por defecto encajan en un monitor de 5120×1440, y se pueden editar).
+Zonely divide un monitor grande en **zonas** independientes y coloca tus ventanas en ellas: el juego a la izquierda, y Discord, el navegador u OBS a la derecha, como si tuvieras dos monitores. Pensado para pantallas ultrawide, pero sirve con cualquier monitor: la primera vez, Zonely calcula los perfiles para tu monitor principal y después puedes editar las zonas.
 
 ![Panel de control de Zonely](manual/img/panel.png)
 

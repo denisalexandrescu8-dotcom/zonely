@@ -1,7 +1,7 @@
 // Panel de control del gestor de zonas (proceso principal de Electron).
 // El motor es el script AutoHotkey; aquí solo leemos zones.ini / ipc\state.json
 // y escribimos órdenes en ipc\cmd.txt.
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -13,11 +13,41 @@ const ROOT = path.join(__dirname, '..');
 const DATA_DIR = process.env.ZONELY_DATA || path.join(process.env.APPDATA || app.getPath('appData'), 'Zonely');
 const INI = path.join(DATA_DIR, 'zones.ini');
 const IPC_DIR = path.join(DATA_DIR, 'ipc');
-try {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  // Primer arranque: se copia zones.ini de la carpeta de la aplicación (la de fábrica, o la tuya si ya existía).
-  if (!fs.existsSync(INI) && fs.existsSync(path.join(ROOT, 'zones.ini'))) fs.copyFileSync(path.join(ROOT, 'zones.ini'), INI);
-} catch { /* sin permisos: el panel dirá que no encuentra zones.ini */ }
+try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch { /* sin permisos: el panel dirá que no encuentra zones.ini */ }
+
+// Perfiles de fábrica para un monitor de w × h píxeles (zonas mínimas de 400 px).
+// La misma regla está en lib/Paths.ahk (DefaultProfilesText): si cambias una, cambia la otra.
+function defaultProfiles(w, h) {
+  const min = 400;
+  let out = '';
+  const uw = Math.round(h * 43 / 18);                                   // pantalla 21:9 (3440×1440) + columna
+  if (uw >= min && w - uw >= min)
+    out += `[Profile.ultrawide]\n; A = pantalla 21:9 a la izquierda, B = columna a la derecha\nA=0,0,${uw},${h}\nB=${uw},0,${w - uw},${h}\n\n`;
+  const half = Math.floor(w / 2);
+  if (half >= min)
+    out += `[Profile.dual]\n; Dos mitades iguales\nA=0,0,${half},${h}\nB=${half},0,${w - half},${h}\n\n`;
+  const c = Math.round(h * 16 / 9);                                     // pantalla 16:9 en el centro
+  const side = Math.floor((w - c) / 2);
+  if (side >= min)
+    out += `[Profile.centrado]\n; Pantalla 16:9 en el centro (A) y una zona a cada lado (B derecha, C izquierda)\nA=${side},0,${c},${h}\nB=${side + c},0,${w - side - c},${h}\nC=0,0,${side},${h}\n\n`;
+  out += `[Profile.normal]\n; Pantalla normal: sin zonas (no hay B). Ni atajos de colocación, ni encaje, ni vigilante.\nA=0,0,${w},${h}\n`;
+  return out;
+}
+
+// Primer arranque: crea zones.ini desde la plantilla con el tamaño (físico) del monitor principal.
+// Hay que llamarla con la aplicación lista (necesita la API de pantallas).
+function ensureIni() {
+  try {
+    if (fs.existsSync(INI)) return;
+    const tpl = path.join(ROOT, 'zones.template.ini');
+    if (!fs.existsSync(tpl)) return;
+    const d = screen.getPrimaryDisplay();
+    const w = Math.round(d.bounds.width * d.scaleFactor), h = Math.round(d.bounds.height * d.scaleFactor);
+    const txt = fs.readFileSync(tpl, 'utf8')
+      .replace('{{WIDTH}}', w).replace('{{HEIGHT}}', h).replace('{{PROFILES}}', defaultProfiles(w, h));
+    if (!fs.existsSync(INI)) fs.writeFileSync(INI, txt, { flag: 'wx' });    // 'wx': si el motor se adelantó, no se pisa
+  } catch { /* sin permisos o ya creado por el motor */ }
+}
 
 // El apartado Registro (registro de actividad y depuración) es solo para desarrollo: en la versión instalada
 // no se ve. Se puede forzar con ZONELY_DEV=1.
@@ -260,5 +290,5 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'index.html'));
 }
 
-app.whenReady().then(() => { appendLog('INFO', `Panel iniciado v${readVersion()}`); createWindow(); });
+app.whenReady().then(() => { ensureIni(); appendLog('INFO', `Panel iniciado v${readVersion()}`); createWindow(); });
 app.on('window-all-closed', () => app.quit());
