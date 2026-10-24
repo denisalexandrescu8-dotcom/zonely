@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.44.0
+- **Mejora:** con la actualización automática apagada, Zonely ya no espera a que abras el panel: el motor sigue comprobando en segundo plano (a los pocos minutos de arrancar y cada 6 horas) y, si hay una versión nueva, **te lo pregunta** con una ventana («Actualizar ahora» / «Más tarde»), una sola vez por versión. Con la automática encendida sigue instalándose sola, sin preguntar.
+
 ## 0.43.0
 - **Cambio:** el manual ya no se abre en una pestaña aparte: es una sección del panel (**Manual**, en la barra lateral) que muestra la guía de cada sistema con el mismo estilo de la app. La página sigue existiendo suelta (`manual/index.html`, `manual/mac.html`) para imprimirla o abrirla en el navegador.
 

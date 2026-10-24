@@ -3,7 +3,7 @@ import ZonelyCore
 
 /// Actualizaciones en segundo plano: el motor lanza «Zonely --background-update» (el panel, sin ventana) a los pocos
 /// minutos de arrancar y cada 6 horas. Ese proceso mira si hay una versión nueva en GitHub, la descarga, la instala
-/// y vuelve a arrancar el motor; si `[General] AutoUpdate=0`, se cierra sin hacer nada. Solo existe en la app instalada.
+/// y vuelve a arrancar el motor; si `[General] AutoUpdate=0`, en vez de instalar pregunta una vez por versión. Solo existe en la app instalada.
 final class BackgroundUpdates {
     private var first: Timer?
     private var periodic: Timer?

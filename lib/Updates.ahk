@@ -3,7 +3,7 @@
 ;  Updates.ahk - Actualizaciones en segundo plano
 ;  El motor (siempre en marcha) lanza «Zonely.exe --background-update» a los pocos minutos de arrancar y cada 6 horas.
 ;  Ese proceso no tiene ventana: mira si hay una versión nueva en GitHub, la descarga, la instala y vuelve a arrancar el motor.
-;  Si [General] AutoUpdate=0, se cierra sin hacer nada (entonces se pregunta al abrir el panel).
+;  Si [General] AutoUpdate=0, en vez de instalar enseña una ventana que pregunta (una vez por versión).
 ;  Solo existe en la versión instalada: desde el código no hay Zonely.exe junto a la carpeta resources.
 ; ============================================================
 

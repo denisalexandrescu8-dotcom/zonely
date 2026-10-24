@@ -128,7 +128,8 @@ function init(options) {
 async function runBackground() {
   const limit = setTimeout(() => app.quit(), 20 * 60 * 1000);     // por si algo se queda colgado
   try {
-    if (enabled() && isAuto()) await check(false, true);
+    // Con la actualización automática se instala sola; sin ella, se avisa (una sola vez por versión) con una ventana de pregunta.
+    if (enabled()) await check(false, true);
   } finally {
     clearTimeout(limit);
     app.quit();
@@ -175,9 +176,24 @@ async function upToDate(manual) {
   return { status: 'none' };
 }
 
+// Versión por la que ya se preguntó en segundo plano: así el aviso no se repite cada pocas horas si dices «Más tarde».
+function askedFile() { return path.join(app.getPath('userData'), 'update-asked.txt'); }
+function wasAsked(version) {
+  try { return fs.readFileSync(askedFile(), 'utf8').trim() === version; } catch { return false; }
+}
+function markAsked(version) {
+  try { fs.writeFileSync(askedFile(), version); } catch { /* no es grave: se volvería a preguntar */ }
+}
+
 async function ask(version) {
   const extra = process.platform === 'darwin' ? ' Después, macOS puede pedirte de nuevo el permiso de Accesibilidad.' : '';
-  const { response } = await box({
+  const { response } = await ask_(version, extra);
+  markAsked(version);
+  return response === 0;
+}
+
+function ask_(version, extra) {
+  return box({
     type: 'question',
     buttons: ['Actualizar ahora', 'Más tarde'],
     defaultId: 0,
@@ -185,7 +201,6 @@ async function ask(version) {
     message: `Hay una versión nueva de Zonely (${version})`,
     detail: `Tienes la ${current}. ¿Quieres actualizar? Se descarga ahora y Zonely se reinicia para terminar.${extra}`,
   });
-  return response === 0;
 }
 
 // ---- Windows ----------------------------------------------------------------------------------------------------------
@@ -204,7 +219,8 @@ async function checkWindows(manual, background) {
   const info = result && result.updateInfo;
   if (!info || compareVersions(info.version, current) <= 0) return upToDate(manual);
   log('INFO', `Actualizaciones: hay una versión nueva (${info.version})`);
-  const silent = background && !manual;            // en segundo plano no se pregunta nada
+  const silent = background && !manual && isAuto();       // en segundo plano con la actualización automática no se pregunta nada
+  if (background && !silent && !manual && wasAsked(info.version)) return { status: 'later', version: info.version };
   if (!silent && !(await ask(info.version))) return { status: 'later', version: info.version };
 
   await autoUpdater.downloadUpdate();
@@ -246,7 +262,8 @@ async function checkMac(manual, background) {
   let writable = false;
   if (bundle) { try { fs.accessSync(path.dirname(bundle), fs.constants.W_OK); writable = true; } catch { /* sin permiso para sustituirla */ } }
 
-  const silent = background && !manual;            // en segundo plano no se pregunta nada
+  const silent = background && !manual && isAuto();       // en segundo plano con la actualización automática no se pregunta nada
+  if (background && !silent && !manual && wasAsked(latest)) return { status: 'later', version: latest };
   // Sin instalador de Mac en la release, en un Mac con Intel, o sin poder escribir donde está la app: solo se avisa.
   if (!dmg || !sums || !bundle || !writable || process.arch !== 'arm64') {
     if (silent) { log('INFO', 'Actualizaciones: esta vez no se puede instalar sola; se avisará al abrir el panel'); return { status: 'available', version: latest }; }
@@ -258,6 +275,7 @@ async function checkMac(manual, background) {
       message: `Hay una versión nueva de Zonely (${latest})`,
       detail: `Tienes la ${current}. Esta vez la actualización no se puede hacer sola: descarga el nuevo instalador de la página de la versión.`,
     });
+    markAsked(latest);
     if (response === 0 && /^https:\/\/github\.com\//.test(release.html_url || '')) shell.openExternal(release.html_url);
     return { status: 'available', version: latest };
   }
