@@ -16,8 +16,9 @@ ApplyProfile(name, origin := "") {
     else
         DimRefresh()
     Log("Perfil: " name (origin ? " (" origin ")" : ""))
-    if origin = "selector"
-        ProfileToast(name)                           ; confirmación breve al cambiar con Win+Alt+P
+    TrayRefreshProfiles()
+    if origin = "selector" || origin = "bandeja"
+        ProfileToast(name)                           ; confirmación breve al cambiar con Win+Alt+P o desde la bandeja
     return true
 }
 

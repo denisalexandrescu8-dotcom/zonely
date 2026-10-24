@@ -42,6 +42,7 @@ CheckIniChanged() {
     }
     Log("zones.ini ha cambiado: recargando")
     ReloadKeepingState()
+    TrayRefreshProfiles()
 }
 
 IpcTick() {

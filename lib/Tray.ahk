@@ -15,10 +15,29 @@ InitTray() {
     tray.Add("Abrir Zonely", OpenPanel)
     tray.Default := "Abrir Zonely"      ; el doble clic sobre el icono abre el panel
     tray.Add()
+    tray.Add("Perfiles", TrayProfiles)  ; submenú con los perfiles de zones.ini (TrayRefreshProfiles lo rellena)
+    TrayRefreshProfiles()
+    tray.Add()
     tray.Add("Vigilante de maximizado", ToggleWatcher)
     tray.Add("Pausar atajos", TogglePause)
     tray.Add()
     tray.Add("Salir", (*) => ExitApp())
+}
+
+TrayProfiles := Menu()
+
+; Vuelve a rellenar el submenú «Perfiles» con los de zones.ini y marca el activo.
+; Se llama al arrancar, al cambiar de perfil y cuando zones.ini se recarga.
+TrayRefreshProfiles() {
+    global TrayProfiles
+    try TrayProfiles.Delete()
+    for name in Config.ProfileOrder
+        TrayProfiles.Add(name, TrayPickProfile)
+    try TrayProfiles.Check(Config.ProfileName)
+}
+
+TrayPickProfile(name, *) {
+    ApplyProfile(name, "bandeja")
 }
 
 ; Comando que abre el panel: instalado, Zonely.exe está junto a la carpeta resources; desde el código, Electron con la carpeta panel.

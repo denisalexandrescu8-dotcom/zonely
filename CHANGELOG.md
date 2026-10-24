@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.42.0
+- **Nuevo:** el menú del icono de la bandeja (Windows) y de la barra de menús (macOS) tiene un submenú **Perfiles** con los perfiles de `zones.ini`; el activo va marcado y un clic cambia de perfil (con el mismo aviso que el selector).
+
 ## 0.41.0
 - **Mejora:** el vigilante de maximizado reacciona al instante (con un enlace a los eventos de ventana de Windows, en vez de esperar al temporizador) y quita la animación de maximizar a las ventanas que pasan a ser la activa, para que no se vea el «amago» de pantalla completa antes de encajar en la zona.
 

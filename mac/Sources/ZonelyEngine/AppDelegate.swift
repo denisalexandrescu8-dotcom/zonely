@@ -2,7 +2,7 @@ import AppKit
 import ZonelyCore
 
 /// Aplicación de barra de menús (sin icono en el Dock): el icono de Zonely y un menú con lo básico.
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let engine = Engine()
     private var statusItem: NSStatusItem?
     private var pauseItem: NSMenuItem?
@@ -40,7 +40,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(open)
         menu.addItem(.separator())
 
-        let pause = NSMenuItem(title: "Pausar atajos", action: #selector(togglePause(_:)), keyEquivalent: "")
+        // Perfiles: el submenú se rellena cada vez que se abre (ver menuNeedsUpdate), así siempre refleja zones.ini.
+        let profilesItem = NSMenuItem(title: "Perfiles", action: nil, keyEquivalent: "")
+        let profilesMenu = NSMenu(title: "Perfiles")
+        profilesMenu.delegate = self
+        profilesItem.submenu = profilesMenu
+        menu.addItem(profilesItem)
+        menu.addItem(.separator())
+
+        let pause =NSMenuItem(title: "Pausar atajos", action: #selector(togglePause(_:)), keyEquivalent: "")
         pause.target = self
         menu.addItem(pause)
         pauseItem = pause
@@ -65,6 +73,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         item.menu = menu
         statusItem = item
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        guard menu.title == "Perfiles" else { return }
+        menu.removeAllItems()
+        for profile in engine.config?.profiles ?? [] {
+            let item = NSMenuItem(title: profile.name, action: #selector(pickProfile(_:)), keyEquivalent: "")
+            item.target = self
+            item.state = profile.name == engine.currentProfileName ? .on : .off
+            menu.addItem(item)
+        }
+    }
+
+    @objc private func pickProfile(_ sender: NSMenuItem) {
+        engine.setProfile(sender.title, origin: "selector")      // «selector»: enseña el aviso de perfil aplicado
     }
 
     /// Abre (o trae al frente) el panel: la aplicación Zonely.app que contiene este motor.
