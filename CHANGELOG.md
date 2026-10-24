@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## 0.46.0
+- **Mac:** si una ventana entra en pantalla completa con el botón verde, el vigilante sale de ella y la coloca en su zona (se puede apagar en Ajustes → *Pantalla completa a la zona*, p. ej. para ver vídeo). Nuevo ajuste **Tecla para encajar** (Shift, Ctrl o Alt/Option) en Windows y Mac; antes solo se podía cambiar editando `zones.ini`.
+- **Windows:** al maximizar, la ventana pasa a su zona de un solo paso (sin el fotograma intermedio con el tamaño anterior), y se le quita el fundido de maximizar. «Recuperar tamaño» ya no se despista si centras la ventana sin cambiar su tamaño antes de moverla.
+- **Fluidez y batería:** el panel responde más deprisa (animaciones más cortas, sin la animación infinita del punto del motor) y no consulta nada cuando está minimizado. El motor ya no sondea en reposo: en Windows el encaje con Shift y «recuperar tamaño» solo trabajan mientras se arrastra o hay ventanas apuntadas, y el resto de comprobaciones pasa de 250 ms a 1 s cuando el panel está cerrado; en Mac el encaje se mueve por eventos del ratón y el vigilante mira una vez por segundo y reacciona al instante al soltar el ratón o cambiar de aplicación.
+
 ## 0.45.0
 - **Nuevo:** elige a qué monitor se aplican las zonas (Windows y macOS). Abajo a la izquierda del panel, **Monitor** se despliega con los monitores conectados (los publica el motor). Al elegir uno, las zonas de todos los perfiles se reajustan a su tamaño y se guarda en `[Monitor] Id` de `zones.ini`; si ese monitor se desconecta, se usa el principal. El vigilante de maximizado y el encaje con Shift solo actúan en el monitor elegido, y los menús, avisos y capa oscura salen en él. Antes solo se podía usar el monitor principal (en Mac, la pantalla del portátil). Cada monitor sale con el nombre que le da el sistema (en Windows, el modelo que lleva el propio monitor, p. ej. «Odyssey G95SD»).
 

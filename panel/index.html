@@ -148,8 +148,17 @@
             </label>
             <label class="set-row">
               <i class="ico"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 14h6v6h-6z"/><path d="M10 7h4a3 3 0 013 3v4"/></svg></i>
-              <span><strong>Encajar con Shift</strong><small>Mantén Shift mientras arrastras una ventana para encajarla en una zona.</small></span>
+              <span><strong>Encajar arrastrando</strong><small>Mantén la tecla elegida mientras arrastras una ventana para encajarla en una zona.</small></span>
               <input type="checkbox" id="snap" class="switch">
+            </label>
+            <label class="set-row">
+              <i class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="3"/><path d="M8 12h8"/></svg></i>
+              <span><strong>Tecla para encajar</strong><small>La que hay que mantener pulsada al arrastrar.</small></span>
+              <select id="opt-snapkey" aria-label="Tecla para encajar">
+                <option value="Shift">Shift</option>
+                <option value="Ctrl">Ctrl</option>
+                <option value="Alt">Alt / Option</option>
+              </select>
             </label>
             <label class="set-row">
               <i class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16"/></svg></i>
@@ -160,6 +169,11 @@
               <i class="ico"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 108-8"/><path d="M4 4v5h5"/></svg></i>
               <span><strong>Recuperar tamaño</strong><small>Al sacar una ventana de su zona, vuelve al tamaño que tenía antes de entrar.</small></span>
               <input type="checkbox" id="opt-restore" class="switch">
+            </label>
+            <label class="set-row mac-only" hidden>
+              <i class="ico"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></i>
+              <span><strong>Pantalla completa a la zona</strong><small>Si una ventana entra en pantalla completa con el botón verde, sale de ella y se coloca en su zona. Apagado: se queda en pantalla completa (útil para vídeo).</small></span>
+              <input type="checkbox" id="opt-fullscreen" class="switch">
             </label>
           </section>
 

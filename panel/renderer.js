@@ -87,8 +87,10 @@ function paintEngine() {
   const s = $('snap');
   s.disabled = !state.engineUp;
   s.checked = !!state.snap;
+  const sk = $('opt-snapkey');
+  if (document.activeElement !== sk && config.options?.snapkey) sk.value = config.options.snapkey;
   // Opciones guardadas en zones.ini (se leen de la configuración, no del estado del motor).
-  for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']]) {
+  for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-fullscreen', 'fullscreen'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']]) {
     const el = $(id);
     el.disabled = !state.engineUp && key !== 'autoupdate';        // las actualizaciones no dependen del motor
     if (document.activeElement !== el) el.checked = !!config.options?.[key];
@@ -182,9 +184,13 @@ async function refresh() {
 
 $('watcher').addEventListener('change', (e) =>
   window.zones.send({ type: 'watcher', value: e.target.checked ? 'on' : 'off' }).then(refresh));
+$('opt-snapkey').addEventListener('change', async (e) => {
+  await window.zones.setSnapKey(e.target.value);
+  refresh();
+});
 $('snap').addEventListener('change', (e) =>
   window.zones.send({ type: 'snap', value: e.target.checked ? 'on' : 'off' }).then(refresh));
-for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']])
+for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-fullscreen', 'fullscreen'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']])
   $(id).addEventListener('change', async (e) => {
     await window.zones.setOption(key, e.target.checked);                                      // se guarda en zones.ini
     if (key === 'autoupdate') { /* lo lee el actualizador cuando le toca: el motor no se entera */ }
@@ -207,4 +213,4 @@ $('engine-switch').addEventListener('change', async (e) => {
 });
 
 refresh();
-setInterval(refresh, 1000);
+setInterval(() => { if (!document.hidden) refresh(); }, 1000);     // minimizado u oculto: no se lee nada

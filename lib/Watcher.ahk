@@ -18,7 +18,7 @@ WatcherNoAnim := Map()     ; hwnd -> true: ya sin animación de maximizar/restau
 
 StartWatcher() {
     global WatcherOn := true, WatcherHooks
-    SetTimer(WatcherTick, Config.WatcherInterval)       ; red de seguridad
+    SetTimer(WatcherTick, Max(Config.WatcherInterval, 500))     ; red de seguridad: lo normal es que reaccionen los eventos de ventana
     if WatcherHooks.Length = 0 {
         cb := CallbackCreate(WatcherEvent, , 7)
         for ev in [0x0003, 0x800B]                      ; cambio de ventana activa / cambio de posición o tamaño
@@ -106,7 +106,12 @@ WatcherFix(hwnd) {
     }
 
     Log("Vigilante: " WinGetProcessName(hwnd) " estaba maximizada")
-    WinRestore(hwnd)                 ; vuelve a su tamaño normal...
-    z := ZoneOf(hwnd)                ; ...que nos dice en qué zona estaba
-    PlaceInRect(hwnd, z.X, z.Y, z.W, z.H)
+    try DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "UInt", 3, "Int*", 1, "UInt", 4)    ; sin fundido de restaurar
+    ; La zona donde estaba antes de maximizarse la da su posición normal (sin restaurarla antes: se haría en dos pasos
+    ; y se vería la ventana con su tamaño anterior un instante).
+    r := NormalRect(hwnd)
+    v := GetVisibleRect(hwnd)
+    off := WorkspaceOffset((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
+    z := ZoneAtX(r[1] + off[1] + r[3] // 2)
+    PlaceInRect(hwnd, z.X, z.Y, z.W, z.H)       ; de maximizada a la zona de un solo paso
 }

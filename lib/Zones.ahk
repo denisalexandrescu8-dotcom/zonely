@@ -77,6 +77,44 @@ WindowBorder(hwnd, show) {
         , "uint*", show ? 0xFFFFFFFF : 0xFFFFFFFE, "int", 4)        ; COLOR_DEFAULT / COLOR_NONE
 }
 
+InsetCache := Map()        ; hwnd -> [izq, arr, der, aba] de sombra invisible medida la última vez que se colocó
+
+; Compensación entre las coordenadas de pantalla y las «de espacio de trabajo» de WINDOWPLACEMENT en el monitor que
+; contiene el punto: es la posición del área de trabajo respecto al monitor (la barra de tareas a la izquierda o arriba).
+WorkspaceOffset(x, y) {
+    Loop MonitorGetCount() {
+        MonitorGet(A_Index, &l, &t, &r, &b)
+        if x >= l && x < r && y >= t && y < b {
+            MonitorGetWorkArea(A_Index, &wl, &wt)
+            return [wl - l, wt - t]
+        }
+    }
+    return [0, 0]
+}
+
+; Pasa una ventana maximizada a su zona en una sola operación (SetWindowPlacement con la posición normal ya en la zona),
+; en lugar de restaurar y mover después: así nunca se ve la ventana con su tamaño anterior entre medias.
+; La sombra invisible se estima (la medida la última vez, o la típica de Windows); luego PlaceInRect afina.
+PlaceFromMaximized(hwnd, x, y, w, h) {
+    ins := InsetCache.Has(hwnd) ? InsetCache[hwnd] : 0
+    if !ins {
+        dpi := 96
+        try dpi := DllCall("GetDpiForWindow", "ptr", hwnd, "uint")
+        side := Round(7 * dpi / 96)
+        ins := [side, 0, side, side]
+    }
+    off := WorkspaceOffset(x + w // 2, y + h // 2)
+    wp := Buffer(44, 0)
+    NumPut("uint", 44, wp)
+    DllCall("GetWindowPlacement", "ptr", hwnd, "ptr", wp)
+    NumPut("uint", 1, wp, 8)                                   ; showCmd = SW_SHOWNORMAL (restaurar)
+    NumPut("int", x - ins[1] - off[1], wp, 28)
+    NumPut("int", y - ins[2] - off[2], wp, 32)
+    NumPut("int", x + w + ins[3] - off[1], wp, 36)
+    NumPut("int", y + h + ins[4] - off[2], wp, 40)
+    DllCall("SetWindowPlacement", "ptr", hwnd, "ptr", wp)
+}
+
 ; Coloca la parte visible de la ventana exactamente en (x, y, w, h).
 ; Si estaba maximizada/minimizada la restaura primero. Se hace en dos pasos:
 ; mover, medir cuánta sombra invisible hay y compensarla.
@@ -87,9 +125,14 @@ PlaceInRect(hwnd, x, y, w, h, record := true) {
         RestoreNote(hwnd)                  ; tamaño original (solo la primera vez que entra en una zona)
     }
     try {
-        if WinGetMinMax(hwnd) != 0
-            WinRestore(hwnd)
-        WinMove(x, y, w, h, hwnd)
+        mm := WinGetMinMax(hwnd)
+        if mm = 1 {
+            PlaceFromMaximized(hwnd, x, y, w, h)    ; de maximizada a la zona de un solo paso: sin fotograma intermedio
+        } else {
+            if mm != 0
+                WinRestore(hwnd)
+            WinMove(x, y, w, h, hwnd)
+        }
 
         WinGetPos(&wx, &wy, &ww, &wh, hwnd)
         v := GetVisibleRect(hwnd)
@@ -97,6 +140,9 @@ PlaceInRect(hwnd, x, y, w, h, record := true) {
         insetT := v["T"] - wy
         insetR := (wx + ww) - v["R"]
         insetB := (wy + wh) - v["B"]
+        InsetCache[hwnd] := [insetL, insetT, insetR, insetB]
+        if InsetCache.Count > 200
+            InsetCache.Clear()
         WinMove(x - insetL, y - insetT, w + insetL + insetR, h + insetT + insetB, hwnd)
         WindowBorder(hwnd, false)             ; sin la línea de 1 px del borde: la ventana queda pegada al borde de la zona
     } catch {
@@ -133,7 +179,11 @@ WindowOnMonitor(hwnd) {
 ; Zona que contiene el centro de la ventana (A por defecto).
 ZoneOf(hwnd) {
     v := GetVisibleRect(hwnd)
-    cx := (v["L"] + v["R"]) // 2
+    return ZoneAtX((v["L"] + v["R"]) // 2)
+}
+
+; Zona que contiene esa coordenada x del escritorio (A por defecto).
+ZoneAtX(cx) {
     for _, z in Config.Zones
         if cx >= z.X && cx < z.Right
             return z
@@ -148,6 +198,7 @@ CenterInZone(name, target := 0) {
         return
     z := Config.Zones[name]
     UndoPush(hwnd)
+    RestoreNote(hwnd)                                    ; tamaño original (solo la primera vez que entra en una zona)
     if WinGetMinMax(hwnd) != 0
         WinRestore(hwnd)
     v := GetVisibleRect(hwnd)
@@ -157,6 +208,7 @@ CenterInZone(name, target := 0) {
     x := z.X + Max(0, (z.W - w) // 2)
     y := z.Y + Max(0, (z.H - h) // 2)
     WinMove(x - dx, y - dy, , , hwnd)                    ; solo posición: no se toca el tamaño
+    RestoreTrack(hwnd)                                   ; ahora está en esta zona (sin esto, la zona apuntada quedaba obsoleta)
     if w > z.W || h > z.H
         Notify("La ventana (" w "x" h ") es mayor que la zona " name " (" z.W "x" z.H ")", 2500)
     Log("Centrada sin redimensionar: " WinGetProcessName(hwnd) " " w "x" h " en la zona " name)

@@ -2,11 +2,11 @@ import AppKit
 import ZonelyCore
 
 /// Encajar arrastrando: mientras arrastras una ventana y mantienes la tecla (Mayús por defecto) se dibujan las zonas;
-/// al soltar, la ventana encaja en la resaltada. Detección por sondeo cada 30 ms: no instala ningún gancho de ratón.
+/// al soltar, la ventana encaja en la resaltada. Se mueve por eventos del ratón, sin sondeo.
 final class SnapController {
     private unowned let engine: Engine
     private unowned let windows: WindowManager
-    private var timer: Timer?
+    private var monitor: Any?
 
     private var wasDown = false
     private var window: ForeignWindow?
@@ -21,10 +21,12 @@ final class SnapController {
         self.windows = windows
     }
 
+    /// Sin temporizador: solo se reacciona a los eventos del ratón (pulsar, arrastrar, soltar), así que en reposo no gasta nada.
+    /// Estos eventos globales no necesitan ningún permiso extra (los de teclado sí; por eso la tecla se lee al arrastrar).
     func start() {
-        let t = Timer(timeInterval: 0.03, repeats: true) { [weak self] _ in self?.tick() }
-        RunLoop.main.add(t, forMode: .common)           // también mientras el ratón arrastra
-        timer = t
+        monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp]) { [weak self] _ in
+            self?.tick()
+        }
     }
 
     private var snapFlag: NSEvent.ModifierFlags {

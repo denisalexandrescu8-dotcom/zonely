@@ -25,6 +25,7 @@ final class WindowManager {
     private var lastNormal: Saved?                   // última posición de la ventana activa sin maximizar (para el vigilante)
     private var fixes: [(window: ForeignWindow, count: Int, since: Date)] = []
     private var ignored: [ForeignWindow] = []        // ventanas que se pelean con el vigilante: se dejan en paz
+    private var leavingFullScreen: [ForeignWindow] = []   // ventanas que están saliendo de la pantalla completa nativa (dura una animación)
 
     init(engine: Engine) {
         self.engine = engine
@@ -243,8 +244,12 @@ final class WindowManager {
     /// Si la ventana activa se ha maximizado (ocupa toda el área útil), vuelve a su zona.
     private func fixMaximized() {
         guard let window = Accessibility.focusedWindow(), !isExcluded(window), let frame = window.frame,
-              !window.isFullScreen, !window.isMinimized else {
+              !window.isMinimized else {
             lastNormal = nil
+            return
+        }
+        if window.isFullScreen {                                    // el botón verde: pantalla completa nativa (otro Space)
+            fixFullScreen(window, frame)
             return
         }
         guard Geometry.isMaximized(frame, in: Screens.usable) else {
@@ -260,6 +265,28 @@ final class WindowManager {
             before = last.frame
         }
         Log.write("Vigilante: \(window.processName) estaba maximizada")
+        place(window, rect(of: zone), from: before)
+    }
+
+    /// Pantalla completa nativa (botón verde): se sale de ella y la ventana vuelve a su zona. Se puede apagar en Ajustes
+    /// (para ver vídeo a pantalla completa, por ejemplo). `place` ya sabe salir de la pantalla completa; aquí solo se evita
+    /// repetirlo mientras dura la animación.
+    private func fixFullScreen(_ window: ForeignWindow, _ frame: CGRect) {
+        guard engine.config?.fullScreenToZone ?? true else { return }
+        if leavingFullScreen.contains(where: { $0.sameWindow(as: window) }) { return }
+        if ignored.contains(where: { $0.sameWindow(as: window) }) { return }
+        guard registerFix(window) else { return }
+        leavingFullScreen.append(window)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            self?.leavingFullScreen.removeAll { $0.sameWindow(as: window) }
+        }
+        var zone = "A"
+        var before = frame
+        if let last = lastNormal, last.window.sameWindow(as: window) {
+            zone = zoneName(of: last.frame)
+            before = last.frame
+        }
+        Log.write("Vigilante: \(window.processName) entró en pantalla completa; vuelve a su zona")
         place(window, rect(of: zone), from: before)
     }
 

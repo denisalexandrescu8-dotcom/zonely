@@ -45,11 +45,20 @@ CheckIniChanged() {
     TrayRefreshProfiles()
 }
 
+IpcInterval := 250                     ; ms entre revisiones: 250 con el panel abierto, 1000 en reposo (ahorra batería)
+IpcLastBeat := 0
+
 IpcTick() {
-    global IpcTicks
+    global IpcTicks, IpcInterval, IpcLastBeat
     IpcTicks++
+    watching := A_TickCount < IpcWatchUntil
+    want := watching ? 250 : 1000                       ; el panel manda «watch» cada 5 s mientras está abierto
+    if want != IpcInterval {
+        IpcInterval := want
+        SetTimer(IpcTick, want)
+    }
     TrackTarget()
-    if A_TickCount < IpcWatchUntil && Mod(IpcTicks, 2) = 0       ; solo se trabaja de más si el panel está mirando
+    if watching && Mod(IpcTicks, 2) = 0                 ; solo se trabaja de más si el panel está mirando
         WriteDebug()
     cmdFile := IpcDir "\cmd.txt"
     if FileExist(cmdFile) {
@@ -61,7 +70,9 @@ IpcTick() {
                     IpcRun(Trim(line))
         }
         WriteState()
-    } else if Mod(IpcTicks, 8) = 0 {
+        IpcLastBeat := A_TickCount
+    } else if A_TickCount - IpcLastBeat >= 2000 {
+        IpcLastBeat := A_TickCount
         WriteState()                       ; latido cada 2 s: el panel sabe que seguimos vivos
         CheckIniChanged()
     }

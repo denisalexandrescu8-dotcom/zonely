@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('zones', {
   clearLog: () => ipcRenderer.invoke('log:clear'),
   logError: (m) => ipcRenderer.invoke('log:renderer', String(m).slice(0, 500)),
   setOption: (key, on) => ipcRenderer.invoke('config:setOption', { key, on: !!on }),
+  setSnapKey: (key) => ipcRenderer.invoke('config:setSnapKey', String(key)),
   setHotkeys: (changes) => ipcRenderer.invoke('config:setHotkeys', changes),
   setGameZone: (profile, zone) => ipcRenderer.invoke('config:setGameZone', { profile, zone }),
   startEngine: () => ipcRenderer.invoke('engine:start'),

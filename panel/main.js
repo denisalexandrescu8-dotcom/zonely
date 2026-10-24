@@ -135,6 +135,8 @@ function readConfig() {
       halves: String(ini.Snap?.Halves ?? '0') === '1',
       restore: String(ini.General?.RestoreOnLeave ?? '1') === '1',
       menubar: String(ini.General?.MenuBarIcon ?? '1') === '1',          // solo macOS: icono en la barra de menús
+      fullscreen: String(ini.General?.FullScreenToZone ?? '1') === '1',  // solo macOS: sacar de pantalla completa nativa y colocar en la zona
+      snapkey: ['Shift', 'Ctrl', 'Alt'].includes(ini.Snap?.Key) ? ini.Snap.Key : 'Shift',
       autoupdate: String(ini.General?.AutoUpdate ?? '1') === '1',        // actualizar automáticamente
     },
     exclusions: { processes: splitList(ini.Exclusions?.Processes), classes: splitList(ini.Exclusions?.Classes) },
@@ -306,9 +308,13 @@ ipcMain.handle('log:open', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); i
 ipcMain.handle('log:clear', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); fs.writeFileSync(LOG_FILE, ''); appendLog('INFO', 'Registro limpiado'); });
 ipcMain.handle('log:renderer', (_e, msg) => appendLog('ERROR', `interfaz: ${msg}`));
 ipcMain.handle('config:setOption', (_e, { key, on }) => {
-  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'], autoupdate: ['General', 'AutoUpdate'] };
+  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'], fullscreen: ['General', 'FullScreenToZone'], autoupdate: ['General', 'AutoUpdate'] };
   if (!map[key]) throw new Error('Opción no válida');
   writeIni((t) => setIniValue(t, map[key][0], map[key][1], on ? '1' : '0'));
+});
+ipcMain.handle('config:setSnapKey', (_e, key) => {
+  if (!['Shift', 'Ctrl', 'Alt'].includes(key)) throw new Error('Tecla no válida');
+  writeIni((t) => setIniValue(t, 'Snap', 'Key', key));       // el motor la lee en cada arrastre: no hace falta recargar
 });
 // Atajos: solo se aceptan ids que el motor ha publicado y combinaciones con el formato AutoHotkey conocido.
 const HOTKEY_RE = /^[#!^+]{1,4}([a-z0-9]|F([1-9]|1\d|2[0-4])|Numpad[0-9]|Left|Right|Up|Down|BackSpace|Space|Tab|Enter|Esc|Delete|Insert|Home|End|PgUp|PgDn)$/i;

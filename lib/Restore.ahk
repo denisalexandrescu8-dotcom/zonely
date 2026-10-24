@@ -9,8 +9,15 @@
 
 ZoneOrig := Map()      ; hwnd -> Map(w, h, zone [izq, arr, der, aba], pending)
 
+; El temporizador solo corre mientras hay ventanas apuntadas (RestoreArm lo enciende, RestoreTick lo apaga al quedarse sin
+; ninguna): en reposo no despierta el procesador.
 StartRestore() {
-    SetTimer(RestoreTick, 40)                       ; sale rápido: solo trabaja si hay ventanas apuntadas
+    RestoreArm()
+}
+
+RestoreArm() {
+    if ZoneOrig.Count > 0
+        SetTimer(RestoreTick, 60)
 }
 
 ; Rectángulo "normal" (el que tendría sin maximizar), útil si la ventana estaba maximizada.
@@ -38,6 +45,7 @@ RestoreNote(hwnd) {
         }
         if r[3] > 50 && r[4] > 50
             ZoneOrig[hwnd] := Map("w", r[3], "h", r[4], "zone", "", "pending", 0)
+            RestoreArm()
     }
 }
 
@@ -59,7 +67,11 @@ RestoreForget(hwnd) {
 }
 
 RestoreTick() {
-    if A_IsSuspended || !Config.RestoreOnLeave || ZoneOrig.Count = 0 || !Config.Zoned
+    if ZoneOrig.Count = 0 {
+        SetTimer(RestoreTick, 0)                    ; nada apuntado: se para hasta que haya otra ventana
+        return
+    }
+    if A_IsSuspended || !Config.RestoreOnLeave || !Config.Zoned
         return
     if GetKeyState("LButton")
         return                                      ; se está arrastrando o pulsando: se espera a que suelte

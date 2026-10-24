@@ -129,7 +129,7 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
 .zone {
   position: absolute; top: 0; bottom: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  transition: left .45s cubic-bezier(.2,.8,.2,1), width .45s cubic-bezier(.2,.8,.2,1);
+  transition: left .22s cubic-bezier(.2,.8,.2,1), width .22s cubic-bezier(.2,.8,.2,1);
   border: 1px solid transparent;
 }
 .zone .letter { font-size: clamp(22px, 4vw, 52px); font-weight: 700; line-height: 1; }
@@ -243,7 +243,7 @@ input[type="number"] { width: 96px; }
 @keyframes zflash { from { opacity: .3; } to { opacity: 0; } }
 @keyframes saved { 0% { background-color: #3ddc9733; border-color: var(--ok); } 100% { background-color: var(--surface-2); border-color: transparent; } }
 
-.view.on section { animation: rise .35s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+.view.on section { animation: rise .16s ease-out both; }                /* rápido y sin escalonar: el panel responde al instante */
 .view.on section:nth-child(1) { --i: 0; }
 .view.on section:nth-child(2) { --i: 1; }
 .view.on section:nth-child(3) { --i: 2; }
@@ -256,7 +256,7 @@ button:active:not(:disabled) { transform: scale(.96); }
 .nav-item { transition: background-color .2s, border-color .2s, color .2s, transform .12s; }
 
 .motor .dot { transition: background-color .3s, box-shadow .3s; }
-.motor.up .dot { animation: breathe 2.8s ease-in-out infinite; }
+.motor.up .dot { box-shadow: 0 0 0 3px #3ddc9733; }                       /* sin animación infinita: no despierta la GPU para nada */
 
 .switch { transition: background-color .2s, box-shadow .25s; }
 .switch::after { transition: transform .28s cubic-bezier(.3, 1.6, .5, 1); }

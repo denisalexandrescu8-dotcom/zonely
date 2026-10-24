@@ -17,6 +17,11 @@ final class Engine {
     private lazy var dim = DimController(engine: self)
     private lazy var snap = SnapController(engine: self, windows: windows)
     private var watcherTimer: Timer?
+    private var tickInterval: TimeInterval = 1.0
+    private var watchUntil = Date.distantPast        // hasta cuándo se atiende al panel deprisa
+    private var lastBeat = Date.distantPast
+    private var mouseUpMonitor: Any?
+    private var appChangeObserver: NSObjectProtocol?
     private let updates = BackgroundUpdates()
 
     var currentProfileName: String { state.profile }
@@ -60,11 +65,18 @@ final class Engine {
             Log.write("Falta el permiso de Accesibilidad: Zonely no puede mover ventanas hasta que se conceda", level: "WARN")
         }
         Log.write("Motor iniciado v\(version) · perfil \(state.profile)")
-        timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.tick() }
-        let interval = Double(config?.watcherIntervalMs ?? 150) / 1000
-        let watcher = Timer(timeInterval: interval, repeats: true) { [weak self] _ in self?.windows.watcherTick() }
+        scheduleTick(every: 1.0)
+        // Ahorro de batería: el vigilante no sondea las ventanas a cada rato. En reposo mira una vez por segundo (con margen
+        // para que macOS agrupe los despertares) y reacciona al momento a lo que puede cambiar una ventana: soltar el ratón
+        // (botón verde, arrastrar, redimensionar) o cambiar de aplicación. Tras cada uno hace unas cuantas comprobaciones
+        // seguidas, para pillar el final de la animación de maximizar.
+        let watcher = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in self?.windows.watcherTick() }
+        watcher.tolerance = 0.4
         RunLoop.main.add(watcher, forMode: .common)
         watcherTimer = watcher
+        mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in self?.watchBurst() }
+        appChangeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in self?.watchBurst() }
         snap.start()
         dim.update()
         updates.start()
@@ -158,12 +170,35 @@ final class Engine {
 
     // MARK: - Panel
 
+    private func scheduleTick(every interval: TimeInterval) {
+        timer?.invalidate()
+        tickInterval = interval
+        let t = Timer(timeInterval: interval, repeats: true) { [weak self] _ in self?.tick() }
+        t.tolerance = interval * 0.3
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
+    }
+
+    /// Varias comprobaciones del vigilante seguidas (ver `start`): la ventana puede tardar unos cientos de ms en terminar de moverse.
+    private func watchBurst() {
+        for delay in [0.0, 0.12, 0.3, 0.6, 1.0] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.windows.watcherTick() }
+        }
+    }
+
     private func tick() {
         ticks += 1
+        // Con el panel abierto (manda «watch» cada pocos segundos) se atiende cada 250 ms; en reposo, cada segundo.
+        let want: TimeInterval = Date() < watchUntil ? 0.25 : 1.0
+        if want != tickInterval { scheduleTick(every: want) }
         let commands = Ipc.takeCommands()
         for command in commands { apply(command) }
-        if !commands.isEmpty || ticks % 8 == 0 { writeState() }   // latido cada 2 s: el panel sabe que seguimos vivos
-        if ticks % 8 == 0 { checkIniChanged() }
+        let now = Date()
+        if !commands.isEmpty || now.timeIntervalSince(lastBeat) >= 2 {
+            lastBeat = now
+            writeState()                                           // latido cada 2 s: el panel sabe que seguimos vivos
+            if commands.isEmpty { checkIniChanged() }
+        }
     }
 
     private func apply(_ command: Command) {
@@ -179,7 +214,9 @@ final class Engine {
         case .dimLevel(let level):
             state.dimLevel = level
             dim.update()
-        case .watch: break
+        case .watch:
+            watchUntil = Date().addingTimeInterval(15)             // el panel está mirando: se atiende más deprisa
+            if tickInterval != 0.25 { scheduleTick(every: 0.25) }
         case .reload:
             Log.write("Recargando")
             reloadConfig()

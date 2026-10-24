@@ -26,7 +26,13 @@ StartSnap() {
         SnapGuis := Map("A", SnapMakeGui(0x3B82F6, 40), "B", SnapMakeGui(0x8B5CF6, 40), "C", SnapMakeGui(0xF472B6, 40)
                       , "HL", SnapMakeGui(0xFFFFFF, 95))
     }
-    SetTimer(SnapTick, 30)
+}
+
+; Sin sondeo continuo: solo se vigila el ratón (cada 30 ms) mientras el botón izquierdo está pulsado. Al pulsarlo, este
+; hotkey (con ~ el clic sigue su camino) arranca el temporizador; SnapTick lo para al soltar. En reposo no gasta nada.
+~*LButton:: {
+    if SnapOn && !A_IsSuspended
+        SetTimer(SnapTick, 30)
 }
 
 StopSnap() {
@@ -60,6 +66,7 @@ SnapTick() {
     if A_IsSuspended {
         if SnapPrevDown || SnapShown
             SnapReset()
+        SetTimer(SnapTick, 0)
         return
     }
     down := GetKeyState("LButton")
@@ -99,6 +106,8 @@ SnapTick() {
         SnapDragging := false
     }
     SnapPrevDown := down
+    if !down
+        SetTimer(SnapTick, 0)                        ; botón soltado: se deja de vigilar hasta el próximo clic
 }
 
 ; Calcula la zona bajo el cursor y dibuja el overlay.
