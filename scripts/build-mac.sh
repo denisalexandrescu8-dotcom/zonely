@@ -46,10 +46,10 @@ if [ -n "${MAC_SIGN_P12_BASE64:-}" ] && [ -n "${MAC_SIGN_P12_PASSWORD:-}" ]; the
   app="$(find "$root/dist/installer" -maxdepth 2 -name 'Zonely.app' -print -quit)"
   test -d "$app" || { echo "No encuentro Zonely.app en dist/installer" >&2; exit 1; }
 
-  echo "Firmando con «$sign_name»..."
+  echo "Firmando con «${sign_name}»..."
   # primero el motor (va suelto en Resources, con su propio identificador) y después la app entera
-  codesign --force --sign "$sign_name" --keychain "$keychain" --identifier com.zonely.engine "$app/Contents/Resources/ZonelyEngine"
-  codesign --force --deep --sign "$sign_name" --keychain "$keychain" "$app"
+  codesign --force --sign "${sign_name}" --keychain "$keychain" --identifier com.zonely.engine "$app/Contents/Resources/ZonelyEngine"
+  codesign --force --deep --sign "${sign_name}" --keychain "$keychain" "$app"
   codesign --verify --deep --strict "$app"
   echo "Requisito de la app:";    codesign -d -r- "$app" 2>&1 | grep -i "designated" || true
   echo "Requisito del motor:";    codesign -d -r- "$app/Contents/Resources/ZonelyEngine" 2>&1 | grep -i "designated" || true
