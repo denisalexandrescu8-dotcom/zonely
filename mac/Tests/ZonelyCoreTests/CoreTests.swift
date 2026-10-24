@@ -54,6 +54,12 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(config.gameProcesses, ["RainbowSix.exe", "Siege.exe"])
     }
 
+    func testMenuBarIconDefaultsToVisible() throws {
+        XCTAssertTrue(try Config(ini: IniFile(text: sample)).menuBarIcon)
+        let hidden = sample.replacingOccurrences(of: "[General]\nProfile=dual", with: "[General]\nProfile=dual\nMenuBarIcon=0")
+        XCTAssertFalse(try Config(ini: IniFile(text: hidden)).menuBarIcon)
+    }
+
     func testRejectsZoneOutsideMonitor() {
         let bad = sample.replacingOccurrences(of: "B=3440,0,1680,1440", with: "B=3440,0,2000,1440")
         XCTAssertThrowsError(try Config(ini: IniFile(text: bad)))

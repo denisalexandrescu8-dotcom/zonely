@@ -8,8 +8,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pauseItem: NSMenuItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        engine.onConfigLoaded = { [weak self] in self?.applyMenuBarVisibility() }
         engine.start()
         buildMenu()
+        applyMenuBarVisibility()
+    }
+
+    /// Ajustes → Barra de menús: muestra u oculta el icono sin parar el motor (los atajos siguen funcionando).
+    private func applyMenuBarVisibility() {
+        statusItem?.isVisible = engine.config?.menuBarIcon ?? true
     }
 
     private func buildMenu() {

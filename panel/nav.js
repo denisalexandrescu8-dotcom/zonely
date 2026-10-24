@@ -38,6 +38,7 @@ Promise.resolve(window.zones?.isDev?.()).then((dev) => {
 
 // En macOS los atajos de fábrica son ⌃⌥ + tecla: los textos fijos de la interfaz que dicen «Win+Alt+X» se adaptan.
 if (/Mac/i.test(navigator.platform || '')) {
+  for (const el of document.querySelectorAll('.mac-only')) el.hidden = false;      // ajustes que solo existen en macOS
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode())
     n.nodeValue = n.nodeValue.replace(/Win\+Alt\+(\w)/g, (_, k) => `⌃⌥${k.toUpperCase()}`);

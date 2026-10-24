@@ -85,7 +85,7 @@ function paintEngine() {
   s.disabled = !state.engineUp;
   s.checked = !!state.snap;
   // Opciones guardadas en zones.ini (se leen de la configuración, no del estado del motor).
-  for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore']]) {
+  for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-menubar', 'menubar']]) {
     const el = $(id);
     el.disabled = !state.engineUp;
     if (document.activeElement !== el) el.checked = !!config.options?.[key];
@@ -129,10 +129,11 @@ $('watcher').addEventListener('change', (e) =>
   window.zones.send({ type: 'watcher', value: e.target.checked ? 'on' : 'off' }).then(refresh));
 $('snap').addEventListener('change', (e) =>
   window.zones.send({ type: 'snap', value: e.target.checked ? 'on' : 'off' }).then(refresh));
-for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore']])
+for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-menubar', 'menubar']])
   $(id).addEventListener('change', async (e) => {
     await window.zones.setOption(key, e.target.checked);                                      // se guarda en zones.ini
-    await window.zones.send({ type: key, value: e.target.checked ? 'on' : 'off' });           // y se aplica ya en el motor
+    if (key === 'menubar') await window.zones.send({ type: 'reload' });                        // el motor de Mac lo aplica al releer zones.ini
+    else await window.zones.send({ type: key, value: e.target.checked ? 'on' : 'off' });      // y se aplica ya en el motor
     refresh();
   });
 $('engine-reload').addEventListener('click', () => window.zones.send({ type: 'reload' }).then(() => setTimeout(refresh, 1500)));

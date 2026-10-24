@@ -128,7 +128,11 @@ function readConfig() {
     profiles,
     startProfile: ini.General?.Profile ?? 'ultrawide',
     version: readVersion(),
-    options: { halves: String(ini.Snap?.Halves ?? '0') === '1', restore: String(ini.General?.RestoreOnLeave ?? '1') === '1' },
+    options: {
+      halves: String(ini.Snap?.Halves ?? '0') === '1',
+      restore: String(ini.General?.RestoreOnLeave ?? '1') === '1',
+      menubar: String(ini.General?.MenuBarIcon ?? '1') === '1',          // solo macOS: icono en la barra de menús
+    },
     exclusions: { processes: splitList(ini.Exclusions?.Processes), classes: splitList(ini.Exclusions?.Classes) },
   };
 }
@@ -264,7 +268,7 @@ ipcMain.handle('log:open', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); i
 ipcMain.handle('log:clear', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); fs.writeFileSync(LOG_FILE, ''); appendLog('INFO', 'Registro limpiado'); });
 ipcMain.handle('log:renderer', (_e, msg) => appendLog('ERROR', `interfaz: ${msg}`));
 ipcMain.handle('config:setOption', (_e, { key, on }) => {
-  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'] };
+  const map = { halves: ['Snap', 'Halves'], restore: ['General', 'RestoreOnLeave'], menubar: ['General', 'MenuBarIcon'] };
   if (!map[key]) throw new Error('Opción no válida');
   writeIni((t) => setIniValue(t, map[key][0], map[key][1], on ? '1' : '0'));
 });

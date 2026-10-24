@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.36.0
+- **Nuevo (macOS):** en Ajustes → Barra de menús hay un interruptor para mostrar u ocultar el icono de Zonely en la parte superior de la pantalla (`[General] MenuBarIcon` en `zones.ini`). Con el icono oculto, Zonely sigue funcionando y los atajos también; para abrir el panel se usa la app desde Aplicaciones. El ajuste solo aparece en el panel de macOS.
+
 ## 0.35.0
 - **Nuevo:** doble clic en el icono de Zonely de la bandeja (Windows) abre el panel; también hay una entrada «Abrir Zonely» en el menú de la bandeja y en el de la barra de menús de macOS. El panel es de instancia única: si ya está abierto, se trae al frente en vez de abrir otro.
 

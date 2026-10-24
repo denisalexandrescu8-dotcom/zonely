@@ -20,6 +20,9 @@ final class Engine {
 
     var currentProfileName: String { state.profile }
 
+    /// Se llama cada vez que se (re)lee zones.ini; la barra de menús lo usa para mostrar u ocultar el icono.
+    var onConfigLoaded: (() -> Void)?
+
     /// Cambia el estado «Pausar atajos» (lo marca el menú de la barra).
     var paused: Bool {
         get { state.paused }
@@ -89,6 +92,7 @@ final class Engine {
         Ipc.write(Ipc.hotkeysData(registered), name: "hotkeys.json")
         writeState()
         dim.update()
+        onConfigLoaded?()
     }
 
     // MARK: - Acciones que usan los atajos y el menú

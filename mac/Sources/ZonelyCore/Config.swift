@@ -48,6 +48,8 @@ public struct Config {
     public var profiles: [Profile]
     public var startProfile: String
     public var restoreOnLeave: Bool
+    /// Solo macOS: ¿se enseña el icono de Zonely en la barra de menús? (`[General] MenuBarIcon`, por defecto sí)
+    public var menuBarIcon: Bool
     public var watcherEnabled: Bool
     public var watcherIntervalMs: Int
     public var snapEnabled: Bool
@@ -85,6 +87,7 @@ public struct Config {
         let wanted = ini.string("General", "Profile", default: "normal")
         startProfile = found.contains(where: { $0.name == wanted }) ? wanted : found[0].name
         restoreOnLeave = ini.bool("General", "RestoreOnLeave", default: true)
+        menuBarIcon = ini.bool("General", "MenuBarIcon", default: true)
         watcherEnabled = ini.bool("Watcher", "Enabled", default: true)
         watcherIntervalMs = max(50, ini.int("Watcher", "IntervalMs", default: 150))
         snapEnabled = ini.bool("Snap", "Enabled", default: true)
