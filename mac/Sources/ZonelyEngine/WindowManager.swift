@@ -17,6 +17,8 @@ final class WindowManager {
         let size: CGSize
         var zone: CGRect?
         var pending = 0
+        var placed: CGRect?                     // cómo dejó Zonely la ventana (para notar si luego la redimensionas tú con el ratón)
+        var placedAt = Date.distantPast
     }
 
     private var undoStack: [Saved] = []              // posiciones anteriores (máx. 20)
@@ -188,6 +190,8 @@ final class WindowManager {
         if record, let i = tracked.firstIndex(where: { $0.window.sameWindow(as: window) }) {
             tracked[i].zone = target
             tracked[i].pending = 0
+            tracked[i].placed = target
+            tracked[i].placedAt = Date()
         }
         animate(window, from: window.frame ?? current, to: target) { [weak self] in
             self?.settle(window, target: target, record: record)
@@ -205,6 +209,8 @@ final class WindowManager {
             guard record, let i = self.tracked.firstIndex(where: { $0.window.sameWindow(as: window) }) else { return }
             self.tracked[i].zone = target.union(result)
             self.tracked[i].pending = 0
+            self.tracked[i].placed = result
+            self.tracked[i].placedAt = Date()
         }
     }
 
@@ -319,7 +325,33 @@ final class WindowManager {
             }
             if engine.state.watcher { fixMaximized() }
         }
-        if (engine.config?.restoreOnLeave ?? true) && engine.anyZoned { restoreWindowsThatLeftTheirZone() }
+        if (engine.config?.restoreOnLeave ?? true) && engine.anyZoned {
+            noteUserResizes()
+            restoreWindowsThatLeftTheirZone()
+        }
+    }
+
+    private var lastMouseUp = Date.distantPast
+
+    /// El ratón se ha soltado (lo llama el motor): una redimensión hecha con el ratón acaba justo ahora.
+    func noteMouseUp() { lastMouseUp = Date() }
+
+    /// Si acabas de redimensionar con el ratón una ventana colocada por Zonely, ese tamaño pasa a ser el que se recupera al
+    /// sacarla de su zona (no el de antes de que Zonely la tocara). Solo cuenta lo que ocurre al soltar el ratón y pasado un
+    /// rato desde que Zonely la colocó, para no confundirlo con lo que hace la propia app al ajustarse.
+    private func noteUserResizes() {
+        guard Date().timeIntervalSince(lastMouseUp) < 1.5 else { return }
+        for i in tracked.indices {
+            guard let placed = tracked[i].placed, Date().timeIntervalSince(tracked[i].placedAt) > 1.0,
+                  let frame = tracked[i].window.frame,
+                  abs(frame.width - placed.width) > 6 || abs(frame.height - placed.height) > 6,
+                  !tracked[i].window.isFullScreen, !tracked[i].window.isMinimized else { continue }
+            tracked[i].size = frame.size
+            tracked[i].zone = (tracked[i].zone ?? frame).union(frame)     // al redimensionar no cuenta como «salirse»
+            tracked[i].placed = frame
+            tracked[i].placedAt = Date()
+            Log.write("Tamaño apuntado tras redimensionar con el ratón: (tracked[i].window.processName) (Int(frame.width))x(Int(frame.height))")
+        }
     }
 
     /// Si la ventana activa se ha maximizado (ocupa toda el área útil), vuelve a su zona.

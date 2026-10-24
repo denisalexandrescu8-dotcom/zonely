@@ -93,7 +93,10 @@ final class Engine {
         watcher.tolerance = 0.4
         RunLoop.main.add(watcher, forMode: .common)
         watcherTimer = watcher
-        mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in self?.watchBurst() }
+        mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
+            self?.windows.noteMouseUp()
+            self?.watchBurst()
+        }
         appChangeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in self?.watchBurst() }
         snap.start()

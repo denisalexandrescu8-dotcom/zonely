@@ -1,6 +1,7 @@
 # Historial de versiones
 
 ## 0.52.0
+- **Mac: el tamaño que se recupera es el último que tú diste con el ratón.** Si redimensionas con el ratón una ventana que Zonely colocó, ese tamaño pasa a ser el que recupera al sacarla de su zona (y redimensionarla no cuenta como salirse de la zona). Solo cuenta lo que haces tú al soltar el ratón, no lo que hace la propia app al ajustarse después de colocarla.
 - **Mac: las ventanas se deslizan hasta su zona** (unos 0,17 s, con frenada suave) en vez de aparecer de golpe, también al deshacer y al recuperar el tamaño. Se puede apagar en Ajustes → *Animar al colocar* (`[General] Animations`) y se desactiva sola si tienes «Reducir movimiento» en el Mac. El vigilante espera a que la ventana llegue.
 - **Mac: recuperar el tamaño original más fiable.** La zona de una ventana colocada se confirma 0,35 s después (las apps como navegadores terminan de redimensionarse tarde y daban una zona equivocada), y si una ventana ya llena una zona cuando Zonely la ve por primera vez no se apunta ese tamaño como «original». El registro anota cuándo se apunta un tamaño original.
 
