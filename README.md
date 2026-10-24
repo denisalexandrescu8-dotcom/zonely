@@ -6,7 +6,7 @@ Zonely splits a big monitor into independent **zones** and puts your windows in 
 
 ![Zonely control panel](manual/img/panel.png)
 
-> **Status:** Windows only for now. Early software, used daily by its author — expect rough edges. Issues and pull requests are welcome.
+> **Status:** Windows is the mature version; the **macOS (Apple Silicon) version is brand new and experimental**. Early software — expect rough edges. Issues and pull requests are welcome.
 
 ## Features
 - **Zones and profiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 in the middle with a zone on each side) and «normal» (no zones: Zonely leaves your windows alone). Edit the zones in the panel.
@@ -33,7 +33,13 @@ Your settings live in `%APPDATA%\Zonely` (`zones.ini`, logs), so updating or rei
 
 A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and behind the **Manual** button of the panel.
 
-## Default shortcuts
+## Install (macOS, Apple Silicon)
+1. Download `Zonely-<version>-mac-arm64.dmg` from [Releases](../../releases), open it and drag **Zonely** to Applications.
+2. The app is **not notarized** (no paid Apple account yet): the first time, **right-click Zonely → Open → Open**.
+3. Zonely needs the **Accessibility** permission to move other apps' windows: System Settings → Privacy & Security → Accessibility → enable *ZonelyEngine*. The menu-bar icon has a shortcut to that pane.
+4. Shortcuts on macOS are **⌃⌥ + key** (e.g. ⌃⌥Z), editable in the panel. Game mode fills the zone (macOS cannot remove another app's window borders). Settings live in `~/Library/Application Support/Zonely`.
+
+## Default shortcuts (Windows)
 | Shortcut | Action |
 |---|---|
 | `Win+Alt+Z` | Fill the current zone |

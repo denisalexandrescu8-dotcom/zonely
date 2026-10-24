@@ -6,7 +6,7 @@ Zonely divide un monitor grande en **zonas** independientes y coloca tus ventana
 
 ![Panel de control de Zonely](manual/img/panel.png)
 
-> **Estado:** solo Windows por ahora. Software joven, que su autor usa a diario: puede tener asperezas. Las incidencias y los *pull requests* son bienvenidos.
+> **Estado:** Windows es la versión madura; la de **macOS (Apple Silicon) es nueva y experimental**. Software joven: puede tener asperezas. Las incidencias y los *pull requests* son bienvenidos.
 
 ## Qué hace
 - **Zonas y perfiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 en el centro y una zona a cada lado) y «normal» (sin zonas: Zonely no toca tus ventanas). Las zonas se editan en el panel.
@@ -33,7 +33,13 @@ Tus ajustes viven en `%APPDATA%\Zonely` (`zones.ini`, registros): actualizar o r
 
 La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y tras el botón **Manual** del panel.
 
-## Atajos de fábrica
+## Instalar (macOS, Apple Silicon)
+1. Descarga `Zonely-<versión>-mac-arm64.dmg` desde [Releases](../../releases), ábrelo y arrastra **Zonely** a Aplicaciones.
+2. La app **no está notarizada** (todavía no hay cuenta de pago de Apple): la primera vez, **clic derecho en Zonely → Abrir → Abrir**.
+3. Zonely necesita el permiso de **Accesibilidad** para mover ventanas de otras apps: Ajustes del Sistema → Privacidad y seguridad → Accesibilidad → activa *ZonelyEngine*. El icono de la barra de menús tiene un acceso directo a ese panel.
+4. En macOS los atajos son **⌃⌥ + tecla** (por ejemplo ⌃⌥Z), editables en el panel. El modo juego llena la zona (macOS no permite quitar los bordes de la ventana de otra app). Los ajustes están en `~/Library/Application Support/Zonely`.
+
+## Atajos de fábrica (Windows)
 | Atajo | Acción |
 |---|---|
 | `Win+Alt+Z` | Llenar la zona actual |
