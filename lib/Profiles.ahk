@@ -139,7 +139,7 @@ ShowProfilePicker() {
     g.Show("Hide w" winW " h" winH)
     DllCall("dwmapi\DwmSetWindowAttribute", "ptr", g.Hwnd, "int", 33, "int*", 2, "int", 4)       ; esquinas redondeadas (Windows 11)
     DllCall("dwmapi\DwmSetWindowAttribute", "ptr", g.Hwnd, "int", 34, "uint*", 0x39271F, "int", 4)       ; borde de 1 px (#1F2739 en BGR)
-    g.Show("x" ((Config.MonW - winW) // 2) " y" ((Config.MonH - winH) // 2))
+    g.Show("x" (Config.MonLeft + (Config.MonW - winW) // 2) " y" (Config.MonTop + (Config.MonH - winH) // 2))
 }
 
 ; Rectángulo de color clicable (fondo, borde, miniatura).
@@ -180,7 +180,7 @@ MiniMonitor(g, x, y, w, h, zs, onClick) {
     Rounded(Card(g, x - 1, y - 1, w + 2, h + 2, "2A3350", onClick), 11)
     Rounded(Card(g, x, y, w, h, "05070D", onClick), 10)
     for z in ZonesSorted(zs) {
-        zx := x + Round(z.X / Config.MonW * w), zw := Round(z.W / Config.MonW * w)
+        zx := x + Round((z.X - Config.MonLeft) / Config.MonW * w), zw := Round(z.W / Config.MonW * w)
         col := PkZone[z.Name]
         Rounded(Card(g, zx + 2, y + 2, zw - 4, h - 4, Mix(col, "05070D", 0.4), onClick), 7)                  ; borde de la zona
         g.SetFont("s" (h > 40 ? 13 : 10) " w700 c" col, "Segoe UI")
@@ -228,7 +228,7 @@ ProfileToast(name) {
     DllCall("dwmapi\DwmSetWindowAttribute", "ptr", g.Hwnd, "int", 33, "int*", 2, "int", 4)               ; esquinas redondeadas
     DllCall("dwmapi\DwmSetWindowAttribute", "ptr", g.Hwnd, "int", 34, "uint*", 0x39271F, "int", 4)       ; borde de 1 px
     WinSetTransparent(0, g.Hwnd)
-    g.Show("NA x" ((Config.MonW - w) // 2) " y" (Config.MonH - h - 90))
+    g.Show("NA x" (Config.MonLeft + (Config.MonW - w) // 2) " y" (Config.MonTop + Config.MonH - h - 90))
     ToastGui := g
     ToastStart := A_TickCount
     SetTimer(ToastStep, 20)

@@ -114,6 +114,22 @@ PlaceInRect(hwnd, x, y, w, h, record := true) {
         RestoreTrack(hwnd)                 ; ahora está en esta zona
 }
 
+; Rectángulo [izquierda, arriba, derecha, abajo] del monitor que contiene el punto (el elegido si no cae en ninguno).
+MonitorAreaAt(x, y) {
+    Loop MonitorGetCount() {
+        MonitorGet(A_Index, &l, &t, &r, &b)
+        if x >= l && x < r && y >= t && y < b
+            return [l, t, r, b]
+    }
+    return [Config.MonLeft, Config.MonTop, Config.MonLeft + Config.MonW, Config.MonTop + Config.MonH]
+}
+
+; ¿El centro de la ventana está en el monitor al que se aplican las zonas?
+WindowOnMonitor(hwnd) {
+    v := GetVisibleRect(hwnd)
+    return Config.OnMonitor((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
+}
+
 ; Zona que contiene el centro de la ventana (A por defecto).
 ZoneOf(hwnd) {
     v := GetVisibleRect(hwnd)

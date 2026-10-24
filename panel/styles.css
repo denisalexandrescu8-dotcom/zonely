@@ -66,8 +66,29 @@ small { color: var(--muted); }
 .nav-item:hover { color: var(--text); background: var(--surface); border-color: transparent; }
 .nav-item.on { color: var(--text); background: linear-gradient(90deg, #3b82f62e, #3b82f612); border-color: #3b82f655; }
 .nav-item.on svg { color: var(--accent); }
-.monitor-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+.monitor-pick { position: relative; }
+.monitor-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; color: var(--text); }
+.monitor-card.pickable { cursor: pointer; }
+.monitor-card.pickable:hover, .monitor-card[aria-expanded="true"] { border-color: #3b82f655; background: var(--surface-2, var(--surface)); }
 .monitor-card svg { width: 24px; height: 24px; flex: none; fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.monitor-card > div { min-width: 0; flex: 1; }
+.monitor-card.pickable { gap: 8px; padding: 10px; }
+.monitor-card.pickable > svg:first-child { width: 20px; height: 20px; }
+.monitor-card strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.monitor-card.pickable strong { font-size: 12px; letter-spacing: -0.1px; }
+.monitor-card.pickable small { font-size: 10.5px; }
+.monitor-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monitor-card .chev { width: 16px; height: 16px; margin-left: auto; }
+.monitor-card[aria-expanded="false"] .chev { transform: rotate(180deg); }
+.monitor-menu {
+  position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); margin: 0; padding: 6px; list-style: none;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 32px #0008; z-index: 20;
+}
+.monitor-menu li { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; font-size: 13px; cursor: pointer; color: var(--text); }
+.monitor-menu li:hover { background: #3b82f620; }
+.monitor-menu li small { display: block; color: var(--muted); font-variant-numeric: tabular-nums; }
+.monitor-menu li .tick { width: 16px; flex: none; color: var(--accent); font-weight: 700; }
+.monitor-menu li.on { background: #3b82f62e; }
 .monitor-card strong { display: block; font-size: 13px; font-weight: 600; }
 .monitor-card small { font-variant-numeric: tabular-nums; }
 #ver { text-align: center; font-size: 11px; }

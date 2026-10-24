@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('zones', {
   send: (cmd) => ipcRenderer.invoke('cmd:send', cmd),
   setZones: (a) => ipcRenderer.invoke('config:setZones', a),
   setExclusions: (a) => ipcRenderer.invoke('config:setExclusions', a),
+  setMonitor: (id) => ipcRenderer.invoke('config:setMonitor', String(id)),
   readIpc: (name) => ipcRenderer.invoke('ipc:read', name),
   setDim: (pct) => ipcRenderer.invoke('config:setDim', pct),
   openManual: () => ipcRenderer.invoke('manual:open'),

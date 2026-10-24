@@ -72,8 +72,10 @@ public enum Ipc {
     }
 
     /// JSON de `state.json`. `ts` en segundos Unix: el panel lo usa para saber que el motor sigue vivo.
-    public static func stateData(version: String, state: EngineState, now: Date = Date()) -> Data {
+    public static func stateData(version: String, state: EngineState, monitor: String = "", monitors: [[String: Any]] = [], now: Date = Date()) -> Data {
         let object: [String: Any] = [
+            "monitor": monitor,
+            "monitors": monitors,
             "ts": Int(now.timeIntervalSince1970),
             "version": version,
             "profile": state.profile,

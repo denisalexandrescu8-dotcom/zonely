@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.45.0
+- **Nuevo:** elige a qué monitor se aplican las zonas (Windows y macOS). Abajo a la izquierda del panel, **Monitor seleccionado** se despliega con los monitores conectados (los publica el motor). Al elegir uno, las zonas de todos los perfiles se reajustan a su tamaño y se guarda en `[Monitor] Id` de `zones.ini`; si ese monitor se desconecta, se usa el principal. El vigilante de maximizado y el encaje con Shift solo actúan en el monitor elegido, y los menús, avisos y capa oscura salen en él. Antes solo se podía usar el monitor principal (en Mac, la pantalla del portátil).
+
 ## 0.44.0
 - **Mejora:** con la actualización automática apagada, Zonely ya no espera a que abras el panel: el motor sigue comprobando en segundo plano (a los pocos minutos de arrancar y cada 6 horas) y, si hay una versión nueva, **te lo pregunta** con una ventana («Actualizar ahora» / «Más tarde»), una sola vez por versión. Con la automática encendida sigue instalándose sola, sin preguntar.
 

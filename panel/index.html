@@ -45,12 +45,16 @@
 
     <div class="spacer"></div>
 
-    <div class="monitor-card">
-      <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      <div>
-        <strong>Monitor principal</strong>
-        <small><span id="res">5120×1440</span></small>
-      </div>
+    <div class="monitor-pick">
+      <ul class="monitor-menu" id="monitor-menu" role="listbox" aria-label="Monitores conectados" hidden></ul>
+      <button class="monitor-card" id="monitor-card" type="button" aria-haspopup="listbox" aria-expanded="false" title="Monitor al que se aplican las zonas">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <div>
+          <strong>Monitor seleccionado</strong>
+          <small><span id="mon-name">Monitor 1</span> · <span id="res">5120×1440</span></small>
+        </div>
+        <svg class="chev" id="monitor-chev" viewBox="0 0 24 24" hidden><path d="M7 14l5-5 5 5"/></svg>
+      </button>
     </div>
     <small class="ver" id="ver" title="Versión del panel y del motor">v…</small>
   </aside>

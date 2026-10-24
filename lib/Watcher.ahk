@@ -41,7 +41,7 @@ WatcherEvent(hook, event, hwnd, idObject, idChild, thread, time) {
         return
     try {
         if event = 0x0003 {
-            if !WatcherNoAnim.Has(hwnd) && !WatcherSkips(hwnd) {
+            if !WatcherNoAnim.Has(hwnd) && !WatcherSkips(hwnd, false) {
                 DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 3, "Int*", 1, "UInt", 4)   ; TRANSITIONS_FORCEDISABLED
                 WatcherNoAnim[hwnd] := true
             }
@@ -62,8 +62,10 @@ ToggleWatcher(*) {
 }
 
 ; ¿Hay que dejar esta ventana en paz?
-WatcherSkips(hwnd) {
+WatcherSkips(hwnd, onlyMonitor := true) {
     if WatcherIgnored.Has(hwnd) || GameSaved.Has(hwnd)       ; modo juego manual
+        return true
+    if onlyMonitor && !WindowOnMonitor(hwnd)                 ; en los demás monitores, maximizar es lo normal
         return true
     if IsGameWindow(hwnd)
         return true

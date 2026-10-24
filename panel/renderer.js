@@ -106,6 +106,57 @@ function flashZones() {
   }
 }
 
+// Selector de monitor (barra lateral): enseña el elegido y, si hay más de uno conectado, los despliega para cambiar.
+const monitorLabel = (m) => `${m.name}${m.primary ? ' (principal)' : ''}`;
+let monitorsKey = '';
+function paintMonitorPicker() {
+  const list = state.monitors ?? [];
+  const chosen = list.find((m) => m.id === config.monitor.id) ?? list.find((m) => m.primary) ?? list[0];
+  $('mon-name').textContent = chosen ? chosen.name : 'Monitor principal';
+  $('res').textContent = `${config.monitor.w}×${config.monitor.h}`;
+  const pickable = list.length > 1;
+  $('monitor-card').classList.toggle('pickable', pickable);
+  $('monitor-chev').toggleAttribute('hidden', !pickable);       // es un SVG: no tiene la propiedad .hidden
+  if (!pickable) closeMonitorMenu();
+  const key = JSON.stringify([list, chosen?.id]);
+  if (key === monitorsKey) return;                              // solo se reconstruye el menú si cambian los monitores
+  monitorsKey = key;
+  const menu = $('monitor-menu');
+  menu.replaceChildren(...list.map((m) => {
+    const li = document.createElement('li');
+    li.setAttribute('role', 'option');
+    li.classList.toggle('on', m === chosen);
+    const tick = document.createElement('span');
+    tick.className = 'tick';
+    tick.textContent = m === chosen ? '✓' : '';
+    const text = document.createElement('div');
+    text.textContent = monitorLabel(m);
+    const small = document.createElement('small');
+    small.textContent = `${m.w}×${m.h}`;
+    text.appendChild(small);
+    li.append(tick, text);
+    li.addEventListener('click', async () => {
+      closeMonitorMenu();
+      if (m === chosen) return;
+      try { await window.zones.setMonitor(m.id); } catch (err) { window.zones.logError(`monitor: ${err && err.message}`); }
+      setTimeout(refresh, 1500);                                // el motor relee zones.ini solo
+    });
+    return li;
+  }));
+}
+function closeMonitorMenu() {
+  $('monitor-menu').hidden = true;
+  $('monitor-card').setAttribute('aria-expanded', 'false');
+}
+$('monitor-card').addEventListener('click', () => {
+  if (!$('monitor-card').classList.contains('pickable')) return;
+  const open = $('monitor-menu').hidden;
+  $('monitor-menu').hidden = !open;
+  $('monitor-card').setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('.monitor-pick')) closeMonitorMenu(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMonitorMenu(); });
+
 let lastKey = '';
 async function refresh() {
   const [cfg, st] = await Promise.all([window.zones.getConfig(), window.zones.getState()]);
@@ -115,7 +166,7 @@ async function refresh() {
 
   const activeId = state.profile ?? config.startProfile;
   const active = config.profiles.find((p) => p.id === activeId) ?? config.profiles[0];
-  $('res').textContent = `${config.monitor.w}×${config.monitor.h}`;
+  paintMonitorPicker();
   $('active-name').textContent = active.id;
   paintMonitor(active);
   if (flashedProfile !== null && flashedProfile !== active.id) flashZones();     // no en la primera carga

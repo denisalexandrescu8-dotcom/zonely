@@ -104,8 +104,9 @@ RestoreOriginal(hwnd, o, v) {
     else
         nx := (v["L"] + v["R"]) // 2 - ow // 2
     ny := v["T"]
-    nx := Min(Max(nx, 0), Max(0, Config.MonW - ow))
-    ny := Min(Max(ny, 0), Max(0, Config.MonH - oh))
+    area := MonitorAreaAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)    ; el monitor donde está la ventana
+    nx := Min(Max(nx, area[1]), Max(area[1], area[3] - ow))
+    ny := Min(Max(ny, area[2]), Max(area[2], area[4] - oh))
     WinMove(nx, ny, ow, oh, hwnd)
     WindowBorder(hwnd, true)
     ZoneOrig.Delete(hwnd)

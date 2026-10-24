@@ -215,6 +215,21 @@ WriteState() {
         . ',"snap":' (SnapOn ? "true" : "false")
         . ',"dim":"' DimZoneName '","dimLevel":' Config.DimOpacity
         . ',"target":' TargetJson()
+        . ',"monitor":"' JsonEsc(Config.MonId) '","monitors":' MonitorsJson()
         . ',"paused":' (A_IsSuspended ? "true" : "false") '}'
     WriteJson("state.json", json)
+}
+
+JsonEsc(s) => StrReplace(StrReplace(s, "\", "\\"), '"', '\"')
+
+; Monitores conectados, para que el panel deje elegir a cuál se aplican las zonas.
+MonitorsJson() {
+    out := ""
+    prim := MonitorGetPrimary()
+    Loop MonitorGetCount() {
+        MonitorGet(A_Index, &l, &t, &r, &b)
+        out .= (out = "" ? "" : ",") '{"id":"' JsonEsc(MonitorGetName(A_Index)) '","name":"Monitor ' A_Index '","x":' l ',"y":' t
+            . ',"w":' (r - l) ',"h":' (b - t) ',"primary":' (A_Index = prim ? "true" : "false") '}'
+    }
+    return "[" out "]"
 }

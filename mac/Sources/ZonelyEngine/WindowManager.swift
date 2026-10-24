@@ -205,7 +205,7 @@ final class WindowManager {
         } else if followCursor {
             origin.x = current.midX - size.width / 2
         }
-        let area = Screens.usable
+        let area = Screens.usable(containing: CGPoint(x: origin.x + size.width / 2, y: current.midY))     // la pantalla donde queda la ventana
         origin.x = min(max(origin.x, area.minX), max(area.minX, area.maxX - size.width))
         origin.y = min(max(origin.y, area.minY), max(area.minY, area.maxY - size.height))
         entry.window.setFrame(CGRect(origin: origin, size: size))

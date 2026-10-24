@@ -87,6 +87,11 @@ final class SnapController {
 
     private func updateOverlay() {
         guard let config = engine.config, let profile = config.profile(named: engine.state.profile) else { return }
+        guard Screens.onSelected(Screens.mouse) else {          // el cursor está en otra pantalla: nada que encajar
+            hideOverlay()
+            target = nil
+            return
+        }
         let usable = Screens.usable
         target = Geometry.snapTarget(at: Screens.mouse, profile: profile, monitorWidth: config.monitorWidth,
                                      monitorHeight: config.monitorHeight, usable: usable, halves: config.snapHalves)

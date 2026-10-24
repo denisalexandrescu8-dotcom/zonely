@@ -14,6 +14,12 @@ public enum Geometry {
                height: visibleFrame.height)
     }
 
+    /// Pasa un rectángulo de AppKit (origen abajo a la izquierda de la pantalla principal) a coordenadas de Accesibilidad
+    /// (origen arriba a la izquierda de la pantalla principal). Sirve para cualquier pantalla, no solo la principal.
+    public static func axRect(fromAppKit rect: CGRect, primaryHeight: CGFloat) -> CGRect {
+        CGRect(x: rect.minX, y: primaryHeight - rect.maxY, width: rect.width, height: rect.height)
+    }
+
     /// Convierte una zona de `zones.ini` (píxeles del monitor de referencia) a un rectángulo del área útil real.
     /// Así las zonas valen aunque la pantalla no mida lo mismo que cuando se escribieron (y respetan la barra de menús).
     public static func rect(of zone: Zone, monitorWidth: Int, monitorHeight: Int, in usable: CGRect) -> CGRect {

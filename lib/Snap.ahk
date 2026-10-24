@@ -109,6 +109,11 @@ SnapUpdateOverlay() {
         return
     }
     MouseGetPos(&mx, &my)
+    if !Config.OnMonitor(mx, my) {                   ; el cursor está en otro monitor: nada que encajar
+        SnapShown := false
+        SnapHideOverlay()
+        return
+    }
     ; zona bajo el cursor (la más cercana si está en un hueco o fuera)
     list := Config.ZonesByX()
     zone := list[1]

@@ -77,6 +77,7 @@ final class Engine {
             let loaded = try Config.load()
             config = loaded
             configError = nil
+            Screens.selectedId = loaded.monitorId
             if loaded.profile(named: state.profile) == nil || ticks == 0 {
                 let last = (try? String(contentsOf: Paths.lastProfileURL, encoding: .utf8))?
                     .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -189,6 +190,7 @@ final class Engine {
     }
 
     private func writeState() {
-        Ipc.write(Ipc.stateData(version: version, state: state), name: "state.json")
+        let selected = Screens.selected.map { Screens.id(of: $0) } ?? ""
+        Ipc.write(Ipc.stateData(version: version, state: state, monitor: selected, monitors: Screens.list()), name: "state.json")
     }
 }

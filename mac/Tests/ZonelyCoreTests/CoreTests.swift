@@ -147,6 +147,19 @@ final class GeometryTests: XCTestCase {
         XCTAssertEqual(usable, CGRect(x: 0, y: 25, width: 1920, height: 985))
     }
 
+    func testSecondaryScreenIsConvertedToAccessibilityCoordinates() {
+        // Principal de 1920×1080 (y de AppKit: 0…1080) y una pantalla externa de 2560×1440 a su derecha, alineada por abajo.
+        let external = CGRect(x: 1920, y: 0, width: 2560, height: 1440)
+        XCTAssertEqual(Geometry.axRect(fromAppKit: external, primaryHeight: 1080), CGRect(x: 1920, y: -360, width: 2560, height: 1440))
+        // La principal no cambia.
+        XCTAssertEqual(Geometry.axRect(fromAppKit: CGRect(x: 0, y: 0, width: 1920, height: 1080), primaryHeight: 1080), CGRect(x: 0, y: 0, width: 1920, height: 1080))
+    }
+
+    func testMonitorIdIsReadFromTheIni() throws {
+        XCTAssertEqual(try Config(ini: IniFile(text: "[Monitor]\nWidth=2560\nHeight=1440\nId=69733632\n[Profile.a]\nA=0,0,2560,1440\n")).monitorId, "69733632")
+        XCTAssertEqual(try Config(ini: IniFile(text: "[Profile.a]\nA=0,0,1920,1080\n")).monitorId, "")
+    }
+
     func testZoneIsScaledToTheRealScreen() {
         let zone = Zone(name: "A", x: 0, y: 0, w: 2560, h: 1440)               // mitad de un monitor de 5120×1440
         let r = Geometry.rect(of: zone, monitorWidth: 5120, monitorHeight: 1440, in: CGRect(x: 0, y: 25, width: 1920, height: 1000))

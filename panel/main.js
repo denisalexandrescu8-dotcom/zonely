@@ -127,7 +127,7 @@ function readConfig() {
       zones: { A: parseZone(ini[s].A), B: ini[s].B ? parseZone(ini[s].B) : null, C: ini[s].B && ini[s].C ? parseZone(ini[s].C) : null },   // sin B = pantalla normal, sin zonas
     }));
   return {
-    monitor: { w: parseInt(ini.Monitor?.Width ?? 5120, 10), h: parseInt(ini.Monitor?.Height ?? 1440, 10) },
+    monitor: { w: parseInt(ini.Monitor?.Width ?? 5120, 10), h: parseInt(ini.Monitor?.Height ?? 1440, 10), id: ini.Monitor?.Id ?? '' },
     profiles,
     startProfile: ini.General?.Profile ?? 'ultrawide',
     version: readVersion(),
@@ -189,6 +189,33 @@ function setZones({ profile, aw }) {
     t = setIniValue(t, `Profile.${profile}`, 'A', `0,0,${aw},${h}`);
     return setIniValue(t, `Profile.${profile}`, 'B', `${aw},0,${cfg.monitor.w - aw},${h}`);
   });
+}
+
+// Elige el monitor al que se aplican las zonas. Solo vale uno de los que el motor ha publicado (ipc/state.json).
+// Las zonas de todos los perfiles se reescalan al tamaño del monitor nuevo, para que sigan ocupando lo mismo en proporción.
+function setMonitor(id) {
+  const st = readState();
+  const mon = (st.monitors || []).find((m) => m.id === id);
+  if (!st.engineUp || !mon) throw new Error('Monitor no disponible: enciende el motor y vuelve a probar');
+  const cfg = readConfig();
+  const sx = mon.w / cfg.monitor.w, sy = mon.h / cfg.monitor.h;
+  const scale = (zone) => {
+    if (!zone) return null;
+    const x0 = Math.round(zone.x * sx), x1 = Math.round((zone.x + zone.w) * sx);
+    const y0 = Math.round(zone.y * sy), y1 = Math.round((zone.y + zone.h) * sy);
+    return `${x0},${y0},${x1 - x0},${y1 - y0}`;
+  };
+  writeIni((t) => {
+    if (sx !== 1 || sy !== 1) {
+      for (const p of cfg.profiles)
+        for (const key of ['A', 'B', 'C'])
+          if (p.zones[key]) t = setIniValue(t, `Profile.${p.id}`, key, scale(p.zones[key]));
+    }
+    t = setIniValue(t, 'Monitor', 'Width', String(mon.w));
+    t = setIniValue(t, 'Monitor', 'Height', String(mon.h));
+    return setIniValue(t, 'Monitor', 'Id', mon.id);
+  });
+  appendLog('INFO', `Monitor elegido: ${mon.name} (${mon.w}x${mon.h})`);
 }
 
 function setExclusions({ processes, classes }) {
@@ -261,6 +288,7 @@ ipcMain.handle('state:get', () => readState());
 ipcMain.handle('cmd:send', (_e, cmd) => sendCommand(cmd));
 ipcMain.handle('config:setZones', (_e, a) => setZones(a));
 ipcMain.handle('config:setExclusions', (_e, a) => setExclusions(a));
+ipcMain.handle('config:setMonitor', (_e, id) => setMonitor(String(id)));
 ipcMain.handle('ipc:read', (_e, name) => {
   if (!['debug', 'hotkeys'].includes(name)) return null;       // lista cerrada
   try { return JSON.parse(fs.readFileSync(path.join(IPC_DIR, name + '.json'), 'utf8')); } catch { return null; }

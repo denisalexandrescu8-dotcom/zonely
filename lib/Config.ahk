@@ -25,8 +25,13 @@ class Config {
     static GameZoneOf := Map()    ; perfil -> zona del modo juego ("A", "B", "C" o "auto" = la zona donde esté la ventana)
     static Profiles := Map()      ; nombre de perfil -> Map("A", Zone[, "B", Zone])
     static ProfileName := ""      ; perfil activo
-    static MonW := 0
+    static MonW := 0              ; tamaño real (px) del monitor al que se aplican las zonas
     static MonH := 0
+    static MonLeft := 0           ; esquina superior izquierda de ese monitor en el escritorio virtual
+    static MonTop := 0
+    static MonId := ""            ; nombre de Windows del monitor elegido (\\.\DISPLAY2)
+    static DesignW := 0           ; tamaño para el que están escritas las zonas de zones.ini ([Monitor] Width/Height)
+    static DesignH := 0
     static DimOpacity := 85
     static SnapHalves := false         ; Shift+arrastrar: ¿se pueden elegir mitades en la zona B?
     static RestoreOnLeave := true      ; al salirse de una zona, la ventana recupera su tamaño original
@@ -43,8 +48,9 @@ class Config {
         if !FileExist(this.IniPath)
             throw Error("No encuentro " this.IniPath)
 
-        this.MonW := Integer(IniRead(this.IniPath, "Monitor", "Width", 5120))
-        this.MonH := Integer(IniRead(this.IniPath, "Monitor", "Height", 1440))
+        this.DesignW := Integer(IniRead(this.IniPath, "Monitor", "Width", 5120))
+        this.DesignH := Integer(IniRead(this.IniPath, "Monitor", "Height", 1440))
+        this._ResolveMonitor(IniRead(this.IniPath, "Monitor", "Id", ""))
 
         this._LoadProfiles()
         if this.Profiles.Count = 0
@@ -62,7 +68,8 @@ class Config {
     ; ¿Se puede cargar zones.ini sin errores? Si falla, deja todo como estaba y devuelve el motivo;
     ; si va bien devuelve "" y conserva el perfil activo (la recarga automática solo continúa si es válido).
     static TryLoad() {
-        names := ["ProfileOrder", "GameZoneOf", "Profiles", "ProfileName", "MonW", "MonH", "DimOpacity", "SnapHalves"
+        names := ["ProfileOrder", "GameZoneOf", "Profiles", "ProfileName", "MonW", "MonH", "MonLeft", "MonTop", "MonId"
+            , "DesignW", "DesignH", "DimOpacity", "SnapHalves"
             , "RestoreOnLeave", "SnapEnabled", "SnapKey", "WatcherEnabled", "WatcherInterval", "ExcludeProcesses"
             , "ExcludeClasses", "GameProcesses"]
         old := Map()
@@ -214,8 +221,35 @@ class Config {
                 throw Error("[" section "] " key ": '" p "' no es un número entero")
         }
         z := Zone(key, Integer(parts[1]), Integer(parts[2]), Integer(parts[3]), Integer(parts[4]))
-        if z.W <= 0 || z.H <= 0 || z.X < 0 || z.Y < 0 || z.Right > this.MonW || z.Bottom > this.MonH
-            throw Error("[" section "] zona " key " se sale del monitor (" this.MonW "x" this.MonH ")")
-        return z
+        if z.W <= 0 || z.H <= 0 || z.X < 0 || z.Y < 0 || z.Right > this.DesignW || z.Bottom > this.DesignH
+            throw Error("[" section "] zona " key " se sale del monitor (" this.DesignW "x" this.DesignH ")")
+        ; Las zonas del .ini son relativas al monitor: se escalan a su tamaño real (si es el mismo, no cambia nada)
+        ; y se desplazan a su posición en el escritorio, así que el resto del motor trabaja con coordenadas absolutas.
+        sx := this.MonW / this.DesignW, sy := this.MonH / this.DesignH
+        x0 := Round(z.X * sx), x1 := Round(z.Right * sx), y0 := Round(z.Y * sy), y1 := Round(z.Bottom * sy)
+        return Zone(key, this.MonLeft + x0, this.MonTop + y0, x1 - x0, y1 - y0)
     }
+
+    ; Busca el monitor elegido en [Monitor] Id (nombre de Windows, p. ej. \\.\DISPLAY2). Sin Id, o si ya no está
+    ; conectado, se usa el principal.
+    static _ResolveMonitor(id) {
+        idx := MonitorGetPrimary()
+        if id != "" {
+            found := false
+            Loop MonitorGetCount() {
+                if MonitorGetName(A_Index) = id {
+                    idx := A_Index, found := true
+                    break
+                }
+            }
+            if !found
+                try Log("El monitor «" id "» no está conectado: se usa el principal", "WARN")
+        }
+        MonitorGet(idx, &l, &t, &r, &b)
+        this.MonLeft := l, this.MonTop := t, this.MonW := r - l, this.MonH := b - t
+        this.MonId := MonitorGetName(idx)
+    }
+
+    ; ¿Está este punto del escritorio dentro del monitor elegido?
+    static OnMonitor(x, y) => x >= this.MonLeft && x < this.MonLeft + this.MonW && y >= this.MonTop && y < this.MonTop + this.MonH
 }
