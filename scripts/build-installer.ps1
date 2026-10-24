@@ -29,7 +29,7 @@ if ($p.ExitCode -ne 0 -or -not (Test-Path $engine)) { throw "Ahk2Exe falló (có
 Push-Location (Join-Path $root 'panel')
 try {
   if (-not (Test-Path 'node_modules\electron-builder')) { throw 'Falta electron-builder: ejecuta "npm install" dentro de panel.' }
-  $ebArgs = @('electron-builder', '--win', "-c.extraMetadata.version=$version")
+  $ebArgs = @('electron-builder', '--win', '--publish', 'never',"-c.extraMetadata.version=$version")
   if ($DirOnly) { $ebArgs += '--dir' }
   Write-Host 'Empaquetando el panel...'
   & npx @ebArgs

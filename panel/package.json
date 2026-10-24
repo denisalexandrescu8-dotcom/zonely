@@ -81,7 +81,6 @@
       "artifactName": "Zonely-Setup-${version}.${ext}",
       "installerIcon": "../assets/zonely.ico",
       "uninstallerIcon": "../assets/zonely.ico"
-    },
-    "electronDist": "node_modules/electron/dist"
+    }
   }
 }
