@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(profilesItem)
         menu.addItem(.separator())
 
-        let pause =NSMenuItem(title: "Pausar atajos", action: #selector(togglePause(_:)), keyEquivalent: "")
+        let pause = NSMenuItem(title: "Pausar atajos", action: #selector(togglePause(_:)), keyEquivalent: "")
         pause.target = self
         menu.addItem(pause)
         pauseItem = pause
