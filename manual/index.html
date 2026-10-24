@@ -186,6 +186,7 @@
   </ul>
   <div class="tablewrap"><table>
     <tr><th>Entrada del menú</th><th>Qué hace</th></tr>
+    <tr><td>Perfiles</td><td>Se despliega con los perfiles de <code>zones.ini</code>; el activo va marcado y un clic lo aplica (con el aviso de «Perfil aplicado»).</td></tr>
     <tr><td>Vigilante de maximizado</td><td>Activa o desactiva el vigilante (marcado = activo).</td></tr>
     <tr><td>Pausar atajos</td><td>Suspende todos los atajos hasta que lo vuelvas a pulsar. Útil si un juego usa las mismas teclas.</td></tr>
     <tr><td>Salir</td><td>Cierra el motor y devuelve a su estado las ventanas que estuvieran en modo juego.</td></tr>
@@ -254,7 +255,9 @@
   <ul>
     <li><span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>P</kbd></span> abre un selector con una fila por perfil: su dibujo, el reparto en píxeles y en porcentaje, y un botón <b>Aplicar</b>. <b>Un clic en cualquier parte de la fila lo aplica al instante</b> (el actual aparece como «Aplicado», con borde azul); <kbd>Esc</kbd> o la ✕ lo cierran.</li>
     <li>En el panel, haz clic en una tarjeta de <b>Perfiles</b>; la que está activa tiene el borde azul.</li>
+    <li>En el icono de la bandeja, <b>Perfiles</b> y el que quieras.</li>
   </ul>
+  <p>Zonely <b>recuerda el último perfil</b> que usaste y lo vuelve a aplicar al reiniciar el ordenador o el motor.</p>
   <figure class="shot">
     <img src="img/selector.png" alt="Selector de perfiles con una fila por perfil y el botón Aplicar">
     <figcaption>El selector de <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</figcaption>
@@ -373,6 +376,7 @@
     <img src="img/exclusiones.png" alt="Editor de exclusiones del vigilante con procesos y clases de ventana">
     <figcaption>Exclusiones: añade el proceso (por ejemplo <code>obs64.exe</code>) o usa <b>Excluir la última ventana usada</b> para copiarlo automáticamente.</figcaption>
   </figure>
+  <p>El vigilante reacciona en el mismo instante en que maximizas y quita a esas ventanas la animación de maximizar, para que la ventana vaya directa a su zona sin pasar por pantalla completa.</p>
   <p><b>Activar o desactivar:</b> <span class="keys"><kbd>Win</kbd><i>+</i><kbd>Alt</kbd><i>+</i><kbd>W</kbd></span>, el interruptor del panel, o la entrada «Vigilante de maximizado» del icono de la bandeja.</p>
   <figure class="shot">
     <img src="img/comportamiento.png" alt="Interruptores del vigilante y del encaje al arrastrar">
