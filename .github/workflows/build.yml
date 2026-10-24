@@ -24,6 +24,11 @@ jobs:
       - name: Pruebas
         working-directory: mac
         run: swift test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pruebas del actualizador de macOS (descarga, SHA-256 y guion de instalación)
+        run: node panel/updater.test.js
 
   macos-app:
     # Instalador de macOS (.dmg, Apple Silicon). Sin certificado de Apple: se firma «ad hoc».

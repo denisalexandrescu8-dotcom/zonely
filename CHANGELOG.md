@@ -1,6 +1,7 @@
 # Historial de versiones
 
-## Sin publicar
+## 0.38.0
+- **Nuevo (macOS):** la app de Mac se actualiza sola. Al detectar una versión nueva te pregunta y, si aceptas, descarga el `.dmg` ella misma (así no queda «en cuarentena» y macOS no pone el aviso de seguridad), comprueba su SHA-256 contra `SHA256SUMS.txt`, sustituye `Zonely.app` y se vuelve a abrir. Si no hay instalador de Mac en la release, el Mac es Intel o no se puede escribir donde está la app, solo avisa y abre la página de descarga. Después, macOS puede pedir de nuevo el permiso de Accesibilidad (la firma ad hoc cambia en cada versión). Con pruebas automáticas (`node panel/updater.test.js`) en CI.
 - **Nuevo (macOS):** `scripts/install-mac.sh`, instalador de una línea (`curl ... | bash`) que descarga la última release, comprueba el SHA-256 y copia Zonely a Aplicaciones sin el aviso de Gatekeeper (lo descargado con `curl` no queda en cuarentena). README y manual de Mac actualizados: en las versiones recientes de macOS el «clic derecho → Abrir» ya no basta y hay que usar Ajustes → Privacidad y seguridad → «Abrir igualmente».
 
 ## 0.37.0

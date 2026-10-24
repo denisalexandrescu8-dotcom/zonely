@@ -352,7 +352,8 @@ ZoneMaximize=^!z</pre>
   <p class="muted">Los perfiles son las secciones <code>[Profile.nombre]</code> (con zonas <code>A=x,y,ancho,alto</code>): puedes añadir más copiando una.</p>
 
   <h3>Actualizaciones</h3>
-  <p>Al abrirse, Zonely mira si hay una versión nueva en GitHub. En macOS, una app sin firma de Apple no puede actualizarse sola, así que te <b>avisa y abre la página de descarga</b>; descargas el nuevo <code>.dmg</code> y lo instalas encima. También puedes comprobarlo en <b>Ajustes → Actualizaciones</b>.</p>
+  <p>Al abrirse, Zonely mira si hay una versión nueva en GitHub. Si la hay, te pregunta si quieres actualizar. Si aceptas, Zonely <b>descarga el nuevo <code>.dmg</code> ella misma</b> (así macOS no pone el aviso de seguridad), comprueba su SHA-256, sustituye la app de Aplicaciones y se <b>vuelve a abrir sola</b>. Después, macOS puede pedirte de nuevo el permiso de Accesibilidad, porque la firma de la app cambia en cada versión. También puedes comprobarlo en <b>Ajustes → Actualizaciones</b>.</p>
+  <p class="muted">Si no se puede actualizar sola (un Mac con Intel, o una app instalada en una carpeta donde no tienes permiso de escritura), Zonely solo te avisa y abre la página de descarga.</p>
 </section>
 
 <!-- ============ 10 ============ -->
