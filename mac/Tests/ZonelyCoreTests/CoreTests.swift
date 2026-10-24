@@ -169,6 +169,56 @@ final class GeometryTests: XCTestCase {
     }
 }
 
+final class Phase3Tests: XCTestCase {
+    private func profile() throws -> Profile {
+        let ini = "[Monitor]\nWidth=5120\nHeight=1440\n[Profile.u]\nA=0,0,3440,1440\nB=3440,0,1680,1440\n[Profile.c]\nA=1280,0,2560,1440\nB=3840,0,1280,1440\nC=0,0,1280,1440\n"
+        return try XCTUnwrap(Config(ini: IniFile(text: ini)).profile(named: "u"))
+    }
+
+    func testNameMatchIgnoresCaseExeAndApp() {
+        XCTAssertTrue(NameMatch.matches(candidates: ["Rainbow Six", "RainbowSix"], list: ["RainbowSix.exe"]))
+        XCTAssertTrue(NameMatch.matches(candidates: ["OBS"], list: ["obs.app", "vlc.exe"]))
+        XCTAssertFalse(NameMatch.matches(candidates: ["Safari"], list: ["obs64.exe"]))
+        XCTAssertFalse(NameMatch.matches(candidates: ["Safari"], list: []))
+    }
+
+    func testAppKitConversion() {
+        let r = Geometry.appKitRect(fromAX: CGRect(x: 10, y: 25, width: 100, height: 200), primaryHeight: 1080)
+        XCTAssertEqual(r, CGRect(x: 10, y: 855, width: 100, height: 200))
+    }
+
+    func testMaximizedAndOutside() {
+        let usable = CGRect(x: 0, y: 25, width: 1920, height: 1000)
+        XCTAssertTrue(Geometry.isMaximized(CGRect(x: 0, y: 25, width: 1920, height: 1000), in: usable))
+        XCTAssertFalse(Geometry.isMaximized(CGRect(x: 0, y: 25, width: 1280, height: 1000), in: usable))
+        let zone = CGRect(x: 0, y: 25, width: 1280, height: 1000)
+        XCTAssertFalse(Geometry.isOutside(CGRect(x: 5, y: 30, width: 1270, height: 990), of: zone))
+        XCTAssertTrue(Geometry.isOutside(CGRect(x: 600, y: 30, width: 1000, height: 500), of: zone))
+    }
+
+    func testSnapTargetPicksZoneAndHalves() throws {
+        let p = try profile()
+        let usable = CGRect(x: 0, y: 0, width: 5120, height: 1440)
+        let left = Geometry.snapTarget(at: CGPoint(x: 100, y: 700), profile: p, monitorWidth: 5120, monitorHeight: 1440, usable: usable, halves: true)
+        XCTAssertEqual(left?.zone, "A")
+        XCTAssertEqual(left?.rect, CGRect(x: 0, y: 0, width: 3440, height: 1440))
+        let full = Geometry.snapTarget(at: CGPoint(x: 4000, y: 700), profile: p, monitorWidth: 5120, monitorHeight: 1440, usable: usable, halves: true)
+        XCTAssertEqual(full?.rect, CGRect(x: 3440, y: 0, width: 1680, height: 1440))
+        let top = Geometry.snapTarget(at: CGPoint(x: 4000, y: 100), profile: p, monitorWidth: 5120, monitorHeight: 1440, usable: usable, halves: true)
+        XCTAssertEqual(top?.rect, CGRect(x: 3440, y: 0, width: 1680, height: 720))
+        let bottom = Geometry.snapTarget(at: CGPoint(x: 4000, y: 1300), profile: p, monitorWidth: 5120, monitorHeight: 1440, usable: usable, halves: true)
+        XCTAssertEqual(bottom?.rect, CGRect(x: 3440, y: 720, width: 1680, height: 720))
+        let noHalves = Geometry.snapTarget(at: CGPoint(x: 4000, y: 100), profile: p, monitorWidth: 5120, monitorHeight: 1440, usable: usable, halves: false)
+        XCTAssertEqual(noHalves?.rect, CGRect(x: 3440, y: 0, width: 1680, height: 1440))
+    }
+
+    func testOtherZones() throws {
+        let p = try profile()
+        XCTAssertEqual(Geometry.otherZones(than: "A", in: p), "B")
+        XCTAssertEqual(Geometry.otherZones(than: "B", in: p), "A")
+    }
+}
+
 final class IpcTests: XCTestCase {
     func testParsesCommands() {
         let commands = Ipc.parse("profile dual\nwatcher off\ndim A+C\ndim lo-que-sea\ndimlevel 250\nreload\nbasura 1\n\n")

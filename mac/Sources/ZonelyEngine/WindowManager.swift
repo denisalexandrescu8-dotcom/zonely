@@ -1,7 +1,8 @@
 import AppKit
 import ZonelyCore
 
-/// Coloca las ventanas en las zonas: el equivalente de lib/Zones.ahk, GameMode.ahk y Restore.ahk (a mano) en Windows.
+/// Coloca las ventanas en las zonas y las vigila: el equivalente de lib/Zones.ahk, GameMode.ahk, Restore.ahk
+/// y Watcher.ahk en Windows.
 final class WindowManager {
     private unowned let engine: Engine
 
@@ -10,9 +11,20 @@ final class WindowManager {
         let frame: CGRect
     }
 
-    private var undoStack: [Saved] = []          // posiciones anteriores (máx. 20)
-    private var originals: [Saved] = []          // tamaño que tenía cada ventana antes de entrar en una zona
-    private var gameMode: [Saved] = []           // ventanas en «modo juego» y cómo estaban
+    /// Una ventana colocada en una zona: su tamaño de antes y la zona donde quedó (para «recuperar tamaño al salir»).
+    private struct Tracked {
+        let window: ForeignWindow
+        let size: CGSize
+        var zone: CGRect?
+        var pending = 0
+    }
+
+    private var undoStack: [Saved] = []              // posiciones anteriores (máx. 20)
+    private var tracked: [Tracked] = []              // tamaño original de cada ventana colocada
+    private var gameMode: [Saved] = []               // ventanas en «modo juego» y cómo estaban
+    private var lastNormal: Saved?                   // última posición de la ventana activa sin maximizar (para el vigilante)
+    private var fixes: [(window: ForeignWindow, count: Int, since: Date)] = []
+    private var ignored: [ForeignWindow] = []        // ventanas que se pelean con el vigilante: se dejan en paz
 
     init(engine: Engine) {
         self.engine = engine
@@ -36,36 +48,52 @@ final class WindowManager {
         case "Undo": undo()
         case "SwitchProfile": engine.togglePicker()
         case "ToggleWatcher": engine.toggleWatcher()
-        case "ToggleDim": Hud.showText("La capa oscura todavía no está disponible en macOS")
+        case "ToggleDim": engine.toggleDim()
         default: break
         }
     }
 
     // MARK: - Geometría
 
-    private var usable: CGRect {
-        guard let screen = NSScreen.screens.first else { return CGRect(x: 0, y: 0, width: 1920, height: 1080) }
-        return Geometry.usableRect(frame: screen.frame, visibleFrame: screen.visibleFrame)
-    }
-
     private var profile: Profile? {
         engine.config?.profile(named: engine.currentProfileName)
     }
 
     private func rect(of zoneName: String) -> CGRect {
-        guard let config = engine.config, let zone = profile?.zones[zoneName] else { return usable }
-        return Geometry.rect(of: zone, monitorWidth: config.monitorWidth, monitorHeight: config.monitorHeight, in: usable)
+        guard let config = engine.config, let zone = profile?.zones[zoneName] else { return Screens.usable }
+        return Geometry.rect(of: zone, monitorWidth: config.monitorWidth, monitorHeight: config.monitorHeight, in: Screens.usable)
     }
 
     private func zoneName(of frame: CGRect) -> String {
         guard let config = engine.config, let profile = profile else { return "A" }
         return Geometry.zoneName(containing: frame, profile: profile, monitorWidth: config.monitorWidth,
-                                 monitorHeight: config.monitorHeight, usable: usable)
+                                 monitorHeight: config.monitorHeight, usable: Screens.usable)
     }
 
     private func neighbour(of frame: CGRect, _ direction: Int) -> String {
         guard let profile = profile else { return "A" }
         return Geometry.neighbour(of: zoneName(of: frame), direction: direction, profile: profile)
+    }
+
+    /// Zona de la ventana activa (A si no hay ninguna): la usa la capa oscura para saber cuál dejar sin velo.
+    func activeZoneName() -> String {
+        guard Accessibility.isTrusted(prompt: false), let frame = Accessibility.focusedWindow()?.frame else { return "A" }
+        return zoneName(of: frame)
+    }
+
+    // MARK: - Juegos y exclusiones
+
+    private func names(of window: ForeignWindow) -> [String] {
+        [window.app.localizedName, window.app.bundleIdentifier, window.app.executableURL?.lastPathComponent].compactMap { $0 }
+    }
+
+    /// Los juegos de `Games=` nunca se tocan solos (vigilante, encaje, recuperar tamaño); los atajos que pulsas tú sí funcionan.
+    func isGame(_ window: ForeignWindow) -> Bool {
+        NameMatch.matches(candidates: names(of: window), list: engine.config?.gameProcesses ?? [])
+    }
+
+    private func isExcluded(_ window: ForeignWindow) -> Bool {
+        isGame(window) || NameMatch.matches(candidates: names(of: window), list: engine.config?.excludeProcesses ?? [])
     }
 
     // MARK: - Ventana activa
@@ -91,7 +119,8 @@ final class WindowManager {
     // MARK: - Colocar
 
     /// Coloca la ventana. Si estaba en pantalla completa nativa, sale de ella antes (tarda una animación).
-    private func place(_ window: ForeignWindow, _ target: CGRect, from current: CGRect, record: Bool = true) {
+    /// Con `record` apunta el tamaño original y la posición anterior (para recuperar el tamaño y deshacer).
+    func place(_ window: ForeignWindow, _ target: CGRect, from current: CGRect, record: Bool = true) {
         if window.isFullScreen {
             window.setFullScreen(false)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
@@ -104,9 +133,20 @@ final class WindowManager {
             noteOriginal(window, current)
         }
         window.setFrame(target)
-        if let result = window.frame, !Geometry.matches(result, target, tolerance: 3) {
+        let result = window.frame
+        if let result = result, !Geometry.matches(result, target, tolerance: 3) {
             Log.write("No respeta la zona: \(window.processName) · pedido \(Int(target.minX)),\(Int(target.minY)) \(Int(target.width))x\(Int(target.height)) · obtenido \(Int(result.minX)),\(Int(result.minY)) \(Int(result.width))x\(Int(result.height))", level: "WARN")
         }
+        if record, let i = tracked.firstIndex(where: { $0.window.sameWindow(as: window) }) {
+            tracked[i].zone = result.map { target.union($0) } ?? target     // si la app no puede ser tan pequeña, no cuenta como «salirse»
+            tracked[i].pending = 0
+        }
+    }
+
+    /// Encaje arrastrando (con la tecla): coloca la ventana en el rectángulo elegido.
+    func snap(_ window: ForeignWindow, to target: CGRect) {
+        guard let frame = window.frame else { return }
+        place(window, target, from: frame)
     }
 
     private func placeHalf(_ window: ForeignWindow, _ current: CGRect, top: Bool) {
@@ -141,22 +181,36 @@ final class WindowManager {
     // MARK: - Restaurar y deshacer
 
     private func noteOriginal(_ window: ForeignWindow, _ frame: CGRect) {
-        guard !originals.contains(where: { $0.window.sameWindow(as: window) }) else { return }
-        push(&originals, Saved(window: window, frame: frame), limit: 50)
+        guard !tracked.contains(where: { $0.window.sameWindow(as: window) }) else { return }
+        tracked.append(Tracked(window: window, size: frame.size, zone: nil))
+        if tracked.count > 50 { tracked.removeFirst(tracked.count - 50) }
     }
 
     private func restoreOriginal(_ window: ForeignWindow, _ current: CGRect) {
-        guard let saved = originals.first(where: { $0.window.sameWindow(as: window) }) else {
+        guard let entry = tracked.first(where: { $0.window.sameWindow(as: window) }) else {
             Hud.showText("No tengo guardado el tamaño original de esta ventana")
             return
         }
-        // Recupera el tamaño de antes de entrar en la zona, dejando la ventana donde está (sin salirse del área útil).
-        var target = CGRect(origin: current.origin, size: saved.frame.size)
-        let area = usable
-        target.origin.x = min(max(target.minX, area.minX), max(area.minX, area.maxX - target.width))
-        target.origin.y = min(max(target.minY, area.minY), max(area.minY, area.maxY - target.height))
-        place(window, target, from: current, record: false)
-        originals.removeAll { $0.window.sameWindow(as: window) }
+        returnToOriginalSize(entry, from: current, followCursor: false)
+    }
+
+    /// Devuelve la ventana a su tamaño de antes de entrar en una zona. Con `followCursor` queda donde está el cursor
+    /// (proporcionalmente, como al soltar una ventana arrastrada); si no, se queda donde está.
+    private func returnToOriginalSize(_ entry: Tracked, from current: CGRect, followCursor: Bool) {
+        let size = entry.size
+        var origin = current.origin
+        let cursor = Screens.mouse
+        if followCursor, current.contains(cursor) {
+            origin.x = cursor.x - ((cursor.x - current.minX) / max(1, current.width)) * size.width
+        } else if followCursor {
+            origin.x = current.midX - size.width / 2
+        }
+        let area = Screens.usable
+        origin.x = min(max(origin.x, area.minX), max(area.minX, area.maxX - size.width))
+        origin.y = min(max(origin.y, area.minY), max(area.minY, area.maxY - size.height))
+        entry.window.setFrame(CGRect(origin: origin, size: size))
+        tracked.removeAll { $0.window.sameWindow(as: entry.window) }
+        Log.write("Tamaño original restaurado al salir de la zona: \(entry.window.processName) \(Int(size.width))x\(Int(size.height))")
     }
 
     private func undo() {
@@ -173,5 +227,81 @@ final class WindowManager {
     private func push(_ stack: inout [Saved], _ item: Saved, limit: Int) {
         stack.append(item)
         if stack.count > limit { stack.removeFirst(stack.count - limit) }
+    }
+
+    // MARK: - Vigilante y «recuperar tamaño» (se llama cada pocos cientos de milisegundos)
+
+    func watcherTick() {
+        guard Accessibility.isTrusted(prompt: false), profile?.isZoned == true else {
+            lastNormal = nil
+            return
+        }
+        if engine.state.watcher { fixMaximized() }
+        if engine.config?.restoreOnLeave ?? true { restoreWindowsThatLeftTheirZone() }
+    }
+
+    /// Si la ventana activa se ha maximizado (ocupa toda el área útil), vuelve a su zona.
+    private func fixMaximized() {
+        guard let window = Accessibility.focusedWindow(), !isExcluded(window), let frame = window.frame,
+              !window.isFullScreen, !window.isMinimized else {
+            lastNormal = nil
+            return
+        }
+        guard Geometry.isMaximized(frame, in: Screens.usable) else {
+            lastNormal = Saved(window: window, frame: frame)
+            return
+        }
+        if ignored.contains(where: { $0.sameWindow(as: window) }) { return }
+        guard registerFix(window) else { return }
+        var zone = "A"
+        var before = frame
+        if let last = lastNormal, last.window.sameWindow(as: window) {
+            zone = zoneName(of: last.frame)
+            before = last.frame
+        }
+        Log.write("Vigilante: \(window.processName) estaba maximizada")
+        place(window, rect(of: zone), from: before)
+    }
+
+    /// Anti-bucle: si una app se vuelve a maximizar sola más de 4 veces en 3 segundos, se deja en paz.
+    private func registerFix(_ window: ForeignWindow) -> Bool {
+        let now = Date()
+        let i = fixes.firstIndex { $0.window.sameWindow(as: window) }
+        var entry = i.map { fixes[$0] } ?? (window: window, count: 0, since: now)
+        if now.timeIntervalSince(entry.since) > 3 { entry = (window: window, count: 0, since: now) }
+        entry.count += 1
+        if let i = i { fixes[i] = entry } else { fixes.append(entry) }
+        if fixes.count > 30 { fixes.removeFirst() }
+        if entry.count > 4 {
+            ignored.append(window)
+            Hud.showText("El vigilante ignora esta ventana (se maximiza sola)")
+            Log.write("Vigilante: se ignora \(window.processName) (se maximiza sola)", level: "WARN")
+            return false
+        }
+        return true
+    }
+
+    /// Una ventana colocada en una zona que se saca de ella recupera el tamaño que tenía antes de entrar.
+    private func restoreWindowsThatLeftTheirZone() {
+        guard NSEvent.pressedMouseButtons == 0 else { return }        // se está arrastrando o pulsando: se espera
+        for i in tracked.indices.reversed() {
+            guard i < tracked.count, let zone = tracked[i].zone else { continue }
+            let window = tracked[i].window
+            guard let frame = window.frame else {                       // la ventana ya no existe
+                tracked.remove(at: i)
+                continue
+            }
+            if isGame(window) || window.isFullScreen || window.isMinimized || Geometry.isMaximized(frame, in: Screens.usable)
+                || gameMode.contains(where: { $0.window.sameWindow(as: window) }) {
+                tracked[i].pending = 0
+                continue
+            }
+            if Geometry.isOutside(frame, of: zone) {
+                tracked[i].pending += 1
+                if tracked[i].pending >= 2 { returnToOriginalSize(tracked[i], from: frame, followCursor: true) }
+            } else {
+                tracked[i].pending = 0
+            }
+        }
     }
 }

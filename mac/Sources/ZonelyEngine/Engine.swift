@@ -14,6 +14,9 @@ final class Engine {
     private let hotkeys = HotkeyCenter()
     private let picker = ProfilePicker()
     private lazy var windows = WindowManager(engine: self)
+    private lazy var dim = DimController(engine: self)
+    private lazy var snap = SnapController(engine: self, windows: windows)
+    private var watcherTimer: Timer?
 
     var currentProfileName: String { state.profile }
 
@@ -40,6 +43,12 @@ final class Engine {
         }
         Log.write("Motor iniciado v\(version) · perfil \(state.profile)")
         timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.tick() }
+        let interval = Double(config?.watcherIntervalMs ?? 150) / 1000
+        let watcher = Timer(timeInterval: interval, repeats: true) { [weak self] _ in self?.windows.watcherTick() }
+        RunLoop.main.add(watcher, forMode: .common)
+        watcherTimer = watcher
+        snap.start()
+        dim.update()
     }
 
     /// Relee zones.ini y vuelve a registrar los atajos. Si el archivo está mal, se queda lo que había y se anota el motivo.
@@ -64,6 +73,7 @@ final class Engine {
         }
         Ipc.write(Ipc.hotkeysData(registered), name: "hotkeys.json")
         writeState()
+        dim.update()
     }
 
     // MARK: - Acciones que usan los atajos y el menú
@@ -72,8 +82,10 @@ final class Engine {
     func setProfile(_ name: String, origin: String) {
         guard let profile = config?.profile(named: name) else { return }
         state.profile = name
+        if !profile.isZoned { state.dim = "" }                  // sin zonas no hay nada que atenuar
         Log.write("Perfil: \(name) (\(origin))")
         writeState()
+        dim.update()
         if origin == "selector", let config = config { Hud.showProfile(profile, monitorWidth: config.monitorWidth) }
     }
 
@@ -89,6 +101,17 @@ final class Engine {
         state.watcher.toggle()
         writeState()
         Hud.showText("Vigilante \(state.watcher ? "activado" : "desactivado")")
+    }
+
+    /// Capa oscura (⌃⌥O): la apaga si estaba encendida; si no, oscurece todas las zonas menos la de la ventana activa.
+    func toggleDim() {
+        guard let profile = config?.profile(named: state.profile), profile.isZoned else {
+            Hud.showText("El perfil «\(state.profile)» no tiene zonas")
+            return
+        }
+        state.dim = state.dim.isEmpty ? Geometry.otherZones(than: windows.activeZoneName(), in: profile) : ""
+        writeState()
+        dim.update()
     }
 
     // MARK: - Panel
@@ -107,8 +130,12 @@ final class Engine {
         case .snap(let on): state.snap = on
         case .halves(let on): config?.snapHalves = on
         case .restore(let on): config?.restoreOnLeave = on
-        case .dim(let zone): state.dim = zone
-        case .dimLevel(let level): state.dimLevel = level
+        case .dim(let zone):
+            state.dim = zone
+            dim.update()
+        case .dimLevel(let level):
+            state.dimLevel = level
+            dim.update()
         case .watch: break
         case .reload:
             Log.write("Recargando")

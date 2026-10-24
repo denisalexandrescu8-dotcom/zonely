@@ -70,6 +70,26 @@ enum Accessibility {
         }
     }
 
+    /// La ventana que hay bajo un punto de la pantalla (coordenadas de Accesibilidad), si es de otra aplicación.
+    static func window(at point: CGPoint) -> ForeignWindow? {
+        var found: AXUIElement?
+        guard AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(point.x), Float(point.y), &found) == .success,
+              let element = found else { return nil }
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(element, &pid) == .success, pid != ProcessInfo.processInfo.processIdentifier,
+              let app = NSRunningApplication(processIdentifier: pid) else { return nil }
+        var windowValue: CFTypeRef?
+        if AXUIElementCopyAttributeValue(element, kAXWindowAttribute as CFString, &windowValue) == .success, let value = windowValue {
+            return ForeignWindow(element: value as! AXUIElement, app: app)
+        }
+        var role: CFTypeRef?
+        if AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role) == .success,
+           (role as? String) == (kAXWindowRole as String) {
+            return ForeignWindow(element: element, app: app)
+        }
+        return nil
+    }
+
     /// La ventana en primer plano de la aplicación activa (nunca una ventana de Zonely).
     static func focusedWindow() -> ForeignWindow? {
         guard let app = NSWorkspace.shared.frontmostApplication,
