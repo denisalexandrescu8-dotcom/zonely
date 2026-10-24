@@ -31,7 +31,7 @@ Zonely splits a big monitor into independent **zones** and puts your windows in 
 
 Your settings live in `%APPDATA%\Zonely` (`zones.ini`, logs), so updating or reinstalling never overwrites them. Uninstalling does not delete them either.
 
-**Updates:** Zonely updates itself. A few minutes after it starts, and then every 6 hours, the engine launches a window-less check in the background: if there is a new version on GitHub it downloads it, verifies its SHA-256, installs it and restarts the engine, without asking or showing anything (on macOS it replaces `Zonely.app`, and macOS may ask for the Accessibility permission again). You can turn this off in *Settings → Updates → Update automatically*; then Zonely asks whenever you open the panel. The *Check now* button is always there. There is no «reload» button to press: changes to `zones.ini` are picked up automatically.
+**Updates:** Zonely updates itself. A few minutes after it starts, and then every 6 hours, the engine launches a window-less check in the background: if there is a new version on GitHub it downloads it, verifies its SHA-256, installs it and restarts the engine, without asking or showing anything (on macOS it replaces `Zonely.app`, and macOS may ask for the Accessibility permission again). You can turn this off in *Settings → Updates → Update automatically*; then Zonely shows a question when there is a new version (once per version). The *Check now* button is always there. There is no «reload» button to press: changes to `zones.ini` are picked up automatically.
 
 A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and in the **Manual** section of the panel.
 
