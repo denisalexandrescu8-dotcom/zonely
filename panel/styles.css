@@ -92,6 +92,8 @@ button.primary:disabled { background: var(--surface-2); border-color: var(--line
 
 /* ---- Secciones ---- */
 .view { display: none; }
+.view[data-view="manual"].on { display: block; }
+#manual-frame { width: 100%; height: calc(100vh - 130px); border: 0; border-radius: 16px; background: #05060a; }
 .view.on { display: grid; gap: 18px; align-content: start; }
 section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; }
 .stage-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }

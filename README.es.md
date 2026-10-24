@@ -33,7 +33,7 @@ Tus ajustes viven en `%APPDATA%\Zonely` (`zones.ini`, registros): actualizar o r
 
 **Actualizaciones:** Zonely se actualiza sola. A los pocos minutos de arrancar, y después cada 6 horas, el motor lanza una comprobación sin ventana: si hay una versión nueva en GitHub, la descarga, comprueba su SHA-256, la instala y reinicia el motor, sin preguntar ni enseñar nada (en macOS sustituye `Zonely.app`, y puede que macOS pida de nuevo el permiso de Accesibilidad). Se puede apagar en *Ajustes → Actualizaciones → Actualizar automáticamente*; entonces Zonely pregunta al abrir el panel. El botón *Buscar ahora* siempre está. No hay botón de «recargar»: los cambios de `zones.ini` se detectan solos.
 
-La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y tras el botón **Manual** del panel.
+La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y en la sección **Manual** del panel.
 
 ## Instalar (macOS, Apple Silicon)
 1. **Lo más fácil, sin avisos de seguridad:** pega esto en la Terminal. Descarga la última release con `curl`, comprueba su SHA-256 y copia Zonely a Aplicaciones. Lo descargado con `curl` no queda marcado como «en cuarentena», así que macOS abre la app directamente (puedes leer antes el script: [`scripts/install-mac.sh`](scripts/install-mac.sh)).
@@ -45,7 +45,7 @@ La guía ilustrada completa está en [`manual/index.html`](manual/index.html) y 
 3. Zonely necesita el permiso de **Accesibilidad** para mover ventanas de otras apps: Ajustes del Sistema → Privacidad y seguridad → Accesibilidad → activa *ZonelyEngine*. El icono de la barra de menús tiene un acceso directo a ese panel.
 4. En macOS los atajos son **⌃⌥ + tecla** (por ejemplo ⌃⌥Z), editables en el panel. El modo juego llena la zona (macOS no permite quitar los bordes de la ventana de otra app). Los ajustes están en `~/Library/Application Support/Zonely`.
 
-Hay un manual de uso para macOS en [`manual/mac.html`](manual/mac.html), también tras el botón **Manual** del panel.
+Hay un manual de uso para macOS en [`manual/mac.html`](manual/mac.html), también en la sección **Manual** del panel.
 
 ## Atajos de fábrica (macOS)
 | Atajo | Acción |

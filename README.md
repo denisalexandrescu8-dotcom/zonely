@@ -33,7 +33,7 @@ Your settings live in `%APPDATA%\Zonely` (`zones.ini`, logs), so updating or rei
 
 **Updates:** Zonely updates itself. A few minutes after it starts, and then every 6 hours, the engine launches a window-less check in the background: if there is a new version on GitHub it downloads it, verifies its SHA-256, installs it and restarts the engine, without asking or showing anything (on macOS it replaces `Zonely.app`, and macOS may ask for the Accessibility permission again). You can turn this off in *Settings → Updates → Update automatically*; then Zonely asks whenever you open the panel. The *Check now* button is always there. There is no «reload» button to press: changes to `zones.ini` are picked up automatically.
 
-A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and behind the **Manual** button of the panel.
+A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and in the **Manual** section of the panel.
 
 ## Install (macOS, Apple Silicon)
 1. **Easiest, with no security warning:** paste this in Terminal. It downloads the latest release with `curl`, checks its SHA-256 and copies Zonely to Applications. Files downloaded with `curl` are not flagged as «quarantined», so macOS opens the app straight away (you can read the script first: [`scripts/install-mac.sh`](scripts/install-mac.sh)).
@@ -45,7 +45,7 @@ A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/in
 3. Zonely needs the **Accessibility** permission to move other apps' windows: System Settings → Privacy & Security → Accessibility → enable *ZonelyEngine*. The menu-bar icon has a shortcut to that pane.
 4. Shortcuts on macOS are **⌃⌥ + key** (e.g. ⌃⌥Z), editable in the panel. Game mode fills the zone (macOS cannot remove another app's window borders). Settings live in `~/Library/Application Support/Zonely`.
 
-There is a macOS user guide in [`manual/mac.html`](manual/mac.html) (Spanish for now), also behind the **Manual** button of the panel.
+There is a macOS user guide in [`manual/mac.html`](manual/mac.html) (Spanish for now), also in the **Manual** section of the panel.
 
 ## Default shortcuts (macOS)
 | Shortcut | Action |

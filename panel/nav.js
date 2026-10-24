@@ -4,8 +4,9 @@ const VIEWS = {
   zonas:    ['Zonas', 'Tu monitor, tus perfiles y sus zonas.'],
   atajos:   ['Atajos', 'Cambia las combinaciones de teclado del motor.'],
   ajustes:  ['Ajustes', 'Modo juego, capa oscura y exclusiones.'],
+  manual:   ['Manual', 'Guía de uso de Zonely.'],
   registro: ['Registro', 'Lo que hace el motor y la última ventana usada.'],
-};
+};     // IS_MAC viene de hotkeys.js
 
 function showView(name) {
   if (name === 'registro' && !devMode) name = 'zonas';
@@ -15,14 +16,15 @@ function showView(name) {
   for (const b of document.querySelectorAll('.nav-item')) b.classList.toggle('on', b.dataset.nav === name);
   document.getElementById('view-title').textContent = VIEWS[name][0];
   document.getElementById('view-sub').textContent = VIEWS[name][1];
+  if (name === 'manual') {                // el manual se carga la primera vez que se abre
+    const frame = document.getElementById('manual-frame');
+    if (!frame.getAttribute('src')) frame.src = IS_MAC ? '../manual/mac.html' : '../manual/index.html';
+  }
   try { localStorage.setItem('view', name); } catch { /* sin almacenamiento: no pasa nada */ }
 }
 
 for (const b of document.querySelectorAll('.nav-item'))
-  b.addEventListener('click', () => {
-    if (b.dataset.action === 'manual') window.zones?.openManual?.();     // el manual no es una vista: se abre aparte
-    else showView(b.dataset.nav);
-  });
+  b.addEventListener('click', () => showView(b.dataset.nav));
 
 let lastView = 'zonas';
 try { lastView = localStorage.getItem('view') || 'zonas'; } catch { /* idem */ }
@@ -40,7 +42,7 @@ Promise.resolve(window.zones?.isDev?.()).then((dev) => {
 }).catch(() => {});
 
 // En macOS los atajos de fábrica son ⌃⌥ + tecla: los textos fijos de la interfaz que dicen «Win+Alt+X» se adaptan.
-if (/Mac/i.test(navigator.platform || '')) {
+if (IS_MAC) {
   for (const el of document.querySelectorAll('.mac-only')) el.hidden = false;      // ajustes que solo existen en macOS
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode())

@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.43.0
+- **Cambio:** el manual ya no se abre en una pestaña aparte: es una sección del panel (**Manual**, en la barra lateral) que muestra la guía de cada sistema con el mismo estilo de la app. La página sigue existiendo suelta (`manual/index.html`, `manual/mac.html`) para imprimirla o abrirla en el navegador.
+
 ## 0.42.0
 - **Nuevo:** el menú del icono de la bandeja (Windows) y de la barra de menús (macOS) tiene un submenú **Perfiles** con los perfiles de `zones.ini`; el activo va marcado y un clic cambia de perfil (con el mismo aviso que el selector).
 
