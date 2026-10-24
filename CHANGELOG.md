@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## Sin publicar (macOS, en desarrollo)
+- **Nuevo (fase 1 de macOS):** motor en Swift (`mac/`) con el núcleo (rutas en `~/Library/Application Support/Zonely`, lector de `zones.ini`, configuración, IPC con el panel, tabla de atajos ⌃⌥) y un programa de barra de menús. Todavía **no coloca ventanas**: eso llega en la fase 2. El panel ya puede arrancarlo, ver su estado y cambiar de perfil. 14 pruebas automáticas en macOS (`swift test`).
+
 ## 0.32.0
 - **Nuevo:** la primera vez, `zones.ini` se crea a partir de `zones.template.ini` con los perfiles calculados para el tamaño del monitor principal (antes era el del monitor de 5120×1440 del autor). En un monitor de 1920×1080 salen «dual» y «normal»; en uno ultrawide, también «ultrawide» y «centrado». Quien ya tiene un `zones.ini` en `%APPDATA%/Zonely` no nota ningún cambio.
 - **Nuevo:** flujo de GitHub Actions (`.github/workflows/build.yml`) que construye el instalador de Windows en cada cambio y, al subir una etiqueta `vX.Y.Z`, crea la release con el instalador y su SHA-256.

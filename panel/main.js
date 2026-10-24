@@ -42,7 +42,8 @@ function ensureIni() {
     const tpl = path.join(ROOT, 'zones.template.ini');
     if (!fs.existsSync(tpl)) return;
     const d = screen.getPrimaryDisplay();
-    const w = Math.round(d.bounds.width * d.scaleFactor), h = Math.round(d.bounds.height * d.scaleFactor);
+    const scale = process.platform === 'darwin' ? 1 : d.scaleFactor;      // en macOS las coordenadas son puntos, no píxeles físicos
+    const w = Math.round(d.bounds.width * scale), h = Math.round(d.bounds.height * scale);
     const txt = fs.readFileSync(tpl, 'utf8')
       .replace('{{WIDTH}}', w).replace('{{HEIGHT}}', h).replace('{{PROFILES}}', defaultProfiles(w, h));
     if (!fs.existsSync(INI)) fs.writeFileSync(INI, txt, { flag: 'wx' });    // 'wx': si el motor se adelantó, no se pisa
@@ -209,6 +210,13 @@ function sendCommand(cmd) {
   fs.renameSync(tmp, path.join(IPC_DIR, 'cmd.txt'));
 }
 function startEngine() {
+  if (process.platform === 'darwin') {               // macOS: motor en Swift (mac/), instalado o compilado con `swift build`
+    const exe = [path.join(ROOT, 'ZonelyEngine'), path.join(ROOT, 'mac', '.build', 'release', 'ZonelyEngine'), path.join(ROOT, 'mac', '.build', 'debug', 'ZonelyEngine')]
+      .find((p) => fs.existsSync(p));
+    if (!exe) throw new Error('No encuentro el motor de macOS: compílalo con «swift build» dentro de la carpeta mac');
+    spawn(exe, [], { detached: true, stdio: 'ignore', cwd: ROOT }).unref();
+    return;
+  }
   if (app.isPackaged) {                              // versión instalada: el motor ya viene compilado
     const exe = path.join(ROOT, 'ZonelyEngine.exe');
     if (!fs.existsSync(exe)) throw new Error('No encuentro ZonelyEngine.exe');
