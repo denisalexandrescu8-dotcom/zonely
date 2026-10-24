@@ -219,6 +219,27 @@ final class Phase3Tests: XCTestCase {
     }
 }
 
+final class LoginItemTests: XCTestCase {
+    func testPlistContainsLabelPathAndEscapes() {
+        let text = LoginItem.plistText(executable: "/Applications/Zonely & Co/ZonelyEngine")
+        XCTAssertTrue(text.contains("<string>com.zonely.engine</string>"))
+        XCTAssertTrue(text.contains("<string>/Applications/Zonely &amp; Co/ZonelyEngine</string>"))
+        XCTAssertTrue(text.contains("<key>RunAtLoad</key>\n    <true/>"))
+        XCTAssertNotNil(try? PropertyListSerialization.propertyList(from: Data(text.utf8), options: [], format: nil))
+    }
+
+    func testOnlyOneInstanceHoldsTheLock() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("zonely-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let lock = dir.appendingPathComponent("engine.lock")
+        XCTAssertTrue(SingleInstance.acquire(lockFile: lock))
+        // Una segunda toma del mismo archivo, con otro descriptor, debe fallar mientras la primera siga abierta.
+        let fd = open(lock.path, O_RDWR)
+        XCTAssertEqual(flock(fd, LOCK_EX | LOCK_NB), -1)
+        close(fd)
+    }
+}
+
 final class IpcTests: XCTestCase {
     func testParsesCommands() {
         let commands = Ipc.parse("profile dual\nwatcher off\ndim A+C\ndim lo-que-sea\ndimlevel 250\nreload\nbasura 1\n\n")

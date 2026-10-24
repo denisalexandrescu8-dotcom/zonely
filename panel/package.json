@@ -37,10 +37,6 @@
     ],
     "extraResources": [
       {
-        "from": "../dist/engine/ZonelyEngine.exe",
-        "to": "ZonelyEngine.exe"
-      },
-      {
         "from": "../version.txt",
         "to": "version.txt"
       },
@@ -66,7 +62,13 @@
           ]
         }
       ],
-      "icon": "../assets/zonely.ico"
+      "icon": "../assets/zonely.ico",
+      "extraResources": [
+        {
+          "from": "../dist/engine/ZonelyEngine.exe",
+          "to": "ZonelyEngine.exe"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -81,6 +83,31 @@
       "artifactName": "Zonely-Setup-${version}.${ext}",
       "installerIcon": "../assets/zonely.ico",
       "uninstallerIcon": "../assets/zonely.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "../assets/zonely.png",
+      "category": "public.app-category.productivity",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "extraResources": [
+        {
+          "from": "../mac/.build/release/ZonelyEngine",
+          "to": "ZonelyEngine"
+        }
+      ],
+      "artifactName": "Zonely-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "Zonely ${version}"
     }
   }
 }

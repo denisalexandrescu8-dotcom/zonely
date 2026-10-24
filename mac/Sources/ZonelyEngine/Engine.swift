@@ -26,8 +26,22 @@ final class Engine {
         set { state.paused = newValue; writeState() }
     }
 
+    /// Inicio con el sistema: la primera vez que arranca el motor instalado se activa (se puede quitar desde el menú);
+    /// después, solo se corrige la ruta si la app se ha movido o actualizado. Desde el código (`swift run`) no se toca.
+    private func configureLoginItem() {
+        guard let executable = Bundle.main.executablePath, executable.contains(".app/Contents/") else { return }
+        let marker = Paths.dataDir.appendingPathComponent(".autostart-configured")
+        if FileManager.default.fileExists(atPath: marker.path) {
+            LoginItem.refresh(executable: executable)
+        } else {
+            LoginItem.enable(executable: executable)
+            try? Data().write(to: marker)
+        }
+    }
+
     func start() {
         Paths.ensureDirectories()
+        configureLoginItem()
         if let screen = NSScreen.screens.first {
             let size = screen.frame.size
             DefaultIni.createIfMissing(width: Int(size.width), height: Int(size.height))

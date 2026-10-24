@@ -39,6 +39,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         reload.target = self
         menu.addItem(reload)
 
+        let login = NSMenuItem(title: "Abrir al iniciar sesión", action: #selector(toggleLoginItem(_:)), keyEquivalent: "")
+        login.target = self
+        login.state = LoginItem.isEnabled() ? .on : .off
+        menu.addItem(login)
+
         let access = NSMenuItem(title: "Permiso de Accesibilidad…", action: #selector(openAccessibility(_:)), keyEquivalent: "")
         access.target = self
         menu.addItem(access)
@@ -64,6 +69,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func reload(_ sender: NSMenuItem) {
         engine.reloadConfig()
+    }
+
+    @objc private func toggleLoginItem(_ sender: NSMenuItem) {
+        if LoginItem.isEnabled() {
+            LoginItem.disable()
+        } else if let executable = Bundle.main.executablePath {
+            LoginItem.enable(executable: executable)
+        }
+        sender.state = LoginItem.isEnabled() ? .on : .off
     }
 
     @objc private func openAccessibility(_ sender: NSMenuItem) {

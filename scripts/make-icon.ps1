@@ -54,3 +54,8 @@ for ($i = 0; $i -lt $sizes.Count; $i++) {
 foreach ($d in $png) { $bw.Write($d) }
 $bw.Close(); $fs.Close()
 "Creado $out"
+
+# PNG de 1024 px: electron-builder lo convierte en el .icns de macOS.
+$big = Join-Path $PSScriptRoot '..\assets\zonely.png'
+(Render 1024).Save($big, [Drawing.Imaging.ImageFormat]::Png)
+"Creado $big"

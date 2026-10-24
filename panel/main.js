@@ -287,7 +287,7 @@ function createWindow() {
     backgroundColor: '#0b0f17',
     autoHideMenuBar: true,
     title: 'Zonely',
-    icon: path.join(ROOT, 'assets', 'zonely.ico'),
+    ...(process.platform === 'win32' ? { icon: path.join(ROOT, 'assets', 'zonely.ico') } : {}),    // en macOS el icono es el de la app
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -298,5 +298,11 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'index.html'));
 }
 
-app.whenReady().then(() => { ensureIni(); appendLog('INFO', `Panel iniciado v${readVersion()}`); createWindow(); });
+app.whenReady().then(() => {
+  ensureIni();
+  appendLog('INFO', `Panel iniciado v${readVersion()}`);
+  // macOS instalado: el panel arranca el motor si no está en marcha (el motor evita ser lanzado dos veces).
+  if (app.isPackaged && process.platform === 'darwin') { try { startEngine(); } catch (e) { appendLog('WARN', `No pude iniciar el motor: ${e.message}`); } }
+  createWindow();
+});
 app.on('window-all-closed', () => app.quit());
