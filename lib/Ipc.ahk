@@ -222,13 +222,69 @@ WriteState() {
 
 JsonEsc(s) => StrReplace(StrReplace(s, "\", "\\"), '"', '\"')
 
+MonitorNames := Map()            ; nombre de Windows (\\.\DISPLAY1) -> nombre del modelo, leído una vez por conexión
+MonitorNamesCount := -1
+
+; Modelo del monitor tal como lo detecta Windows: el nombre que lleva el propio monitor en su EDID (p. ej. «Odyssey OLED G9»).
+; Si no se puede leer, «Monitor N». `adapter` es el nombre del monitor en Windows (\\.\DISPLAY1).
+MonitorModelName(adapter, index) {
+    fallback := "Monitor " index
+    try {
+        dd := Buffer(840, 0)                                   ; DISPLAY_DEVICE: cb, DeviceName, DeviceString, StateFlags, DeviceID, DeviceKey
+        NumPut("UInt", 840, dd, 0)
+        if !DllCall("EnumDisplayDevicesW", "Str", adapter, "UInt", 0, "Ptr", dd, "UInt", 0)
+            return fallback
+        devId := StrGet(dd.Ptr + 328, 128, "UTF-16")          ; MONITOR\SAM7000\{guid}\0004
+        parts := StrSplit(devId, "\")
+        if parts.Length < 4
+            return fallback
+        model := parts[2], driver := parts[3] "\" parts[4]
+        base := "HKLM\SYSTEM\CurrentControlSet\Enum\DISPLAY\" model
+        Loop Reg, base, "K" {
+            try {
+                if RegRead(base "\" A_LoopRegName, "Driver") != driver
+                    continue
+                edid := RegRead(base "\" A_LoopRegName "\Device Parameters", "EDID")       ; REG_BINARY -> cadena hexadecimal
+                Loop 4 {
+                    pos := 54 + (A_Index - 1) * 18                                       ; cuatro descriptores de 18 bytes
+                    if SubStr(edid, pos * 2 + 1, 8) = "000000FC" {                       ; 0xFC = nombre del monitor
+                        name := ""
+                        Loop 13 {
+                            b := Integer("0x" SubStr(edid, (pos + 4 + A_Index) * 2 + 1, 2))
+                            if b = 10 || b = 0
+                                break
+                            name .= Chr(b)
+                        }
+                        name := Trim(name)
+                        if name != ""
+                            return name
+                    }
+                }
+            }
+        }
+    }
+    return fallback
+}
+
 ; Monitores conectados, para que el panel deje elegir a cuál se aplican las zonas.
 MonitorsJson() {
+    global MonitorNames, MonitorNamesCount
+    n := MonitorGetCount()
+    if n != MonitorNamesCount {                                ; se vuelve a leer solo cuando se conecta o desconecta alguno
+        MonitorNamesCount := n
+        MonitorNames := Map()
+        seen := Map()
+        Loop n {
+            nm := MonitorModelName(MonitorGetName(A_Index), A_Index)
+            seen[nm] := seen.Has(nm) ? seen[nm] + 1 : 1
+            MonitorNames[A_Index] := seen[nm] > 1 ? nm " (" seen[nm] ")" : nm      ; dos iguales: «Modelo» y «Modelo (2)»
+        }
+    }
     out := ""
     prim := MonitorGetPrimary()
-    Loop MonitorGetCount() {
+    Loop n {
         MonitorGet(A_Index, &l, &t, &r, &b)
-        out .= (out = "" ? "" : ",") '{"id":"' JsonEsc(MonitorGetName(A_Index)) '","name":"Monitor ' A_Index '","x":' l ',"y":' t
+        out .= (out = "" ? "" : ",") '{"id":"' JsonEsc(MonitorGetName(A_Index)) '","name":"' JsonEsc(MonitorNames[A_Index]) '","x":' l ',"y":' t
             . ',"w":' (r - l) ',"h":' (b - t) ',"primary":' (A_Index = prim ? "true" : "false") '}'
     }
     return "[" out "]"

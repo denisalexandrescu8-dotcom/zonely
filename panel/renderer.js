@@ -114,6 +114,7 @@ function paintMonitorPicker() {
   const chosen = list.find((m) => m.id === config.monitor.id) ?? list.find((m) => m.primary) ?? list[0];
   $('mon-name').textContent = chosen ? chosen.name : 'Monitor principal';
   $('res').textContent = `${config.monitor.w}×${config.monitor.h}`;
+  $('monitor-card').title = `${$('mon-name').textContent} · ${$('res').textContent}`;      // el nombre completo, por si no cabe
   const pickable = list.length > 1;
   $('monitor-card').classList.toggle('pickable', pickable);
   $('monitor-chev').toggleAttribute('hidden', !pickable);       // es un SVG: no tiene la propiedad .hidden

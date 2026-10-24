@@ -75,8 +75,7 @@ small { color: var(--muted); }
 .monitor-card.pickable { gap: 8px; padding: 10px; }
 .monitor-card.pickable > svg:first-child { width: 20px; height: 20px; }
 .monitor-card strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.monitor-card.pickable strong { font-size: 12px; letter-spacing: -0.1px; }
-.monitor-card.pickable small { font-size: 10.5px; }
+.monitor-card.pickable small { font-size: 11px; }
 .monitor-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .monitor-card .chev { width: 16px; height: 16px; margin-left: auto; }
 .monitor-card[aria-expanded="false"] .chev { transform: rotate(180deg); }
