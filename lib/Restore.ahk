@@ -7,7 +7,14 @@
 ;  Se desactiva con [General] RestoreOnLeave=0 o desde el panel.
 ; ============================================================
 
-ZoneOrig := Map()      ; hwnd -> Map(w, h, zone [izq, arr, der, aba], pending)
+ZoneOrig := Map()      ; hwnd -> Map(w, h, zone [izq, arr, der, aba], pending, placed [w, h], placedAt)
+
+; Último momento en que se soltó el botón izquierdo: un cambio de tamaño justo después lo ha hecho el ratón.
+~LButton Up:: {
+    global LastLButtonUp
+    LastLButtonUp := A_TickCount
+}
+LastLButtonUp := 0
 
 ; El temporizador solo corre mientras hay ventanas apuntadas (RestoreArm lo enciende, RestoreTick lo apaga al quedarse sin
 ; ninguna): en reposo no despierta el procesador.
@@ -58,7 +65,36 @@ RestoreTrack(hwnd) {
         o := ZoneOrig[hwnd]
         o["zone"] := [z.X, z.Y, z.Right, z.Bottom]
         o["pending"] := 0
+        RestorePlaced(o, hwnd)
     }
+}
+
+; Tamaño con el que Zonely dejó la ventana: así un cambio posterior se puede distinguir de uno hecho con el ratón.
+RestorePlaced(o, hwnd) {
+    WinGetPos(, , &w, &h, hwnd)
+    o["placed"] := [w, h]
+    o["placedAt"] := A_TickCount
+}
+
+; Un cambio de tamaño hecho con el ratón (se suelta el botón justo después) pasa a ser el tamaño original, y nada más:
+; los cambios de Zonely o de la propia app al colocarla no cuentan.
+RestoreUserResize(hwnd, o) {
+    global LastLButtonUp
+    if !o.Has("placed") || GetKeyState("LButton") || A_TickCount - LastLButtonUp > 1500 || A_TickCount - o["placedAt"] < 1000
+        return
+    try {
+        WinGetPos(&x, &y, &w, &h, hwnd)
+    } catch {
+        return
+    }
+    if Abs(w - o["placed"][1]) <= 6 && Abs(h - o["placed"][2]) <= 6
+        return
+    o["w"] := w, o["h"] := h
+    v := GetVisibleRect(hwnd)                                   ; lo que se ha estirado ya es parte de la zona (no es «salirse»)
+    z := o["zone"]
+    o["zone"] := [Min(z[1], v["L"]), Min(z[2], v["T"]), Max(z[3], v["R"]), Max(z[4], v["B"])]
+    RestorePlaced(o, hwnd)
+    Log("Tamaño original actualizado con el ratón: " WinGetProcessName(hwnd) " " w "x" h)
 }
 
 RestoreForget(hwnd) {
@@ -82,6 +118,7 @@ RestoreTick() {
         }
         if o["zone"] = ""
             continue
+        RestoreUserResize(hwnd, o)
         if IsGameWindow(hwnd) {                             ; un juego en marcha no se redimensiona nunca
             ZoneOrig.Delete(hwnd)
             continue

@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.54.0
+- **Windows: pantalla completa a la zona vuelve a su sitio.** Un vídeo a pantalla completa vuelve a la zona donde estaba la ventana antes de pasar a pantalla completa (antes podía usarse la zona del ratón), y al salir de la pantalla completa ya no se mueve a otra zona.
+- **Windows: el tamaño original es el último que diste con el ratón.** Al soltar el botón después de redimensionar una ventana colocada por Zonely, ese tamaño pasa a ser el que se recupera al salir de su zona. Los cambios que hacen Zonely o la propia app al colocarla no se registran.
+
 ## 0.53.0
 - **Pantalla completa a la zona, también en Windows.** La opción ya existía en Mac; ahora está en Windows (Ajustes → Comportamiento de ventanas) y funciona igual. Cuando una ventana pasa a pantalla completa (botón verde en Mac; vídeo o F11 en Windows) sale de ella y se coloca en su zona. Apagada, se queda en pantalla completa (útil para vídeo). En Windows viene **activada**, como en Mac: si juegas a pantalla completa con un juego que no esté en la lista *Games*, apágala.
 - **Windows: animación al colocar**, igual que en Mac (ajuste *Animar al colocar*, `[General] Animations`). Se desactiva sola si el sistema pide reducir el movimiento. Desde una ventana maximizada se sigue colocando de un solo paso, para no parpadear.

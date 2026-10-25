@@ -14,6 +14,7 @@ WatcherLoops := Map()      ; hwnd -> [veces, tick inicial]  (anti-bucle)
 WatcherIgnored := Map()    ; hwnds que se pelean con nosotros: se dejan en paz
 
 WatcherHooks := []         ; manejadores de SetWinEventHook (reaccionan al instante, sin esperar al temporizador)
+FsPrev := Map()             ; hwnd -> [x, y] del centro donde estaba antes de pasar a pantalla completa
 WatcherNoAnim := Map()     ; hwnd -> true: ya sin animación de maximizar/restaurar
 
 StartWatcher() {
@@ -144,30 +145,37 @@ WatcherFix(hwnd) {
 }
 
 ; Pantalla completa de vídeo o F11 (no es «maximizada», así que WatcherTick no la ve): la ventana ocupa todo el monitor y no
-; tiene barra de título. Con «Pantalla completa a la zona» activada vuelve a su zona, como en Mac. Los juegos y las
-; exclusiones se dejan en paz.
+; tiene barra de título. Con «Pantalla completa a la zona» activada vuelve a la zona donde estaba (la de antes de pasar a
+; pantalla completa, no la del ratón). Los juegos y las exclusiones se dejan en paz.
 WatcherFullScreenFix(hwnd) {
     if !hwnd || !Config.FullScreenToZone || WinGetMinMax(hwnd) = 1 || WatcherIgnored.Has(hwnd) || GameSaved.Has(hwnd)
         return
-    if !WindowOnMonitor(hwnd) || IsGameWindow(hwnd)
+    if !WindowOnMonitor(hwnd)
+        return
+    WinGetPos(&x, &y, &w, &h, hwnd)
+    m := MonitorAreaAt(x + w // 2, y + h // 2)
+    if x > m[1] || y > m[2] || x + w < m[3] || y + h < m[4] {          ; no cubre el monitor entero: es una ventana normal
+        FsPrev[hwnd] := [x + w // 2, y + h // 2]                       ; se recuerda dónde estaba por si pasa a pantalla completa
+        return
+    }
+    if IsGameWindow(hwnd)
         return
     cls := WinGetClass(hwnd)
     if HasValue(SystemClasses, cls) || HasValue(Config.ExcludeClasses, cls) || HasValue(Config.ExcludeProcesses, WinGetProcessName(hwnd))
         return
-    WinGetPos(&x, &y, &w, &h, hwnd)
-    m := MonitorAreaAt(x + w // 2, y + h // 2)
-    if x > m[1] || y > m[2] || x + w < m[3] || y + h < m[4]          ; no cubre el monitor entero: no es pantalla completa
-        return
     if !WatcherLoopOk(hwnd)
         return
-    ; la zona donde estaba la ventana (si Zonely la colocó); si no, la de donde está el ratón
-    if ZoneOrig.Has(hwnd) && ZoneOrig[hwnd]["zone"] != "" {
-        r := ZoneOrig[hwnd]["zone"]
-        z := Zone("", r[1], r[2], r[3] - r[1], r[4] - r[2])
+    ; la zona donde estaba antes de la pantalla completa; si no se sabe, la de donde está el ratón
+    if FsPrev.Has(hwnd) {
+        c := FsPrev[hwnd]
+        z := ZoneAt(c[1], c[2])
     } else {
         MouseGetPos(&mx, &my)
         z := ZoneAt(mx, my)
     }
     Log("Vigilante: " WinGetProcessName(hwnd) " ocupa toda la pantalla; vuelve a su zona")
     PlaceInRect(hwnd, z.X, z.Y, z.W, z.H, false)
+    ; la zona guardada pasa a ser esta, para que al salir de pantalla completa no se considere que se ha salido de su zona
+    if ZoneOrig.Has(hwnd)
+        ZoneOrig[hwnd]["zone"] := [z.X, z.Y, z.Right, z.Bottom]
 }
