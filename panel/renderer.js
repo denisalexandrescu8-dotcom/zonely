@@ -220,7 +220,7 @@ for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], [
   $(id).addEventListener('change', async (e) => {
     await window.zones.setOption(key, e.target.checked);                                      // se guarda en zones.ini
     if (key === 'autoupdate') { /* lo lee el actualizador cuando le toca: el motor no se entera */ }
-    else if (key === 'menubar' || key === 'animate') await window.zones.send({ type: 'reload' });                   // el motor de Mac lo aplica al releer zones.ini
+    else if (key === 'menubar' || key === 'animate' || key === 'fullscreen') await window.zones.send({ type: 'reload' });                   // el motor de Mac lo aplica al releer zones.ini
     else await window.zones.send({ type: key, value: e.target.checked ? 'on' : 'off' });      // y se aplica ya en el motor
     refresh();
   });

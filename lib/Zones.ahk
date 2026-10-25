@@ -115,6 +115,34 @@ PlaceFromMaximized(hwnd, x, y, w, h) {
     DllCall("SetWindowPlacement", "ptr", hwnd, "ptr", wp)
 }
 
+; Mueve una ventana normal (no maximizada) a (x, y, w, h). Con «Animar al colocar» se desliza en ~170 ms con frenada suave,
+; como en Mac; sin animación (apagada, o el sistema pide reducir el movimiento) se mueve de golpe.
+MovePlaced(hwnd, x, y, w, h) {
+    if !Config.AnimateWindows || ReduceMotion() {
+        WinMove(x, y, w, h, hwnd)
+        return
+    }
+    WinGetPos(&fx, &fy, &fw, &fh, hwnd)
+    if Abs(fx - x) + Abs(fy - y) + Abs(fw - w) + Abs(fh - h) < 24 {
+        WinMove(x, y, w, h, hwnd)
+        return
+    }
+    steps := 10
+    Loop steps {
+        e := 1 - (1 - A_Index / steps) ** 3                   ; frenada suave
+        WinMove(Round(fx + (x - fx) * e), Round(fy + (y - fy) * e), Round(fw + (w - fw) * e), Round(fh + (h - fh) * e), hwnd)
+        if A_Index < steps
+            Sleep(17)
+    }
+}
+
+; ¿El sistema pide reducir el movimiento? (Accesibilidad: efectos de animación desactivados)
+ReduceMotion() {
+    b := Buffer(4, 0)
+    DllCall("SystemParametersInfo", "uint", 0x1042, "uint", 0, "ptr", b, "uint", 0)    ; SPI_GETCLIENTAREAANIMATION
+    return NumGet(b, 0, "int") = 0
+}
+
 ; Coloca la parte visible de la ventana exactamente en (x, y, w, h).
 ; Si estaba maximizada/minimizada la restaura primero. Se hace en dos pasos:
 ; mover, medir cuánta sombra invisible hay y compensarla.
@@ -131,7 +159,7 @@ PlaceInRect(hwnd, x, y, w, h, record := true) {
         } else {
             if mm != 0
                 WinRestore(hwnd)
-            WinMove(x, y, w, h, hwnd)
+            MovePlaced(hwnd, x, y, w, h)
         }
 
         WinGetPos(&wx, &wy, &ww, &wh, hwnd)

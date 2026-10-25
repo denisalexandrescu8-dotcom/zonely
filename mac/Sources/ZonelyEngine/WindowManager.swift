@@ -176,12 +176,28 @@ final class WindowManager {
     /// Con `record` apunta el tamaño original y la posición anterior (para recuperar el tamaño y deshacer).
     func place(_ window: ForeignWindow, _ target: CGRect, from current: CGRect, record: Bool = true) {
         if window.isFullScreen {
+            // Sale de la pantalla completa y coloca la ventana en cuanto vuelve a ser normal (sin esperar un tiempo fijo).
             window.setFullScreen(false)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
-                self?.place(window, target, from: window.frame ?? current, record: record)
+            whenWindowed(window, since: Date()) { [weak self] in
+                self?.moveIntoPlace(window, target, from: window.frame ?? current, record: record)
             }
             return
         }
+        moveIntoPlace(window, target, from: current, record: record)
+    }
+
+    /// Espera a que la ventana deje la pantalla completa (sondeo cada 30 ms, como mucho 1,5 s) y ejecuta `body`.
+    private func whenWindowed(_ window: ForeignWindow, since start: Date, then body: @escaping () -> Void) {
+        if !window.isFullScreen || Date().timeIntervalSince(start) > 1.5 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: body)     // un instante para que la salida empiece a mover la ventana
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { [weak self] in
+            self?.whenWindowed(window, since: start, then: body)
+        }
+    }
+
+    private func moveIntoPlace(_ window: ForeignWindow, _ target: CGRect, from current: CGRect, record: Bool) {
         if record {
             push(&undoStack, Saved(window: window, frame: current), limit: 20)
             noteOriginal(window, current)
@@ -200,10 +216,15 @@ final class WindowManager {
 
     /// Comprueba cómo ha quedado la ventana. Muchas apps (navegadores, editores) terminan de cambiar de tamaño unos
     /// instantes después, así que se mira otra vez: si la app no puede ser tan pequeña, esa zona más grande es la suya.
-    private func settle(_ window: ForeignWindow, target: CGRect, record: Bool) {
+    private func settle(_ window: ForeignWindow, target: CGRect, record: Bool, attempt: Int = 0) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
             guard let self = self, let result = window.frame else { return }
             if !Geometry.matches(result, target, tolerance: 3) {
+                if attempt < 2 {                    // la app pudo ignorar el movimiento mientras terminaba su animación: se reintenta
+                    window.setFrame(target)
+                    self.settle(window, target: target, record: record, attempt: attempt + 1)
+                    return
+                }
                 Log.write("No respeta la zona: \(window.processName) · pedido \(Int(target.minX)),\(Int(target.minY)) \(Int(target.width))x\(Int(target.height)) · obtenido \(Int(result.minX)),\(Int(result.minY)) \(Int(result.width))x\(Int(result.height))", level: "WARN")
             }
             guard record, let i = self.tracked.firstIndex(where: { $0.window.sameWindow(as: window) }) else { return }

@@ -42,6 +42,8 @@ class Config {
     static ExcludeProcesses := []
     static ExcludeClasses := []
     static GameProcesses := []         ; juegos: el encaje, el vigilante y la restauración los ignoran por completo
+    static AnimateWindows := true      ; las ventanas se deslizan hasta su zona en vez de aparecer de golpe ([General] Animations)
+    static FullScreenToZone := true    ; pantalla completa (vídeo, F11) → la ventana sale de ella y vuelve a su zona ([General] FullScreenToZone)
     ; Un contexto por monitor con zonas: el elegido en el panel ([Monitor] de zones.ini, el «principal» del motor) y los demás
     ; que tienen su conjunto de perfiles en monitors\<monitor>.ini. Los campos de arriba (Profiles, ProfileName, Mon*…) son
     ; los del contexto en uso; los otros están aparcados en Parked. Use()/UseAt() cambian de contexto y UseMain() vuelve al
@@ -180,7 +182,7 @@ class Config {
         names := ["ProfileOrder", "GameZoneOf", "Profiles", "ProfileName", "MonW", "MonH", "MonLeft", "MonTop", "MonId"
             , "MainId", "Parked", "DesignW", "DesignH", "DimOpacity", "SnapHalves"
             , "RestoreOnLeave", "SnapEnabled", "SnapKey", "WatcherEnabled", "WatcherInterval", "ExcludeProcesses"
-            , "ExcludeClasses", "GameProcesses"]
+            , "ExcludeClasses", "GameProcesses", "AnimateWindows", "FullScreenToZone"]
         old := Map()
         for name in names
             old[name] := this.%name%
@@ -241,6 +243,8 @@ class Config {
         ; Encaje al arrastrar
         this.RestoreOnLeave := IniRead(this.IniPath, "General", "RestoreOnLeave", 1) = 1
         this.SnapHalves := IniRead(this.IniPath, "Snap", "Halves", 0) = 1
+        this.AnimateWindows := IniRead(this.IniPath, "General", "Animations", 1) = 1
+        this.FullScreenToZone := IniRead(this.IniPath, "General", "FullScreenToZone", 1) = 1
         ; Capa oscura
         this.DimOpacity := Integer(IniRead(this.IniPath, "Dim", "Opacity", 85))
         if this.DimOpacity < 0 || this.DimOpacity > 100

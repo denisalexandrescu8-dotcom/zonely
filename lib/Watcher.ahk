@@ -97,18 +97,23 @@ WatcherTick() {
     Critical "On"
     try {
         hwnd := WinExist("A")
-        if hwnd && WinGetMinMax(hwnd) = 1 {
+        if hwnd {
             v := GetVisibleRect(hwnd)
             Config.UseAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
-            if Config.Zoned && !WatcherSkips(hwnd)   ; sin zonas, maximizar es lo normal
-                WatcherFix(hwnd)
+            if Config.Zoned && WinGetMinMax(hwnd) = 1 {
+                if !WatcherSkips(hwnd)           ; sin zonas, maximizar es lo normal
+                    WatcherFix(hwnd)
+            } else if Config.Zoned {
+                WatcherFullScreenFix(hwnd)       ; pantalla completa de vídeo o F11
+            }
         }
     }   ; la ventana puede desaparecer o ser de otro nivel de permisos: se ignora
     Config.UseMain()
 }
 
-WatcherFix(hwnd) {
-    ; Anti-bucle: si una app se re-maximiza sola >4 veces en 3 s, la ignoramos.
+; Anti-bucle: si una app se re-maximiza sola (o vuelve a pantalla completa) más de 4 veces en 3 s, la ignoramos.
+; Devuelve false si hay que dejarla en paz.
+WatcherLoopOk(hwnd) {
     now := A_TickCount
     info := WatcherLoops.Has(hwnd) ? WatcherLoops[hwnd] : [0, now]
     if now - info[2] > 3000
@@ -118,8 +123,14 @@ WatcherFix(hwnd) {
     if info[1] > 4 {
         WatcherIgnored[hwnd] := true
         Notify(T("El vigilante ignora esta ventana (se maximiza sola)"), 2500)
-        return
+        return false
     }
+    return true
+}
+
+WatcherFix(hwnd) {
+    if !WatcherLoopOk(hwnd)
+        return
 
     Log("Vigilante: " WinGetProcessName(hwnd) " estaba maximizada")
     try DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "UInt", 3, "Int*", 1, "UInt", 4)    ; sin fundido de restaurar
@@ -130,4 +141,33 @@ WatcherFix(hwnd) {
     off := WorkspaceOffset((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
     z := ZoneAt(r[1] + off[1] + r[3] // 2, r[2] + off[2] + r[4] // 2)
     PlaceInRect(hwnd, z.X, z.Y, z.W, z.H)       ; de maximizada a la zona de un solo paso
+}
+
+; Pantalla completa de vídeo o F11 (no es «maximizada», así que WatcherTick no la ve): la ventana ocupa todo el monitor y no
+; tiene barra de título. Con «Pantalla completa a la zona» activada vuelve a su zona, como en Mac. Los juegos y las
+; exclusiones se dejan en paz.
+WatcherFullScreenFix(hwnd) {
+    if !hwnd || !Config.FullScreenToZone || WinGetMinMax(hwnd) = 1 || WatcherIgnored.Has(hwnd) || GameSaved.Has(hwnd)
+        return
+    if !WindowOnMonitor(hwnd) || IsGameWindow(hwnd)
+        return
+    cls := WinGetClass(hwnd)
+    if HasValue(SystemClasses, cls) || HasValue(Config.ExcludeClasses, cls) || HasValue(Config.ExcludeProcesses, WinGetProcessName(hwnd))
+        return
+    WinGetPos(&x, &y, &w, &h, hwnd)
+    m := MonitorAreaAt(x + w // 2, y + h // 2)
+    if x > m[1] || y > m[2] || x + w < m[3] || y + h < m[4]          ; no cubre el monitor entero: no es pantalla completa
+        return
+    if !WatcherLoopOk(hwnd)
+        return
+    ; la zona donde estaba la ventana (si Zonely la colocó); si no, la de donde está el ratón
+    if ZoneOrig.Has(hwnd) && ZoneOrig[hwnd]["zone"] != "" {
+        r := ZoneOrig[hwnd]["zone"]
+        z := Zone("", r[1], r[2], r[3] - r[1], r[4] - r[2])
+    } else {
+        MouseGetPos(&mx, &my)
+        z := ZoneAt(mx, my)
+    }
+    Log("Vigilante: " WinGetProcessName(hwnd) " ocupa toda la pantalla; vuelve a su zona")
+    PlaceInRect(hwnd, z.X, z.Y, z.W, z.H, false)
 }
