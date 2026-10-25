@@ -123,17 +123,25 @@ MovePlaced(hwnd, x, y, w, h) {
         return
     }
     WinGetPos(&fx, &fy, &fw, &fh, hwnd)
-    if Abs(fx - x) + Abs(fy - y) + Abs(fw - w) + Abs(fh - h) < 24 {
-        WinMove(x, y, w, h, hwnd)
+    ; La animación va al rectángulo con la sombra invisible de la ventana incluida (la que tenga en caso de saberla),
+    ; así el último fotograma cae ya en su sitio y no hay un salto al final.
+    ins := InsetCache.Has(hwnd) ? InsetCache[hwnd] : [7, 0, 7, 7]
+    tx := x - ins[1], ty := y - ins[2], tw := w + ins[1] + ins[3], th := h + ins[2] + ins[4]
+    if Abs(fx - tx) + Abs(fy - ty) + Abs(fw - tw) + Abs(fh - th) < 24 {
+        WinMove(tx, ty, tw, th, hwnd)
         return
     }
-    steps := 10
-    Loop steps {
-        e := 1 - (1 - A_Index / steps) ** 3                   ; frenada suave
-        WinMove(Round(fx + (x - fx) * e), Round(fy + (y - fy) * e), Round(fw + (w - fw) * e), Round(fh + (h - fh) * e), hwnd)
-        if A_Index < steps
-            Sleep(17)
+    ; Por tiempo, no por número de pasos: unos 180 ms con frenada suave, aunque un fotograma tarde más de lo previsto.
+    t0 := A_TickCount
+    loop {
+        t := (A_TickCount - t0) / 180
+        if t >= 1
+            break
+        e := 1 - (1 - t) ** 3
+        WinMove(Round(fx + (tx - fx) * e), Round(fy + (ty - fy) * e), Round(fw + (tw - fw) * e), Round(fh + (th - fh) * e), hwnd)
+        Sleep(12)
     }
+    WinMove(tx, ty, tw, th, hwnd)
 }
 
 ; ¿El sistema pide reducir el movimiento? (Accesibilidad: efectos de animación desactivados)

@@ -99,7 +99,7 @@ function paintEngine() {
   const lg = $('opt-language');
   if (document.activeElement !== lg) lg.value = config.options?.language || 'auto';
   // Opciones guardadas en zones.ini (se leen de la configuración, no del estado del motor).
-  for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-fullscreen', 'fullscreen'], ['opt-animate', 'animate'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']]) {
+  for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-animate', 'animate'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']]) {
     const el = $(id);
     el.disabled = !state.engineUp && key !== 'autoupdate';        // las actualizaciones no dependen del motor
     if (document.activeElement !== el) el.checked = !!config.options?.[key];
@@ -216,11 +216,11 @@ $('opt-snapkey').addEventListener('change', async (e) => {
 });
 $('snap').addEventListener('change', (e) =>
   window.zones.send({ type: 'snap', value: e.target.checked ? 'on' : 'off' }).then(refresh));
-for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-fullscreen', 'fullscreen'], ['opt-animate', 'animate'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']])
+for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], ['opt-animate', 'animate'], ['opt-menubar', 'menubar'], ['opt-autoupdate', 'autoupdate']])
   $(id).addEventListener('change', async (e) => {
     await window.zones.setOption(key, e.target.checked);                                      // se guarda en zones.ini
     if (key === 'autoupdate') { /* lo lee el actualizador cuando le toca: el motor no se entera */ }
-    else if (key === 'menubar' || key === 'animate' || key === 'fullscreen') await window.zones.send({ type: 'reload' });                   // el motor de Mac lo aplica al releer zones.ini
+    else if (key === 'menubar' || key === 'animate') await window.zones.send({ type: 'reload' });                   // el motor de Mac lo aplica al releer zones.ini
     else await window.zones.send({ type: key, value: e.target.checked ? 'on' : 'off' });      // y se aplica ya en el motor
     refresh();
   });

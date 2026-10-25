@@ -14,7 +14,7 @@ Zonely divide un monitor grande en **zonas** independientes y coloca tus ventana
 - **Idiomas** — español, inglés, francés, alemán, portugués e italiano (Ajustes → Idioma; por defecto, el del sistema).
 - **Selector de perfiles** (`Win+Alt+P`) con un aviso breve al cambiar.
 - **Encajar arrastrando** — mantén `Shift` (o `Ctrl` / `Alt`: se elige en Ajustes) mientras arrastras una ventana y suéltala sobre una zona (mitades arriba/abajo opcionales).
-- **Vigilante de maximizado** — una ventana maximizada a todo el monitor vuelve a su zona (con lista de exclusiones). En macOS también sale de la pantalla completa (el botón verde) y va a su zona, si quieres.
+- **Vigilante de maximizado** — una ventana maximizada a todo el monitor vuelve a su zona (con lista de exclusiones). y va a su zona, si quieres.
 - **Recuperar tamaño** — si sacas una ventana de su zona, recupera su tamaño original.
 - **Modo juego** — ventana sin bordes en la zona que elijas, o conserva el tamaño del juego y lo centra.
 - **Capa oscura** — oscurece la otra zona (negro puro: píxeles apagados en un OLED) sin bloquear el ratón.

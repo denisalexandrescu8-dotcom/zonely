@@ -53,7 +53,6 @@ public struct Config {
     /// Solo macOS: ¿se enseña el icono de Zonely en la barra de menús? (`[General] MenuBarIcon`, por defecto sí)
     public var menuBarIcon: Bool
     public var animateWindows: Bool         // las ventanas se deslizan hasta su zona en vez de aparecer de golpe (`[General] Animations`)
-    public var fullScreenToZone: Bool       // el vigilante saca de la pantalla completa nativa (botón verde) y coloca la ventana en su zona
     public var watcherEnabled: Bool
     public var watcherIntervalMs: Int
     public var snapEnabled: Bool
@@ -94,7 +93,6 @@ public struct Config {
         startProfile = found.contains(where: { $0.name == wanted }) ? wanted : found[0].name
         restoreOnLeave = ini.bool("General", "RestoreOnLeave", default: true)
         menuBarIcon = ini.bool("General", "MenuBarIcon", default: true)
-        fullScreenToZone = ini.bool("General", "FullScreenToZone", default: true)
         animateWindows = ini.bool("General", "Animations", default: true)
         watcherEnabled = ini.bool("Watcher", "Enabled", default: true)
         watcherIntervalMs = max(50, ini.int("Watcher", "IntervalMs", default: 150))

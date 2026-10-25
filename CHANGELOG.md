@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.55.0
+- **Quitada la opción «Pantalla completa a la zona»** (Mac y Windows). No funcionaba bien. Una ventana o un vídeo a pantalla completa se queda en pantalla completa, sin que Zonely lo toque. Los atajos para colocar una ventana siguen sacándola de la pantalla completa si la pides tú. Si tu `zones.ini` tiene la línea `FullScreenToZone`, no hace nada.
+- **Windows: animación al colocar más suave.** Ahora dura unos 180 ms y va por tiempo, no por número de pasos, y el último paso cae ya en su sitio, sin salto al final. Aun así depende de lo rápido que repinte cada app: las más pesadas (navegadores, editores) se verán menos fluidas.
+
 ## 0.54.0
 - **Windows: pantalla completa a la zona vuelve a su sitio.** Un vídeo a pantalla completa vuelve a la zona donde estaba la ventana antes de pasar a pantalla completa (antes podía usarse la zona del ratón), y al salir de la pantalla completa ya no se mueve a otra zona.
 - **Windows: el tamaño original es el último que diste con el ratón.** Al soltar el botón después de redimensionar una ventana colocada por Zonely, ese tamaño pasa a ser el que se recupera al salir de su zona. Los cambios que hacen Zonely o la propia app al colocarla no se registran.
