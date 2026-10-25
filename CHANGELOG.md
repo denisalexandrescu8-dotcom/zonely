@@ -2,7 +2,7 @@
 
 ## 0.53.0
 - **Pantalla completa a la zona, también en Windows.** La opción ya existía en Mac; ahora está en Windows (Ajustes → Comportamiento de ventanas) y funciona igual. Cuando una ventana pasa a pantalla completa (botón verde en Mac; vídeo o F11 en Windows) sale de ella y se coloca en su zona. Apagada, se queda en pantalla completa (útil para vídeo). En Windows viene **activada**, como en Mac: si juegas a pantalla completa con un juego que no esté en la lista *Games*, apágala.
-- **Windows: animación al colocar**, igual que en Mac (ajuste *Animar al colocar*, ). Se desactiva sola si el sistema pide reducir el movimiento. Desde una ventana maximizada se sigue colocando de un solo paso, para no parpadear.
+- **Windows: animación al colocar**, igual que en Mac (ajuste *Animar al colocar*, `[General] Animations`). Se desactiva sola si el sistema pide reducir el movimiento. Desde una ventana maximizada se sigue colocando de un solo paso, para no parpadear.
 - **Mac: menos parpadeo al salir de pantalla completa.** La ventana se coloca en cuanto deja la pantalla completa, en vez de esperar un tiempo fijo, y si la app no obedece al primer intento se reintenta.
 - **Mismas funciones en Windows y Mac.** Las diferencias que quedan son de cada sistema: la barra de menús (Mac), la ventana de depuración (solo Windows, para desarrollo) y los atajos por defecto (Win+Alt en Windows, ⌃⌥ en Mac).
 
