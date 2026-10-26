@@ -81,13 +81,32 @@ function paintCards() {
 let engineBusy = false;                       // mientras el motor arranca o se apaga, el interruptor no se toca solo
 function paintEngine() {
   const el = $('engine');
-  el.className = 'motor ' + (state.engineUp ? 'up' : 'down');
+  el.className = 'motor engine-status ' + (state.engineUp ? 'up' : 'down');
   $('engine-text').textContent = state.engineUp
     ? (state.paused ? t('Motor activo · atajos en pausa') : t('Motor activo'))
     : t('Motor detenido');
+  $('engine-hint').textContent = !state.engineUp
+    ? t('Enciende el motor para colocar ventanas y usar los atajos.')
+    : state.paused
+      ? t('El motor está activo, pero los atajos están en pausa.')
+      : t('El motor mueve las ventanas y atiende los atajos.');
+  const snapOn = !!state.engineUp && !!state.snap;
+  const watcherOn = !!state.engineUp && !!state.watcher;
+  const snapBadge = $('snap-badge');
+  snapBadge.textContent = t(snapOn ? 'Encaje activo' : 'Encaje apagado');
+  snapBadge.classList.toggle('active', snapOn);
+  const watcherBadge = $('watcher-badge');
+  watcherBadge.textContent = t(watcherOn ? 'Vigilante activo' : 'Vigilante apagado');
+  watcherBadge.classList.toggle('active', watcherOn);
+  $('quick-help-copy').textContent = !state.engineUp
+    ? t('Enciende el motor para empezar a colocar ventanas.')
+    : state.snap
+      ? t('Mantén {key} mientras arrastras una ventana a una zona. Puedes cambiar la tecla en Ajustes.', {
+        key: ({ Shift: t('Mayús'), Ctrl: 'Ctrl', Alt: t('Alt / Option') })[config.options?.snapkey || 'Shift'],
+      })
+      : t('El encaje está apagado. Actívalo en Ajustes para colocar ventanas al arrastrarlas.');
   const sw = $('engine-switch');
   if (document.activeElement !== sw && !engineBusy) sw.checked = !!state.engineUp;
-  document.querySelector('.nav-item[data-nav="ajustes"]').classList.toggle('alert', !state.engineUp);     // punto rojo si el motor está apagado
   const w = $('watcher');
   w.disabled = !state.engineUp;
   w.checked = !!state.watcher;

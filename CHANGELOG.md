@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## 0.56.0
+- **Panel:** el estado del motor, el encaje y el vigilante se ven en la vista principal; la ayuda explica cómo colocar la primera ventana y se adapta a las opciones activas.
+- **Editor de perfiles:** pasa a una vista propia, accesible desde el botón «Editar perfil activo», para dejar más despejada la vista de zonas.
+- Se añaden traducciones de estos cambios a los seis idiomas del panel.
+
 ## 0.55.0
 - **Quitada la opción «Pantalla completa a la zona»** (Mac y Windows). No funcionaba bien. Una ventana o un vídeo a pantalla completa se queda en pantalla completa, sin que Zonely lo toque. Los atajos para colocar una ventana siguen sacándola de la pantalla completa si la pides tú. Si tu `zones.ini` tiene la línea `FullScreenToZone`, no hace nada.
 - **Windows: animación al colocar más suave.** Ahora dura unos 180 ms y va por tiempo, no por número de pasos, y el último paso cae ya en su sitio, sin salto al final. Aun así depende de lo rápido que repinte cada app: las más pesadas (navegadores, editores) se verán menos fluidas.

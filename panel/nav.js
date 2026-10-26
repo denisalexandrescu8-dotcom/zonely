@@ -2,6 +2,7 @@
 let devMode = false;      // el apartado Registro solo se muestra en desarrollo (ver abajo)
 const VIEWS = {
   zonas:    [t('Zonas'), t('Tu monitor, tus perfiles y sus zonas.')],
+  editor:   [t('Editor de perfiles'), t('Ajusta las zonas de un perfil.')],
   atajos:   [t('Atajos'), t('Cambia las combinaciones de teclado del motor.')],
   ajustes:  [t('Ajustes'), t('Modo juego, capa oscura y exclusiones.')],
   manual:   [t('Manual'), t('Guía de uso de Zonely.')],
@@ -25,6 +26,15 @@ function showView(name) {
 
 for (const b of document.querySelectorAll('.nav-item'))
   b.addEventListener('click', () => showView(b.dataset.nav));
+
+document.getElementById('edit-profile').addEventListener('click', () => {
+  if (!config || !config.profiles.length) return;
+  const select = document.getElementById('ed-profile');
+  select.value = state.profile || config.startProfile || config.profiles[0]?.id || '';
+  select.dispatchEvent(new Event('change'));
+  showView('editor');
+});
+document.getElementById('editor-back').addEventListener('click', () => showView('zonas'));
 
 let lastView = 'zonas';
 try { lastView = localStorage.getItem('view') || 'zonas'; } catch { /* idem */ }

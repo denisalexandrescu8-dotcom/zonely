@@ -99,7 +99,16 @@ small { color: var(--muted); }
 .motor.up .dot { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
 .motor.down .dot { background: var(--bad); }
 .nav-item { position: relative; }
-.nav-item.alert::after { content: ""; position: absolute; right: 12px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+.engine-status { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.engine-copy { min-width: 0; }
+.engine-status h3 { display: flex; align-items: center; }
+.engine-status .dot { flex: none; }
+.engine-status .hint { margin: 5px 0 10px; }
+.engine-flags { display: flex; flex-wrap: wrap; gap: 8px; }
+.engine-flag { border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 11px; }
+.engine-flag.active { color: var(--ok); border-color: #34d39955; background: #34d39912; }
+.engine-toggle { display: grid; justify-items: center; gap: 7px; color: var(--muted); font-size: 12px; cursor: pointer; }
+.engine-toggle .switch { margin-top: 0; }
 
 button {
   font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line);
@@ -117,6 +126,7 @@ button.primary:disabled { background: var(--surface-2); border-color: var(--line
 .view.on { display: grid; gap: 18px; align-content: start; }
 section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; }
 .stage-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.ed-head-actions { display: flex; align-items: center; gap: 8px; }
 .chip { background: var(--surface-2); border: 1px solid var(--line); padding: 3px 12px; border-radius: 999px; color: var(--text); font-size: 12px; min-width: 72px; text-align: center; }
 
 /* ---- Monitor a escala ---- */
@@ -288,6 +298,12 @@ button:active:not(:disabled) { transform: scale(.96); }
   .side { padding: 16px 8px; align-items: center; }
   .brand div, .nav-item span, .monitor-card div, #ver { display: none; }
   .nav-item { justify-content: center; padding: 10px; }
+}
+@media (max-width: 560px) {
+  .engine-status { align-items: flex-start; }
+  .engine-toggle { padding-top: 2px; }
+  .ed-head-actions { width: 100%; }
+  .ed-head-actions select { flex: 1; min-width: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

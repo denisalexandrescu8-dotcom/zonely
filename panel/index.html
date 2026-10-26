@@ -79,6 +79,22 @@
 
         <!-- ---- Vista: Zonas ---- -->
         <div class="view on" data-view="zonas">
+          <section id="engine" class="motor engine-status">
+            <div class="engine-copy">
+              <h3><span class="dot"></span><span id="engine-text">Conectando…</span></h3>
+              <p class="hint" id="engine-hint">El motor mueve las ventanas y atiende los atajos.</p>
+              <div class="engine-flags" aria-label="Estado de las funciones">
+                <span class="engine-flag" id="snap-badge">Encaje apagado</span>
+                <span class="engine-flag" id="watcher-badge">Vigilante apagado</span>
+              </div>
+            </div>
+            <label class="engine-toggle" title="Encender o apagar el motor">
+              <span>Motor</span>
+              <input type="checkbox" id="engine-switch" class="switch" aria-label="Encender o apagar el motor">
+            </label>
+            <button id="engine-reload" title="Relee zones.ini (solo en desarrollo)" hidden>Recargar (desarrollo)</button>
+          </section>
+
           <section class="stage">
             <div class="stage-head">
               <h3>Tu monitor ahora</h3>
@@ -88,14 +104,31 @@
           </section>
 
           <section class="profiles">
-            <h3>Perfiles</h3>
+            <div class="stage-head">
+              <h3>Perfiles</h3>
+              <button id="edit-profile" class="primary">Editar perfil activo</button>
+            </div>
             <div class="cards" id="cards"></div>
           </section>
 
+          <section class="quick-help">
+            <h3>Coloca una ventana en una zona</h3>
+            <p class="hint" id="quick-help-copy"></p>
+          </section>
+        </div>
+
+        <!-- ---- Vista: Editor de perfiles ---- -->
+        <div class="view" data-view="editor">
           <section class="editor">
             <div class="stage-head">
-              <h3>Editor de perfiles</h3>
-              <select id="ed-profile" aria-label="Perfil a editar"></select>
+              <div>
+                <h3>Editor de perfiles</h3>
+                <p class="hint">Ajusta las zonas del perfil seleccionado.</p>
+              </div>
+              <div class="ed-head-actions">
+                <select id="ed-profile" aria-label="Perfil a editar"></select>
+                <button id="editor-back">Volver a zonas</button>
+              </div>
             </div>
             <div class="monitor ed" id="ed-monitor"></div>
             <div class="ed-row">
@@ -136,20 +169,6 @@
         <!-- ---- Vista: Ajustes ---- -->
         <div class="view cols" data-view="ajustes">
           <div class="col">
-          <section id="engine" class="motor">
-            <h3>Motor</h3>
-            <p class="hint">El motor es el que mueve las ventanas y atiende los atajos. Si lo apagas, Zonely deja de colocar ventanas hasta que lo vuelvas a encender (o hasta que inicies sesión de nuevo).</p>
-            <label class="set-row">
-              <i class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1010.8 0"/></svg></i>
-              <span><strong><span class="dot"></span><span id="engine-text">Conectando…</span></strong><small>Interruptor encendido = motor en marcha.</small></span>
-              <input type="checkbox" id="engine-switch" class="switch">
-            </label>
-            <div class="ed-row">
-              <span class="spacer"></span>
-              <button id="engine-reload" title="Relee zones.ini (solo en desarrollo)" hidden>Recargar (desarrollo)</button>
-            </div>
-          </section>
-
           <section class="language">
             <h3>Idioma</h3>
             <p class="hint">El idioma del panel, de los avisos y de los menús de Zonely.</p>
