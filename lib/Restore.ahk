@@ -7,19 +7,64 @@
 ;  Se desactiva con [General] RestoreOnLeave=0 o desde el panel.
 ; ============================================================
 
-ZoneOrig := Map()      ; hwnd -> Map(w, h, zone [izq, arr, der, aba], pending, placed [w, h], placedAt)
-
-; Último momento en que se soltó el botón izquierdo: un cambio de tamaño justo después lo ha hecho el ratón.
-~LButton Up:: {
-    global LastLButtonUp
-    LastLButtonUp := A_TickCount
-}
-LastLButtonUp := 0
+ZoneOrig := Map()      ; hwnd -> Map(w, h, zone [izq, arr, der, aba], pending)
+RestoreMoveSizeHooks := []
+RestoreMoveSizeProc := 0
 
 ; El temporizador solo corre mientras hay ventanas apuntadas (RestoreArm lo enciende, RestoreTick lo apaga al quedarse sin
 ; ninguna): en reposo no despierta el procesador.
 StartRestore() {
+    RestoreWatchMoveSize()
     RestoreArm()
+}
+
+; WinEvent identifica la ventana cuya interacción de mover/tamaño empezó y terminó. Se compara
+; el tamaño al inicio y al final: mover la ventana no cambia el tamaño guardado.
+RestoreWatchMoveSize() {
+    global RestoreMoveSizeHooks, RestoreMoveSizeProc
+    if RestoreMoveSizeHooks.Length
+        return
+    RestoreMoveSizeProc := CallbackCreate(RestoreMoveSizeEvent, , 7)
+    for event in [0x000A, 0x000B] {                 ; EVENT_SYSTEM_MOVESIZESTART / END
+        hook := DllCall("SetWinEventHook", "UInt", event, "UInt", event, "Ptr", 0, "Ptr", RestoreMoveSizeProc,
+            "UInt", 0, "UInt", 0, "UInt", 0, "Ptr")
+        if hook
+            RestoreMoveSizeHooks.Push(hook)
+        else
+            Log("No se pudo instalar el detector de redimensionado del ratón (evento " Format("0x{:04X}", event) ")", "WARN")
+    }
+    OnExit(RestoreUnwatchMoveSize)
+}
+
+RestoreUnwatchMoveSize(*) {
+    global RestoreMoveSizeHooks, RestoreMoveSizeProc
+    for hook in RestoreMoveSizeHooks
+        DllCall("UnhookWinEvent", "Ptr", hook)
+    RestoreMoveSizeHooks := []
+    if RestoreMoveSizeProc {
+        CallbackFree(RestoreMoveSizeProc)
+        RestoreMoveSizeProc := 0
+    }
+}
+
+RestoreMoveSizeEvent(hook, event, hwnd, idObject, idChild, thread, time) {
+    if idObject != 0 || idChild != 0 || !hwnd || !ZoneOrig.Has(hwnd)
+        return
+    try {
+        o := ZoneOrig[hwnd]
+        if event = 0x000A {                         ; inicio: el evento puede llegar después de soltar el botón
+            if WinGetMinMax(hwnd) != 0
+                return
+            WinGetPos(, , &w, &h, hwnd)
+            if w > 50 && h > 50
+                o["mouseResizeStart"] := [w, h]
+        } else if event = 0x000B && o.Has("mouseResizeStart") {
+            o["resizePending"] := Map("before", o["mouseResizeStart"], "last", [], "since", A_TickCount, "deadline", A_TickCount + 2500)
+            o.Delete("mouseResizeStart")
+            o["pending"] := 0
+            RestoreArm()
+        }
+    }
 }
 
 RestoreArm() {
@@ -65,35 +110,43 @@ RestoreTrack(hwnd) {
         o := ZoneOrig[hwnd]
         o["zone"] := [z.X, z.Y, z.Right, z.Bottom]
         o["pending"] := 0
-        RestorePlaced(o, hwnd)
     }
 }
 
-; Tamaño con el que Zonely dejó la ventana: así un cambio posterior se puede distinguir de uno hecho con el ratón.
-RestorePlaced(o, hwnd) {
-    WinGetPos(, , &w, &h, hwnd)
-    o["placed"] := [w, h]
-    o["placedAt"] := A_TickCount
-}
-
-; Un cambio de tamaño hecho con el ratón (se suelta el botón justo después) pasa a ser el tamaño original, y nada más:
-; los cambios de Zonely o de la propia app al colocarla no cuentan.
+; Tras el evento de fin, espera a que la ventana deje de cambiar de tamaño. Solo un cambio dentro de la
+; interacción directa del ratón actualiza el tamaño que se recuperará al salir de la zona.
 RestoreUserResize(hwnd, o) {
-    global LastLButtonUp
-    if !o.Has("placed") || GetKeyState("LButton") || A_TickCount - LastLButtonUp > 1500 || A_TickCount - o["placedAt"] < 1000
+    if !o.Has("resizePending") || GetKeyState("LButton")
         return
+    pending := o["resizePending"]
+    now := A_TickCount
+    if now > pending["deadline"] {
+        o.Delete("resizePending")
+        return
+    }
     try {
         WinGetPos(&x, &y, &w, &h, hwnd)
     } catch {
         return
     }
-    if Abs(w - o["placed"][1]) <= 6 && Abs(h - o["placed"][2]) <= 6
+    if w <= 50 || h <= 50
+        return
+    last := pending["last"]
+    if !last.Length || Abs(w - last[1]) > 1 || Abs(h - last[2]) > 1 {
+        pending["last"] := [w, h]
+        pending["since"] := now
+        return
+    }
+    if now - pending["since"] < 240 || now - (pending["deadline"] - 2500) < 300
+        return
+    before := pending["before"]
+    o.Delete("resizePending")
+    if Abs(w - before[1]) <= 6 && Abs(h - before[2]) <= 6
         return
     o["w"] := w, o["h"] := h
     v := GetVisibleRect(hwnd)                                   ; lo que se ha estirado ya es parte de la zona (no es «salirse»)
     z := o["zone"]
     o["zone"] := [Min(z[1], v["L"]), Min(z[2], v["T"]), Max(z[3], v["R"]), Max(z[4], v["B"])]
-    RestorePlaced(o, hwnd)
     Log("Tamaño original actualizado con el ratón: " WinGetProcessName(hwnd) " " w "x" h)
 }
 
@@ -119,6 +172,10 @@ RestoreTick() {
         if o["zone"] = ""
             continue
         RestoreUserResize(hwnd, o)
+        if o.Has("mouseResizeStart") || o.Has("resizePending") {
+            o["pending"] := 0
+            continue                                         ; deja terminar y estabilizar el resize antes de probar si salió de la zona
+        }
         if IsGameWindow(hwnd) {                             ; un juego en marcha no se redimensiona nunca
             ZoneOrig.Delete(hwnd)
             continue

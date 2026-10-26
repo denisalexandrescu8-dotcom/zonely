@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.57.0
+- **Windows: tamaño original al redimensionar con el ratón.** Se registra el tamaño final cuando termina la interacción de mover o redimensionar y la ventana se estabiliza. Moverla sin cambiar sus dimensiones no altera el tamaño que se recupera al salir de la zona.
+
 ## 0.56.0
 - **Panel:** el estado del motor, el encaje y el vigilante se ven en la vista principal; la ayuda explica cómo colocar la primera ventana y se adapta a las opciones activas.
 - **Editor de perfiles:** pasa a una vista propia, accesible desde el botón «Editar perfil activo», para dejar más despejada la vista de zonas.
