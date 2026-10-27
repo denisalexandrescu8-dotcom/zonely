@@ -32,6 +32,7 @@ StartSnap() {
 ; Sin sondeo continuo: solo se vigila el ratón (cada 30 ms) mientras el botón izquierdo está pulsado. Al pulsarlo, este
 ; hotkey (con ~ el clic sigue su camino) arranca el temporizador; SnapTick lo para al soltar. En reposo no gasta nada.
 ~*LButton:: {
+    RestoreMouseDown()
     if SnapOn && !A_IsSuspended
         SetTimer(SnapTick, 30)
 }

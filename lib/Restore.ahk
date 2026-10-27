@@ -8,64 +8,72 @@
 ; ============================================================
 
 ZoneOrig := Map()      ; hwnd -> Map(w, h, zone [izq, arr, der, aba], pending)
-RestoreMoveSizeHooks := []
-RestoreMoveSizeProc := 0
+RestoreMouseDownSizes := Map()
 
 ; El temporizador solo corre mientras hay ventanas apuntadas (RestoreArm lo enciende, RestoreTick lo apaga al quedarse sin
 ; ninguna): en reposo no despierta el procesador.
 StartRestore() {
-    RestoreWatchMoveSize()
     RestoreArm()
 }
 
-; WinEvent identifica la ventana cuya interacción de mover/tamaño empezó y terminó. Se compara
-; el tamaño al inicio y al final: mover la ventana no cambia el tamaño guardado.
-RestoreWatchMoveSize() {
-    global RestoreMoveSizeHooks, RestoreMoveSizeProc
-    if RestoreMoveSizeHooks.Length
+; Captura la ventana bajo el cursor al pulsar el ratón y compara su tamaño al soltarlo.
+; Así los cambios de tamaño que Zonely hace después (p. ej. con un atajo) no se confunden
+; con un redimensionado del usuario.
+RestoreMouseDown() {
+    global RestoreMouseDownSizes
+    RestoreMouseDownSizes := Map()
+    if !Config.RestoreOnLeave || !ZoneOrig.Count
         return
-    RestoreMoveSizeProc := CallbackCreate(RestoreMoveSizeEvent, , 7)
-    for event in [0x000A, 0x000B] {                 ; EVENT_SYSTEM_MOVESIZESTART / END
-        hook := DllCall("SetWinEventHook", "UInt", event, "UInt", event, "Ptr", 0, "Ptr", RestoreMoveSizeProc,
-            "UInt", 0, "UInt", 0, "UInt", 0, "Ptr")
-        if hook
-            RestoreMoveSizeHooks.Push(hook)
-        else
-            Log("No se pudo instalar el detector de redimensionado del ratón (evento " Format("0x{:04X}", event) ")", "WARN")
-    }
-    OnExit(RestoreUnwatchMoveSize)
-}
-
-RestoreUnwatchMoveSize(*) {
-    global RestoreMoveSizeHooks, RestoreMoveSizeProc
-    for hook in RestoreMoveSizeHooks
-        DllCall("UnhookWinEvent", "Ptr", hook)
-    RestoreMoveSizeHooks := []
-    if RestoreMoveSizeProc {
-        CallbackFree(RestoreMoveSizeProc)
-        RestoreMoveSizeProc := 0
-    }
-}
-
-RestoreMoveSizeEvent(hook, event, hwnd, idObject, idChild, thread, time) {
-    if idObject != 0 || idChild != 0 || !hwnd || !ZoneOrig.Has(hwnd)
+    CoordMode("Mouse", "Screen")
+    MouseGetPos(&mx, &my, &under)
+    if !under
+        return
+    hwnd := DllCall("GetAncestor", "Ptr", under, "UInt", 2, "Ptr") ; GA_ROOT
+    if !hwnd || !ZoneOrig.Has(hwnd)
+        return
+    if !RestoreIsSizingEdge(hwnd, mx, my)
         return
     try {
-        o := ZoneOrig[hwnd]
-        if event = 0x000A {                         ; inicio: el evento puede llegar después de soltar el botón
-            if WinGetMinMax(hwnd) != 0
-                return
-            WinGetPos(, , &w, &h, hwnd)
-            if w > 50 && h > 50
-                o["mouseResizeStart"] := [w, h]
-        } else if event = 0x000B && o.Has("mouseResizeStart") {
-            o["resizePending"] := Map("before", o["mouseResizeStart"], "last", [], "since", A_TickCount, "deadline", A_TickCount + 2500)
-            o.Delete("mouseResizeStart")
-            o["pending"] := 0
-            RestoreArm()
-        }
+        if WinGetMinMax(hwnd) != 0
+            return
+        WinGetPos(, , &w, &h, hwnd)
+        if w > 50 && h > 50
+            RestoreMouseDownSizes[hwnd] := [w, h]
     }
 }
+
+RestoreIsSizingEdge(hwnd, x, y) {
+    point := ((y & 0xFFFF) << 16) | (x & 0xFFFF)
+    result := Buffer(A_PtrSize, 0)
+    if !DllCall("SendMessageTimeoutW", "Ptr", hwnd, "UInt", 0x84, "Ptr", 0, "Ptr", point,
+        "UInt", 2, "UInt", 100, "Ptr", result, "Ptr") ; WM_NCHITTEST, SMTO_ABORTIFHUNG
+        return false
+    hit := NumGet(result, 0, "Ptr")
+    return hit >= 10 && hit <= 17              ; HTLEFT...HTBOTTOMRIGHT
+}
+
+RestoreMouseUp() {
+    global RestoreMouseDownSizes
+    now := A_TickCount
+    for hwnd, before in RestoreMouseDownSizes {
+        if !WinExist(hwnd) || !ZoneOrig.Has(hwnd)
+            continue
+        try {
+            WinGetPos(, , &w, &h, hwnd)
+        } catch {
+            continue
+        }
+        if w <= 50 || h <= 50 || (Abs(w - before[1]) <= 1 && Abs(h - before[2]) <= 1)
+            continue
+        o := ZoneOrig[hwnd]
+        o["resizePending"] := Map("before", before, "last", [], "since", now, "deadline", now + 2500)
+        o["pending"] := 0
+        RestoreArm()
+    }
+    RestoreMouseDownSizes := Map()
+}
+
+~*LButton Up::RestoreMouseUp()
 
 RestoreArm() {
     if ZoneOrig.Count > 0
@@ -172,7 +180,7 @@ RestoreTick() {
         if o["zone"] = ""
             continue
         RestoreUserResize(hwnd, o)
-        if o.Has("mouseResizeStart") || o.Has("resizePending") {
+        if o.Has("resizePending") {
             o["pending"] := 0
             continue                                         ; deja terminar y estabilizar el resize antes de probar si salió de la zona
         }

@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.58.0
+- **Windows: los atajos ya no reemplazan el tamaño original.** El tamaño que se recupera solo se actualiza al arrastrar uno de los bordes de la ventana. Los cambios de zona hechos por Zonely y los clics normales no se guardan como tamaño del usuario.
+
 ## 0.57.0
 - **Windows: tamaño original al redimensionar con el ratón.** Se registra el tamaño final cuando termina la interacción de mover o redimensionar y la ventana se estabiliza. Moverla sin cambiar sus dimensiones no altera el tamaño que se recupera al salir de la zona.
 
