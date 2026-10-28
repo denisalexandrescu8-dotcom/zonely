@@ -206,6 +206,20 @@ MonitorAreaAt(x, y) {
     return [Config.MonLeft, Config.MonTop, Config.MonLeft + Config.MonW, Config.MonTop + Config.MonH]
 }
 
+; Pantalla completa real sin barra de título que cubre el monitor (p. ej., vídeo HTML a pantalla completa).
+; Es distinta de una ventana sin bordes que simplemente ocupa una zona.
+IsBorderlessFullScreen(hwnd) {
+    try {
+        if (WinGetStyle(hwnd) & 0xC00000) = 0xC00000
+            return false
+        v := GetVisibleRect(hwnd)
+        area := MonitorAreaAt((v["L"] + v["R"]) // 2, (v["T"] + v["B"]) // 2)
+        return v["L"] <= area[1] + 2 && v["T"] <= area[2] + 2
+            && v["R"] >= area[3] - 2 && v["B"] >= area[4] - 2
+    }
+    return false
+}
+
 ; ¿El centro de la ventana está en el monitor al que se aplican las zonas?
 WindowOnMonitor(hwnd) {
     v := GetVisibleRect(hwnd)

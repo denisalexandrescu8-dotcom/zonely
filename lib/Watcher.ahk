@@ -52,6 +52,8 @@ WatcherEvent(hook, event, hwnd, idObject, idChild, thread, time) {
 
 WatcherEventHere(event, hwnd) {
     try {
+        if event = 0x800B && ZoneOrig.Has(hwnd)
+            SetTimer(WatcherRestoreHiddenBorder.Bind(hwnd), -120) ; también al volver del fullscreen de un vídeo
         if event = 0x0003 {
             ; DWMWA_BORDER_COLOR es por ventana y la app puede cambiarlo al activar/desactivar.
             ; Repón el borde oculto tras el cambio de foco, también en la ventana que lo acaba de perder.
@@ -76,6 +78,8 @@ WatcherEventHere(event, hwnd) {
 WatcherRestoreHiddenBorder(hwnd) {
     if !WinExist(hwnd) || !ZoneOrig.Has(hwnd)
         return
+    if (WinGetStyle(hwnd) & WS_CAPTION_MASK) != WS_CAPTION_MASK
+        return                                               ; no imponer el borde mientras sigue en pantalla completa
     try WindowBorder(hwnd, false)
 }
 

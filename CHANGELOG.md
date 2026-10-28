@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.60.0
+- **Windows: conserva la ventana en su zona al salir del vídeo a pantalla completa.** El seguimiento ya no confunde el vídeo fullscreen con haber sacado la ventana de su zona; al volver, se repone también el borde fino oculto.
+
 ## 0.59.0
 - **Windows 11: el borde fino se mantiene oculto al cambiar el foco.** Zonely lo vuelve a aplicar a las ventanas colocadas en una zona al perder o recibir el foco, después de que la aplicación haya actualizado su estado visual.
 

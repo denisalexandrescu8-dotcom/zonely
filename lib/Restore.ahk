@@ -179,6 +179,10 @@ RestoreTick() {
         }
         if o["zone"] = ""
             continue
+        if IsBorderlessFullScreen(hwnd) {
+            o["pending"] := 0
+            continue                                           ; un vídeo a pantalla completa no significa que el usuario saliera de la zona
+        }
         RestoreUserResize(hwnd, o)
         if o.Has("resizePending") {
             o["pending"] := 0
