@@ -15,6 +15,7 @@ WatcherIgnored := Map()    ; hwnds que se pelean con nosotros: se dejan en paz
 
 WatcherHooks := []         ; manejadores de SetWinEventHook (reaccionan al instante, sin esperar al temporizador)
 WatcherNoAnim := Map()     ; hwnd -> true: ya sin animación de maximizar/restaurar
+WatcherLastForeground := 0 ; hwnd anterior: algunas apps cambian el borde al perder el foco
 
 StartWatcher() {
     global WatcherOn := true, WatcherHooks
@@ -52,6 +53,15 @@ WatcherEvent(hook, event, hwnd, idObject, idChild, thread, time) {
 WatcherEventHere(event, hwnd) {
     try {
         if event = 0x0003 {
+            ; DWMWA_BORDER_COLOR es por ventana y la app puede cambiarlo al activar/desactivar.
+            ; Repón el borde oculto tras el cambio de foco, también en la ventana que lo acaba de perder.
+            global WatcherLastForeground
+            previous := WatcherLastForeground
+            WatcherLastForeground := hwnd
+            if previous && previous != hwnd && ZoneOrig.Has(previous)
+                SetTimer(WatcherRestoreHiddenBorder.Bind(previous), -120)
+            if ZoneOrig.Has(hwnd)
+                SetTimer(WatcherRestoreHiddenBorder.Bind(hwnd), -120)
             if !WatcherNoAnim.Has(hwnd) && !WatcherSkips(hwnd, false) {
                 DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 3, "Int*", 1, "UInt", 4)   ; TRANSITIONS_FORCEDISABLED
                 WatcherNoAnim[hwnd] := true
@@ -60,6 +70,13 @@ WatcherEventHere(event, hwnd) {
             WatcherFix(hwnd)
         }
     }
+}
+
+; Después del cambio de foco, conserva invisible el borde fino de las ventanas colocadas en zona.
+WatcherRestoreHiddenBorder(hwnd) {
+    if !WinExist(hwnd) || !ZoneOrig.Has(hwnd)
+        return
+    try WindowBorder(hwnd, false)
 }
 
 ; Win+Alt+W / bandeja: activa o desactiva el vigilante.

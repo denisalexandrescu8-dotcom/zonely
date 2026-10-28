@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.59.0
+- **Windows 11: el borde fino se mantiene oculto al cambiar el foco.** Zonely lo vuelve a aplicar a las ventanas colocadas en una zona al perder o recibir el foco, después de que la aplicación haya actualizado su estado visual.
+
 ## 0.58.0
 - **Windows: los atajos ya no reemplazan el tamaño original.** El tamaño que se recupera solo se actualiza al arrastrar uno de los bordes de la ventana. Los cambios de zona hechos por Zonely y los clics normales no se guardan como tamaño del usuario.
 
