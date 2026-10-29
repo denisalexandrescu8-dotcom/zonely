@@ -51,10 +51,6 @@
       {
         "from": "../assets/zonely.ico",
         "to": "assets/zonely.ico"
-      },
-      {
-        "from": "../manual",
-        "to": "manual"
       }
     ],
     "win": {

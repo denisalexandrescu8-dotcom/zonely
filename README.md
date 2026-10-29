@@ -4,8 +4,6 @@
 
 Zonely splits a big monitor into independent **zones** and puts your windows in them: the game on the left, Discord, a browser or OBS on the right — as if you had two monitors. Built for ultrawide screens, but it works on any monitor: on first run Zonely calculates the profiles for your primary monitor, and you can edit the zones afterwards.
 
-![Zonely control panel](manual/img/panel.png)
-
 > **Status:** Windows is the mature version; the **macOS (Apple Silicon) version is brand new and experimental**. Early software — expect rough edges. Issues and pull requests are welcome.
 
 ## Features
@@ -14,18 +12,13 @@ Zonely splits a big monitor into independent **zones** and puts your windows in 
 - **Languages** — Spanish, English, French, German, Portuguese and Italian (Settings → Language; by default the system language).
 - **Profile picker** (`Win+Alt+P`) with a small confirmation toast when you switch.
 - **Snap by dragging** — hold `Shift` (or `Ctrl` / `Alt`: you choose in Settings) while dragging a window and drop it on a zone (optional top/bottom halves).
-- **Maximize watcher** — a window maximized across the whole monitor goes back to its zone (with an exclusion list). On macOS it also leaves full screen (the green button) and goes to its zone, if you want.
+- **Maximize watcher** — a window maximized across the whole monitor goes back to its zone; you can exclude specific apps.
 - **Restore on leave** — take a window out of a zone and it gets its original size back.
 - **Game mode** — borderless window in the zone you choose, or keep the game's own size and center it.
 - **Dim layer** — darkens the other zone (pure black: pixels off on an OLED) without blocking the mouse.
 - **Games list** — processes in `Games=` (Rainbow Six Siege by default) are never moved or resized automatically.
 - Every shortcut can be changed in the panel. The tray / menu-bar icon also lets you switch profile.
 - **Light on battery:** no constant polling — it reacts to mouse and window events and sleeps when there is nothing to do.
-
-<p>
-<img src="manual/img/selector.png" alt="Profile picker" width="46%">
-<img src="manual/img/atajos.png" alt="Shortcuts" width="46%">
-</p>
 
 ## Install (Windows 10/11)
 1. Download `Zonely-Setup-<version>.exe` from the [Releases](../../releases) page and run it.
@@ -36,7 +29,7 @@ Your settings live in `%APPDATA%\Zonely` (`zones.ini`, logs), so updating or rei
 
 **Updates:** Zonely updates itself. A few minutes after it starts, and then every 6 hours, the engine launches a window-less check in the background: if there is a new version on GitHub it downloads it, verifies its SHA-256, installs it and restarts the engine, without asking or showing anything (on macOS it replaces `Zonely.app`, and macOS may ask for the Accessibility permission again). You can turn this off in *Settings → Updates → Update automatically*; then Zonely shows a question when there is a new version (once per version). The *Check now* button is always there. There is no «reload» button to press: changes to `zones.ini` are picked up automatically.
 
-A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/index.html) and in the **Manual** section of the panel.
+The [full user guide](manual/README.md) is on GitHub (currently in Spanish). It covers installation, profiles, shortcuts, settings and troubleshooting.
 
 ## Install (macOS, Apple Silicon)
 1. **Easiest, with no security warning:** paste this in Terminal. It downloads the latest release with `curl`, checks its SHA-256 and copies Zonely to Applications. Files downloaded with `curl` are not flagged as «quarantined», so macOS opens the app straight away (you can read the script first: [`scripts/install-mac.sh`](scripts/install-mac.sh)).
@@ -48,7 +41,7 @@ A full illustrated guide (Spanish for now) is in [`manual/index.html`](manual/in
 3. Zonely needs the **Accessibility** permission to move other apps' windows: System Settings → Privacy & Security → Accessibility → enable *ZonelyEngine*. The menu-bar icon has a shortcut to that pane.
 4. Shortcuts on macOS are **⌃⌥ + key** (e.g. ⌃⌥Z), editable in the panel. Game mode fills the zone (macOS cannot remove another app's window borders). Settings live in `~/Library/Application Support/Zonely`.
 
-There is a macOS user guide in [`manual/mac.html`](manual/mac.html) (Spanish for now), also in the **Manual** section of the panel.
+The GitHub user guide includes the macOS installation and permissions instructions.
 
 ## Default shortcuts (macOS)
 | Shortcut | Action |
@@ -111,7 +104,7 @@ powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 -Ahk2Exe C:
 It compiles the engine with [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe/releases) and packages everything with electron-builder into `dist\installer\`. Needs AutoHotkey v2 and `npm install` inside `panel/`. See [`CHANGELOG.md`](CHANGELOG.md) for the history.
 
 ## Translations
-The panel texts are in `panel/locales.js` and the engine texts (menus, notices, profile picker) in `i18n/engine.js`; the Spanish text is the key and every row has one column per language. To add a language, add a column, its code in `LOCALE_ORDER` / `ORDER`, its name in `panel/i18n.js` and its code in `LANGS` (`panel/main.js`); then run `node scripts/gen-strings.js` to regenerate the engine tables. The manuals are in Spanish for now.
+The panel texts are in `panel/locales.js` and the engine texts (menus, notices, profile picker) in `i18n/engine.js`; the Spanish text is the key and every row has one column per language. To add a language, add a column, its code in `LOCALE_ORDER` / `ORDER`, its name in `panel/i18n.js` and its code in `LANGS` (`panel/main.js`); then run `node scripts/gen-strings.js` to regenerate the engine tables. The user guide is currently in Spanish.
 
 ## License
 Zonely is free software under the **GNU GPL v2** ([`LICENSE`](LICENSE)). You can use, study, modify and share it; if you distribute a modified version, you must publish it with its source code under the same license. The engine bundles the AutoHotkey interpreter (GPL v2), which is why the whole project uses that license. Third-party licenses are listed in [`THIRD_PARTY.md`](THIRD_PARTY.md).

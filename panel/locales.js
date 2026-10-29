@@ -6,7 +6,6 @@ const LOCALE_ROWS = [
   // ---- barra lateral y cabeceras ----
   ['Zonas', 'Zones', 'Zones', 'Zonen', 'Zonas', 'Zone'],
   ['Atajos', 'Shortcuts', 'Raccourcis', 'Tastenkürzel', 'Atalhos', 'Scorciatoie'],
-  ['Manual', 'Manual', 'Manuel', 'Handbuch', 'Manual', 'Manuale'],
   ['Ajustes', 'Settings', 'Réglages', 'Einstellungen', 'Configurações', 'Impostazioni'],
   ['Monitor', 'Display', 'Écran', 'Monitor', 'Monitor', 'Monitor'],
   ['Monitor principal', 'Main display', 'Écran principal', 'Hauptmonitor', 'Monitor principal', 'Monitor principale'],
@@ -16,11 +15,9 @@ const LOCALE_ROWS = [
   ['Cambia las combinaciones de teclado del motor.', 'Change the engine’s keyboard shortcuts.', 'Modifiez les raccourcis clavier du moteur.', 'Ändere die Tastenkombinationen der Engine.', 'Altere os atalhos de teclado do motor.', 'Cambia le combinazioni di tasti del motore.'],
   ['Modo juego, capa oscura y exclusiones.', 'Game mode, dim layer and exclusions.', 'Mode jeu, calque sombre et exclusions.', 'Spielmodus, Abdunkelung und Ausnahmen.', 'Modo jogo, camada escura e exclusões.', 'Modalità gioco, strato scuro ed esclusioni.'],
   ['Personaliza cómo se comportan tus ventanas.', 'Customize how your windows behave.', 'Personnalisez le comportement de vos fenêtres.', 'Passe das Verhalten deiner Fenster an.', 'Personalize o comportamento das janelas.', 'Personalizza il comportamento delle finestre.'],
-  ['Guía de uso de Zonely.', 'Zonely user guide.', 'Guide d’utilisation de Zonely.', 'Anleitung für Zonely.', 'Guia de uso do Zonely.', 'Guida all’uso di Zonely.'],
   ['Monitor al que se aplican las zonas', 'Display the zones apply to', 'Écran auquel s’appliquent les zones', 'Monitor, auf den die Zonen angewendet werden', 'Monitor ao qual as zonas se aplicam', 'Monitor a cui si applicano le zone'],
   ['Monitores conectados', 'Connected displays', 'Écrans connectés', 'Angeschlossene Monitore', 'Monitores conectados', 'Monitor collegati'],
   ['Versión del panel y del motor', 'Panel and engine version', 'Version du panneau et du moteur', 'Version von Panel und Engine', 'Versão do painel e do motor', 'Versione del pannello e del motore'],
-  ['Manual de Zonely', 'Zonely manual', 'Manuel de Zonely', 'Zonely-Handbuch', 'Manual do Zonely', 'Manuale di Zonely'],
 
   // ---- vista Zonas ----
   ['Tu monitor ahora', 'Your display right now', 'Votre écran maintenant', 'Dein Monitor jetzt', 'Seu monitor agora', 'Il tuo monitor ora'],

@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.61.3
+- **Ajustes:** las filas y sus controles aprovechan el ancho disponible de la ventana.
+- **Manual:** deja de estar integrado en el panel. La guía actualizada queda en GitHub e incluye instrucciones para Windows y macOS.
+
 ## 0.61.2
 - **macOS:** la barra lateral y la parte superior de la ventana comparten fondo; los controles de ventana quedan integrados en una misma superficie.
 - **Vista Zonas:** el panel central aprovecha el ancho disponible al redimensionar la ventana, y su contenido se redistribuye.

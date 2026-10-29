@@ -472,8 +472,6 @@ ipcMain.handle('config:setDim', (_e, pct) => {
   if (!Number.isInteger(pct) || pct < 0 || pct > 100) throw new Error('Opacidad no válida');
   writeIni((t) => setIniValue(t, 'Dim', 'Opacity', String(pct)));
 });
-// El manual de macOS (mac.html) lleva los atajos, las rutas y los permisos de Mac; el de Windows es index.html.
-ipcMain.handle('manual:open', () => shell.openPath(path.join(ROOT, 'manual', process.platform === 'darwin' ? 'mac.html' : 'index.html')));
 ipcMain.handle('app:isDev', () => IS_DEV);
 ipcMain.handle('log:read', () => readLogTail());
 ipcMain.handle('log:open', () => { fs.mkdirSync(LOG_DIR, { recursive: true }); if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, ''); return shell.openPath(LOG_FILE); });

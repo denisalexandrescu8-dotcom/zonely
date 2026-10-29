@@ -7,9 +7,8 @@ const VIEWS = {
   editor:   [t('Editor de perfiles'), t('Ajusta las zonas de un perfil.')],
   atajos:   [t('Atajos'), t('Cambia las combinaciones de teclado del motor.')],
   ajustes:  [t('Ajustes'), t('Personaliza cómo se comportan tus ventanas.')],
-  manual:   [t('Manual'), t('Guía de uso de Zonely.')],
   registro: [t('Registro'), t('Lo que hace el motor y la última ventana usada.')],
-};     // IS_MAC viene de hotkeys.js
+};
 
 function showView(name) {
   if (name === 'registro' && !devMode) name = 'zonas';
@@ -19,10 +18,6 @@ function showView(name) {
   for (const b of document.querySelectorAll('.nav-item')) b.classList.toggle('on', b.dataset.nav === name);
   document.getElementById('view-title').textContent = VIEWS[name][0];
   document.getElementById('view-sub').textContent = VIEWS[name][1];
-  if (name === 'manual') {                // el manual se carga la primera vez que se abre
-    const frame = document.getElementById('manual-frame');
-    if (!frame.getAttribute('src')) frame.src = IS_MAC ? '../manual/mac.html' : '../manual/index.html';
-  }
   try { localStorage.setItem('view', name); } catch { /* sin almacenamiento: no pasa nada */ }
 }
 
