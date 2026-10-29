@@ -16,7 +16,7 @@ function buildMonitor() {
     const z = document.createElement('div');
     z.className = `zone ${id}`;
     z.id = `zone-${id}`;
-    z.innerHTML = `<span class="letter">${id}</span><span class="dim"></span>`;
+    z.innerHTML = `<div class="zone-window" aria-hidden="true"><div class="window-bar"><span class="window-dots"><i></i><i></i><i></i></span><span class="window-caption"></span><span class="window-action"></span></div><div class="window-body"><div class="window-rail"><i></i><i></i><i></i><i></i></div><div class="window-content"><span class="window-heading"></span><span class="window-line long"></span><span class="window-line"></span><span class="window-line short"></span><div class="window-cards"><i></i><i></i><i></i></div></div></div></div><span class="zone-label"><span class="letter">${id}</span><span class="dim"></span></span>`;
     mon.appendChild(z);
   }
   monitorBuilt = true;
@@ -61,7 +61,7 @@ function paintCards() {
       el.style.width = pct(z.w, w);
       el.style.top = pct(z.y, h);
       el.style.height = pct(z.h, h);
-      el.innerHTML = `<span class="letter">${id}</span>`;
+      el.innerHTML = `<div class="zone-window" aria-hidden="true"><div class="window-bar"><span class="window-dots"><i></i><i></i><i></i></span><span class="window-caption"></span></div><div class="window-body"><div class="window-rail"><i></i><i></i><i></i></div><div class="window-content"><span class="window-heading"></span><span class="window-line long"></span><span class="window-line"></span><div class="window-cards"><i></i><i></i></div></div></div></div><span class="zone-label"><span class="letter">${id}</span></span>`;
       mini.appendChild(el);
     }
     const info = document.createElement('div');
@@ -78,35 +78,12 @@ function paintCards() {
   }
 }
 
-let engineBusy = false;                       // mientras el motor arranca o se apaga, el interruptor no se toca solo
-function paintEngine() {
-  const el = $('engine');
-  el.className = 'motor engine-status ' + (state.engineUp ? 'up' : 'down');
-  $('engine-text').textContent = state.engineUp
-    ? (state.paused ? t('Motor activo · atajos en pausa') : t('Motor activo'))
-    : t('Motor detenido');
-  $('engine-hint').textContent = !state.engineUp
-    ? t('Enciende el motor para colocar ventanas y usar los atajos.')
-    : state.paused
-      ? t('El motor está activo, pero los atajos están en pausa.')
-      : t('El motor mueve las ventanas y atiende los atajos.');
-  const snapOn = !!state.engineUp && !!state.snap;
-  const watcherOn = !!state.engineUp && !!state.watcher;
-  const snapBadge = $('snap-badge');
-  snapBadge.textContent = t(snapOn ? 'Encaje activo' : 'Encaje apagado');
-  snapBadge.classList.toggle('active', snapOn);
-  const watcherBadge = $('watcher-badge');
-  watcherBadge.textContent = t(watcherOn ? 'Vigilante activo' : 'Vigilante apagado');
-  watcherBadge.classList.toggle('active', watcherOn);
-  $('quick-help-copy').textContent = !state.engineUp
-    ? t('Enciende el motor para empezar a colocar ventanas.')
-    : state.snap
+function paintOptions() {
+  $('quick-help-copy').textContent = state.snap
       ? t('Mantén {key} mientras arrastras una ventana a una zona. Puedes cambiar la tecla en Ajustes.', {
         key: ({ Shift: t('Mayús'), Ctrl: 'Ctrl', Alt: t('Alt / Option') })[config.options?.snapkey || 'Shift'],
       })
       : t('El encaje está apagado. Actívalo en Ajustes para colocar ventanas al arrastrarlas.');
-  const sw = $('engine-switch');
-  if (document.activeElement !== sw && !engineBusy) sw.checked = !!state.engineUp;
   const w = $('watcher');
   w.disabled = !state.engineUp;
   w.checked = !!state.watcher;
@@ -209,7 +186,7 @@ async function refresh() {
   paintMonitor(active);
   if (flashedProfile !== null && flashedProfile !== active.id) flashZones();     // no en la primera carga
   flashedProfile = active.id;
-  paintEngine();
+  paintOptions();
 
   // Solo reconstruimos las tarjetas si algo cambió.
   const key = JSON.stringify([config, state.profile]);
@@ -244,18 +221,5 @@ for (const [id, key] of [['opt-halves', 'halves'], ['opt-restore', 'restore'], [
     refresh();
   });
 $('engine-reload').addEventListener('click', () => window.zones.send({ type: 'reload' }).then(() => setTimeout(refresh, 1500)));
-// Interruptor del motor (Ajustes → Motor): encender lo arranca; apagarlo le manda cerrarse.
-$('engine-switch').addEventListener('change', async (e) => {
-  engineBusy = true;
-  try {
-    if (e.target.checked) await window.zones.startEngine();
-    else await window.zones.send({ type: 'quit' });
-  } catch (err) {
-    e.target.checked = !e.target.checked;                              // no se pudo: el interruptor vuelve a como estaba
-    window.zones.logError(`motor: ${err && err.message}`);
-  }
-  setTimeout(() => { engineBusy = false; refresh(); }, 2500);          // se espera a que el estado del motor cambie de verdad
-});
-
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 1000);     // minimizado u oculto: no se lee nada

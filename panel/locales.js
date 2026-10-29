@@ -15,6 +15,7 @@ const LOCALE_ROWS = [
   ['Ajusta las zonas de un perfil.', 'Adjust a profile’s zones.', 'Ajustez les zones d’un profil.', 'Passe die Zonen eines Profils an.', 'Ajuste as zonas de um perfil.', 'Regola le zone di un profilo.'],
   ['Cambia las combinaciones de teclado del motor.', 'Change the engine’s keyboard shortcuts.', 'Modifiez les raccourcis clavier du moteur.', 'Ändere die Tastenkombinationen der Engine.', 'Altere os atalhos de teclado do motor.', 'Cambia le combinazioni di tasti del motore.'],
   ['Modo juego, capa oscura y exclusiones.', 'Game mode, dim layer and exclusions.', 'Mode jeu, calque sombre et exclusions.', 'Spielmodus, Abdunkelung und Ausnahmen.', 'Modo jogo, camada escura e exclusões.', 'Modalità gioco, strato scuro ed esclusioni.'],
+  ['Personaliza cómo se comportan tus ventanas.', 'Customize how your windows behave.', 'Personnalisez le comportement de vos fenêtres.', 'Passe das Verhalten deiner Fenster an.', 'Personalize o comportamento das janelas.', 'Personalizza il comportamento delle finestre.'],
   ['Guía de uso de Zonely.', 'Zonely user guide.', 'Guide d’utilisation de Zonely.', 'Anleitung für Zonely.', 'Guia de uso do Zonely.', 'Guida all’uso di Zonely.'],
   ['Monitor al que se aplican las zonas', 'Display the zones apply to', 'Écran auquel s’appliquent les zones', 'Monitor, auf den die Zonen angewendet werden', 'Monitor ao qual as zonas se aplicam', 'Monitor a cui si applicano le zone'],
   ['Monitores conectados', 'Connected displays', 'Écrans connectés', 'Angeschlossene Monitore', 'Monitores conectados', 'Monitor collegati'],
@@ -23,7 +24,12 @@ const LOCALE_ROWS = [
 
   // ---- vista Zonas ----
   ['Tu monitor ahora', 'Your display right now', 'Votre écran maintenant', 'Dein Monitor jetzt', 'Seu monitor agora', 'Il tuo monitor ora'],
+  ['Distribución actual', 'Current layout', 'Disposition actuelle', 'Aktuelle Anordnung', 'Disposição atual', 'Disposizione attuale'],
+  ['Así se reparte el espacio de tu monitor.', 'This is how your display space is arranged.', 'Voici comment l’espace de votre écran est réparti.', 'So ist der Platz auf deinem Monitor aufgeteilt.', 'Veja como o espaço do monitor está distribuído.', 'Ecco come è distribuito lo spazio del monitor.'],
   ['Perfiles', 'Profiles', 'Profils', 'Profile', 'Perfis', 'Profili'],
+  ['Elige una distribución.', 'Choose a layout.', 'Choisissez une disposition.', 'Wähle eine Anordnung.', 'Escolha uma disposição.', 'Scegli una disposizione.'],
+  ['Editar', 'Edit', 'Modifier', 'Bearbeiten', 'Editar', 'Modifica'],
+  ['Editar los perfiles', 'Edit profiles', 'Modifier les profils', 'Profile bearbeiten', 'Editar perfis', 'Modifica i profili'],
   ['Estado de las funciones', 'Feature status', 'État des fonctions', 'Funktionsstatus', 'Estado dos recursos', 'Stato delle funzioni'],
   ['Encender o apagar el motor', 'Turn the engine on or off', 'Activer ou désactiver le moteur', 'Engine ein- oder ausschalten', 'Ligar ou desligar o motor', 'Accendi o spegni il motore'],
   ['Relee zones.ini (solo en desarrollo)', 'Reload zones.ini (development only)', 'Relit zones.ini (développement uniquement)', 'zones.ini neu laden (nur Entwicklung)', 'Relê zones.ini (somente desenvolvimento)', 'Rileggi zones.ini (solo sviluppo)'],

@@ -1,10 +1,11 @@
 // Navegación lateral: muestra una sola vista a la vez y recuerda la última.
 let devMode = false;      // el apartado Registro solo se muestra en desarrollo (ver abajo)
+document.documentElement.classList.toggle('windows-titlebar', window.zones.platform === 'win32');
 const VIEWS = {
   zonas:    [t('Zonas'), t('Tu monitor, tus perfiles y sus zonas.')],
   editor:   [t('Editor de perfiles'), t('Ajusta las zonas de un perfil.')],
   atajos:   [t('Atajos'), t('Cambia las combinaciones de teclado del motor.')],
-  ajustes:  [t('Ajustes'), t('Modo juego, capa oscura y exclusiones.')],
+  ajustes:  [t('Ajustes'), t('Personaliza cómo se comportan tus ventanas.')],
   manual:   [t('Manual'), t('Guía de uso de Zonely.')],
   registro: [t('Registro'), t('Lo que hace el motor y la última ventana usada.')],
 };     // IS_MAC viene de hotkeys.js

@@ -10,6 +10,11 @@
 <body>
 <div class="app" id="app" data-view="zonas">
 
+  <header class="window-chrome" aria-label="Zonely">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="13" height="13" rx="3" fill="#38bdf8"/><rect x="2" y="17" width="13" height="13" rx="3" fill="#5b7cf6"/><rect x="17" y="2" width="13" height="28" rx="3" fill="#8b5cf6"/></svg>
+    <span>Zonely</span>
+  </header>
+
   <!-- ===== Barra lateral ===== -->
   <aside class="side">
     <div class="brand">
@@ -78,42 +83,40 @@
         </div>
 
         <!-- ---- Vista: Zonas ---- -->
-        <div class="view on" data-view="zonas">
-          <section id="engine" class="motor engine-status">
-            <div class="engine-copy">
-              <h3><span class="dot"></span><span id="engine-text">Conectando…</span></h3>
-              <p class="hint" id="engine-hint">El motor mueve las ventanas y atiende los atajos.</p>
-              <div class="engine-flags" aria-label="Estado de las funciones">
-                <span class="engine-flag" id="snap-badge">Encaje apagado</span>
-                <span class="engine-flag" id="watcher-badge">Vigilante apagado</span>
+        <div class="view on home" data-view="zonas">
+          <div class="home-grid">
+            <section class="stage">
+              <div class="stage-head">
+                <div>
+                  <h3>Distribución actual</h3>
+                  <p class="hint">Así se reparte el espacio de tu monitor.</p>
+                </div>
+                <div class="stage-actions">
+                  <span class="chip" id="active-name">—</span>
+                  <button id="engine-reload" title="Relee zones.ini (solo en desarrollo)" hidden>Recargar</button>
+                </div>
               </div>
-            </div>
-            <label class="engine-toggle" title="Encender o apagar el motor">
-              <span>Motor</span>
-              <input type="checkbox" id="engine-switch" class="switch" aria-label="Encender o apagar el motor">
-            </label>
-            <button id="engine-reload" title="Relee zones.ini (solo en desarrollo)" hidden>Recargar (desarrollo)</button>
-          </section>
+              <div class="monitor" id="monitor"></div>
+            </section>
 
-          <section class="stage">
-            <div class="stage-head">
-              <h3>Tu monitor ahora</h3>
-              <span class="chip" id="active-name">—</span>
-            </div>
-            <div class="monitor" id="monitor"></div>
-          </section>
-
-          <section class="profiles">
-            <div class="stage-head">
-              <h3>Perfiles</h3>
-              <button id="edit-profile" class="primary">Editar perfil activo</button>
-            </div>
-            <div class="cards" id="cards"></div>
-          </section>
+            <section class="profiles">
+              <div class="stage-head">
+                <div>
+                  <h3>Perfiles</h3>
+                  <p class="hint">Elige una distribución.</p>
+                </div>
+                <button id="edit-profile" class="quiet-action" title="Editar los perfiles">Editar</button>
+              </div>
+              <div class="cards" id="cards"></div>
+            </section>
+          </div>
 
           <section class="quick-help">
-            <h3>Coloca una ventana en una zona</h3>
-            <p class="hint" id="quick-help-copy"></p>
+            <div class="help-mark" aria-hidden="true">i</div>
+            <div>
+              <h3>Coloca una ventana en una zona</h3>
+              <p class="hint" id="quick-help-copy"></p>
+            </div>
           </section>
         </div>
 

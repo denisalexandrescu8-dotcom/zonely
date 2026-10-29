@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## 0.61.0
+- **Panel:** rediseño de la vista de zonas para que las zonas se entiendan como partes del escritorio, con una interfaz más integrada y coherente.
+- **Selector de perfiles (Win+Alt+P):** paleta y botones alineados con el panel; las miniaturas del escritorio y sus botones se muestran sin esquinas redondeadas para evitar halos oscuros al reducirlos. La X cierra el selector correctamente.
+- **Aviso al cambiar de perfil:** color de fondo y borde alineados con las tarjetas del panel, con una miniatura más legible.
+
 ## 0.60.0
 - **Windows: conserva la ventana en su zona al salir del vídeo a pantalla completa.** El seguimiento ya no confunde el vídeo fullscreen con haber sacado la ventana de su zona; al volver, se repone también el borde fino oculto.
 

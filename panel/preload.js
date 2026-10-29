@@ -2,6 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('zones', {
+  platform: process.platform,
   lang: ipcRenderer.sendSync('lang:get'),            // idioma ya resuelto (es, en, fr, de, pt, it)
   setLanguage: (lang) => ipcRenderer.invoke('config:setLanguage', String(lang)),
   getConfig: () => ipcRenderer.invoke('config:get'),
