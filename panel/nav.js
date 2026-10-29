@@ -1,6 +1,7 @@
 // Navegación lateral: muestra una sola vista a la vez y recuerda la última.
 let devMode = false;      // el apartado Registro solo se muestra en desarrollo (ver abajo)
 document.documentElement.classList.toggle('windows-titlebar', window.zones.platform === 'win32');
+document.documentElement.classList.toggle('mac-titlebar', window.zones.platform === 'darwin');
 const VIEWS = {
   zonas:    [t('Zonas'), t('Tu monitor, tus perfiles y sus zonas.')],
   editor:   [t('Editor de perfiles'), t('Ajusta las zonas de un perfil.')],

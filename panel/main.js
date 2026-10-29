@@ -538,6 +538,10 @@ function createWindow() {
       titleBarStyle: 'hidden',
       titleBarOverlay: { color: '#0b0f17', symbolColor: '#94a3b8', height: 36 },
     } : {}),
+    ...(process.platform === 'darwin' ? {
+      titleBarStyle: 'hidden',
+      trafficLightPosition: { x: 14, y: 14 },
+    } : {}),
     ...(process.platform === 'win32' ? { icon: path.join(ROOT, 'assets', 'zonely.ico') } : {}),    // en macOS el icono es el de la app
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

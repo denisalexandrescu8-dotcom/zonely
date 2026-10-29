@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## 0.61.2
+- **macOS:** la barra lateral y la parte superior de la ventana comparten fondo; los controles de ventana quedan integrados en una misma superficie.
+- **Vista Zonas:** el panel central aprovecha el ancho disponible al redimensionar la ventana, y su contenido se redistribuye.
+
 ## 0.61.1
 - **Windows:** se incluyen en el instalador los recursos gráficos del selector de perfiles. Esto corrige el error que impedía abrirlo con Win+Alt+P en la versión 0.61.0.
 
