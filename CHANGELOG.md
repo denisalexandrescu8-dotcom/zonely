@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.61.1
+- **Windows:** se incluyen en el instalador los recursos gráficos del selector de perfiles. Esto corrige el error que impedía abrirlo con Win+Alt+P en la versión 0.61.0.
+
 ## 0.61.0
 - **Panel:** rediseño de la vista de zonas para que las zonas se entiendan como partes del escritorio, con una interfaz más integrada y coherente.
 - **Selector de perfiles (Win+Alt+P):** paleta y botones alineados con el panel; las miniaturas del escritorio y sus botones se muestran sin esquinas redondeadas para evitar halos oscuros al reducirlos. La X cierra el selector correctamente.

@@ -71,6 +71,26 @@
         {
           "from": "../dist/engine/ZonelyEngine.exe",
           "to": "ZonelyEngine.exe"
+        },
+        {
+          "from": "../assets/zonely.png",
+          "to": "assets/zonely.png"
+        },
+        {
+          "from": "../assets/profile-row.png",
+          "to": "assets/profile-row.png"
+        },
+        {
+          "from": "../assets/profile-row-active.png",
+          "to": "assets/profile-row-active.png"
+        },
+        {
+          "from": "../assets/profile-button.png",
+          "to": "assets/profile-button.png"
+        },
+        {
+          "from": "../assets/profile-button-active.png",
+          "to": "assets/profile-button-active.png"
         }
       ]
     },
