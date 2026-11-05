@@ -75,9 +75,9 @@ final class Engine {
             guard let self = self, !self.state.paused else { return }
             // Cada acción actúa sobre el monitor de la ventana activa; el selector, el del cursor; el vigilante y la capa oscura
             // son del monitor principal.
-            let point: CGPoint? = ["ToggleDim", "ToggleWatcher", "SwitchProfile"].contains(id) ? nil
-                : (Accessibility.focusedWindow()?.frame).map { CGPoint(x: $0.midX, y: $0.midY) }
-            self.inMonitor(at: point) { self.windows.perform(id) }
+            let frame: CGRect? = ["ToggleDim", "ToggleWatcher", "SwitchProfile"].contains(id) ? nil
+                : Accessibility.focusedWindow()?.frame
+            self.inMonitor(windowFrame: frame) { self.windows.perform(id) }
         }
         reloadConfig()
         if !Accessibility.isTrusted(prompt: true) {
@@ -370,6 +370,13 @@ final class Engine {
     /// después vuelve al principal.
     func inMonitor<T>(at point: CGPoint?, _ body: () -> T) -> T {
         if let point = point { _ = useMonitor(at: point) }
+        defer { useMain() }
+        return body()
+    }
+
+    /// Ejecuta una acción con el perfil de la pantalla que contiene la mayor parte de la ventana.
+    func inMonitor<T>(windowFrame: CGRect?, _ body: () -> T) -> T {
+        if let frame = windowFrame, let id = Screens.id(intersecting: frame) { _ = useMonitor(id: id) }
         defer { useMain() }
         return body()
     }

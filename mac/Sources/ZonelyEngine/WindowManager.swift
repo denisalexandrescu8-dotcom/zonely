@@ -337,8 +337,8 @@ final class WindowManager {
             return
         }
         // La ventana activa se vigila con las zonas de su monitor; recuperar el tamaño sirve para todos.
-        let center = (Accessibility.focusedWindow()?.frame).map { CGPoint(x: $0.midX, y: $0.midY) }
-        engine.inMonitor(at: center) { () -> Void in
+        let frame = Accessibility.focusedWindow()?.frame
+        engine.inMonitor(windowFrame: frame) { () -> Void in
             guard profile?.isZoned == true else {
                 lastNormal = nil
                 return

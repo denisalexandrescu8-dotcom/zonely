@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.62.1
+- **macOS:** el vigilante de maximizado y los atajos que actúan sobre una ventana usan el monitor que contiene la mayor parte de esa ventana. Esto evita aplicar el perfil de otra pantalla cuando la ventana se maximiza cerca de un límite o durante la animación de macOS.
+
 ## 0.62.0
 - **Perfiles por monitor desde el arranque:** Zonely prepara un conjunto independiente para cada monitor conectado, aunque no lo hayas elegido antes en el panel. Win+Alt+P detecta el monitor bajo el cursor y usa sus perfiles desde el primer momento; los monitores conectados después se preparan al usarlos.
 

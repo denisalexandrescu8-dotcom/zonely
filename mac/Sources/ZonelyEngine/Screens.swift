@@ -51,6 +51,19 @@ enum Screens {
         NSScreen.screens.first { Geometry.axRect(fromAppKit: $0.frame, primaryHeight: primaryHeight).contains(point) }.map { id(of: $0) }
     }
 
+    /// Identificador de la pantalla que ocupa la mayor parte de una ventana en coordenadas de Accesibilidad.
+    /// El centro puede caer en un hueco o justo en un límite mientras macOS termina de maximizarla.
+    static func id(intersecting window: CGRect) -> String? {
+        let screens = NSScreen.screens.map { screen in
+            (id: id(of: screen), frame: Geometry.axRect(fromAppKit: screen.frame, primaryHeight: primaryHeight))
+        }
+        return screens.compactMap { screen -> (id: String, area: CGFloat)? in
+            let overlap = window.intersection(screen.frame)
+            let area = overlap.isNull ? 0 : overlap.width * overlap.height
+            return area > 0 ? (screen.id, area) : nil
+        }.max { $0.area < $1.area }?.id
+    }
+
     /// Nombre de la pantalla (el que le da macOS), solo si hay más de una conectada.
     static func name(of id: String) -> String? {
         guard NSScreen.screens.count > 1 else { return nil }
