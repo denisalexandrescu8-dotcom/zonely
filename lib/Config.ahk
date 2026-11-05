@@ -115,6 +115,13 @@ class Config {
         this.IniPath := mainIni
         for name, value in main
             this.%name% := value
+        ; Cada pantalla conectada tiene contexto desde el arranque, aunque nunca se haya elegido
+        ; en el panel. Los monitores conectados después se aprovisionan de forma perezosa en Use().
+        Loop MonitorGetCount() {
+            id := MonitorGetName(A_Index)
+            if id != this.MainId && !this.Parked.Has(id)
+                this._ProvisionMonitor(id)
+        }
     }
 
     static MonitorConnected(id) {
@@ -128,7 +135,10 @@ class Config {
     static Use(id) {
         if id = this.MonId
             return true
-        if !this.Parked.Has(id)
+        ; El panel ya no tiene que «registrar» un monitor antes de usarlo. Al abrir el selector
+        ; Win+Alt+P sobre una pantalla nueva, creamos su archivo con una copia del conjunto
+        ; actual (igual que hacía el panel al elegirla) y el motor conserva desde aquí su contexto.
+        if !this.Parked.Has(id) && !this._ProvisionMonitor(id)
             return false
         cur := Map()
         for name in this.CtxFields
@@ -139,6 +149,57 @@ class Config {
         for name, value in next
             this.%name% := value
         return true
+    }
+
+    ; Crea o carga el conjunto de perfiles de un monitor conectado que todavía no estaba en
+    ; Parked. Si hay un archivo de una conexión anterior, se reutiliza; si no, se copia el
+    ; conjunto activo para que el monitor tenga sus propios perfiles desde el primer atajo.
+    static _ProvisionMonitor(id) {
+        if !this.MonitorConnected(id)
+            return false
+        DirCreate(DataDir "\monitors")
+        path := DataDir "\monitors\" this.Slug(id) ".ini"
+        if !FileExist(path) {
+            try {
+                FileCopy(this.IniPath, path, 1)
+                IniWrite(id, path, "Monitor", "Id")
+            } catch Error as e {
+                try Log("No pude crear el perfil del monitor " id ": " e.Message, "WARN")
+                return false
+            }
+        }
+
+        saved := Map()
+        for name in this.CtxFields
+            saved[name] := this.%name%
+        oldIni := this.IniPath
+        try {
+            this.IniPath := path
+            this.DesignW := Integer(IniRead(path, "Monitor", "Width", saved["DesignW"]))
+            this.DesignH := Integer(IniRead(path, "Monitor", "Height", saved["DesignH"]))
+            this._ResolveMonitor(id)
+            this._LoadProfiles()
+            if this.Profiles.Count = 0
+                return false
+            this.ProfileName := IniRead(path, "General", "Profile", saved["ProfileName"])
+            last := this.LastProfile(id)
+            if last != "" && this.Profiles.Has(last)
+                this.ProfileName := last
+            if !this.Profiles.Has(this.ProfileName)
+                this.ProfileName := this.ProfileOrder[1]
+            snap := Map()
+            for name in this.CtxFields
+                snap[name] := this.%name%
+            this.Parked[id] := snap
+            return true
+        } catch Error as e {
+            try Log("No pude cargar el perfil del monitor " id ": " e.Message, "WARN")
+            return false
+        } finally {
+            this.IniPath := oldIni
+            for name, value in saved
+                this.%name% := value
+        }
     }
 
     static UseMain() => this.Use(this.MainId)

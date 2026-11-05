@@ -1,5 +1,8 @@
 # Historial de versiones
 
+## 0.62.0
+- **Perfiles por monitor desde el arranque:** Zonely prepara un conjunto independiente para cada monitor conectado, aunque no lo hayas elegido antes en el panel. Win+Alt+P detecta el monitor bajo el cursor y usa sus perfiles desde el primer momento; los monitores conectados después se preparan al usarlos.
+
 ## 0.61.3
 - **Ajustes:** las filas y sus controles aprovechan el ancho disponible de la ventana.
 - **Manual:** deja de estar integrado en el panel. La guía actualizada queda en GitHub e incluye instrucciones para Windows y macOS.
