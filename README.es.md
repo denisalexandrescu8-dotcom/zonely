@@ -6,6 +6,12 @@ Zonely divide un monitor grande en **zonas** independientes y coloca tus ventana
 
 > **Estado:** Windows es la versión madura; la de **macOS (Apple Silicon) es nueva y experimental**. Software joven: puede tener asperezas. Las incidencias y los *pull requests* son bienvenidos.
 
+## Vídeo
+
+[![Zonely en 33 segundos: arrastrar una ventana a una zona, ajustar las zonas y cambiar de perfil](assets/media/zonely-promo-poster.png)](assets/media/zonely-promo-1080p.mp4)
+
+Resumen de 33 segundos, sólo con música (sin voz ni subtítulos): arrastra una ventana a una zona, mueve los divisores para ajustar las zonas y cambia entre perfiles guardados. Pulsa la imagen para ver el MP4.
+
 ## Qué hace
 - **Varios monitores** — elige a cuál se aplican las zonas (Monitor, abajo a la izquierda del panel). **Cada monitor guarda sus propios perfiles**: puedes usar «normal» en uno y «ultrawide» en otro.
 - **Zonas y perfiles** — «ultrawide» (3440 + 1680), «dual» (2560 + 2560), «centrado» (16:9 en el centro y una zona a cada lado) y «normal» (sin zonas: Zonely no toca tus ventanas). **Editor de perfiles:** crea tus propios perfiles y divide la pantalla **en vertical y en horizontal** a tu gusto (hasta 6 zonas), arrastra las líneas para ajustar, copia o elimina perfiles.
